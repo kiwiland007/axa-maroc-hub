@@ -29,14 +29,28 @@ const Footer = () => {
     <footer className="bg-axa-gray-dark text-white">
       <div className="container mx-auto px-4 py-16">
         <div className="grid lg:grid-cols-4 md:grid-cols-2 gap-8">
-          {/* Informations entreprise */}
+          {/* Informations entreprise avec logo amélioré */}
           <div>
-            <div className="mb-6">
-              <img 
-                src="/lovable-uploads/545e624c-1ef4-4d84-864b-14d270f5ae44.png" 
-                alt="MOUMEN TECHNIQUE ET PREVOYANCE" 
-                className="h-16 w-auto filter brightness-0 invert"
-              />
+            <div className="mb-6 group">
+              <div className="relative">
+                <img 
+                  src="/lovable-uploads/545e624c-1ef4-4d84-864b-14d270f5ae44.png" 
+                  alt="MOUMEN TECHNIQUE ET PREVOYANCE" 
+                  className="h-20 w-auto filter brightness-0 invert transition-transform duration-300 group-hover:scale-105"
+                />
+                <div className="absolute -bottom-1 left-0 w-full h-1 bg-gradient-to-r from-axa-red to-orange-500 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+              </div>
+              <div className="mt-3">
+                <div className="text-lg font-bold leading-tight">
+                  MOUMEN TECHNIQUE
+                </div>
+                <div className="text-axa-red font-semibold">
+                  & PREVOYANCE
+                </div>
+                <div className="text-xs text-gray-400 mt-1">
+                  Agent Général AXA
+                </div>
+              </div>
             </div>
             
             <p className="text-gray-300 mb-6 leading-relaxed">
@@ -66,13 +80,16 @@ const Footer = () => {
 
           {/* Liens rapides */}
           <div>
-            <h3 className="text-lg font-semibold mb-6">Liens Rapides</h3>
+            <h3 className="text-lg font-semibold mb-6 relative">
+              Liens Rapides
+              <div className="absolute -bottom-2 left-0 w-12 h-0.5 bg-axa-red"></div>
+            </h3>
             <ul className="space-y-3">
               {quickLinks.map((link, index) => (
                 <li key={index}>
                   <a 
                     href={link.href} 
-                    className="text-gray-300 hover:text-white transition-colors"
+                    className="text-gray-300 hover:text-white transition-colors hover:translate-x-1 transform duration-200 inline-block"
                   >
                     {link.name}
                   </a>
@@ -83,13 +100,16 @@ const Footer = () => {
 
           {/* Nos produits */}
           <div>
-            <h3 className="text-lg font-semibold mb-6">Nos Produits</h3>
+            <h3 className="text-lg font-semibold mb-6 relative">
+              Nos Produits
+              <div className="absolute -bottom-2 left-0 w-12 h-0.5 bg-axa-red"></div>
+            </h3>
             <ul className="space-y-3">
               {products.map((product, index) => (
                 <li key={index}>
                   <a 
                     href={product.href} 
-                    className="text-gray-300 hover:text-white transition-colors"
+                    className="text-gray-300 hover:text-white transition-colors hover:translate-x-1 transform duration-200 inline-block"
                   >
                     {product.name}
                   </a>
@@ -100,13 +120,16 @@ const Footer = () => {
 
           {/* Informations légales */}
           <div>
-            <h3 className="text-lg font-semibold mb-6">Informations Légales</h3>
+            <h3 className="text-lg font-semibold mb-6 relative">
+              Informations Légales
+              <div className="absolute -bottom-2 left-0 w-12 h-0.5 bg-axa-red"></div>
+            </h3>
             <ul className="space-y-3">
               {legal.map((item, index) => (
                 <li key={index}>
                   <a 
                     href={item.href} 
-                    className="text-gray-300 hover:text-white transition-colors"
+                    className="text-gray-300 hover:text-white transition-colors hover:translate-x-1 transform duration-200 inline-block"
                   >
                     {item.name}
                   </a>
@@ -114,8 +137,8 @@ const Footer = () => {
               ))}
             </ul>
 
-            <div className="mt-6 p-4 bg-white/10 rounded-lg">
-              <h4 className="font-semibold mb-2">Agréments</h4>
+            <div className="mt-6 p-4 bg-white/10 backdrop-blur-sm rounded-lg border border-white/20">
+              <h4 className="font-semibold mb-2 text-axa-red">Agréments</h4>
               <p className="text-sm text-gray-300">
                 Agent Général AXA<br />
                 Agréé ACAPS<br />
@@ -135,8 +158,8 @@ const Footer = () => {
             </p>
             <div className="flex items-center space-x-4 mt-4 md:mt-0">
               <span className="text-sm text-gray-300">Propulsé par AXA</span>
-              <div className="w-8 h-6 bg-white rounded flex items-center justify-center">
-                <span className="text-axa-gray-dark font-bold text-xs">AXA</span>
+              <div className="w-10 h-8 bg-white rounded flex items-center justify-center shadow-lg">
+                <span className="text-axa-gray-dark font-bold text-sm">AXA</span>
               </div>
             </div>
           </div>
