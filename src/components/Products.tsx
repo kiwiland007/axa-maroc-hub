@@ -10,22 +10,25 @@ const Products = () => {
       title: 'Assurance Auto',
       description: 'Protection complète pour votre véhicule : responsabilité civile, tous risques, vol, incendie.',
       features: ['Assistance 24h/7j', 'Véhicule de remplacement', 'Protection du conducteur'],
-      color: 'from-blue-500 to-blue-600',
-      popular: true
+      color: 'from-axa-red to-red-500',
+      popular: true,
+      image: 'https://images.unsplash.com/photo-1649972904349-6e44c42644a7?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80'
     },
     {
       icon: Home,
       title: 'Assurance Habitation',
       description: 'Protégez votre logement contre les risques : incendie, dégâts des eaux, vol, catastrophes naturelles.',
       features: ['Responsabilité civile vie privée', 'Assistance habitation', 'Garantie mobilier'],
-      color: 'from-green-500 to-green-600'
+      color: 'from-axa-green to-green-500',
+      image: 'https://images.unsplash.com/photo-1488590528505-98d2b5aba04b?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80'
     },
     {
       icon: Heart,
       title: 'Assurance Santé',
       description: 'Couverture médicale complète pour vous et votre famille. Remboursements rapides.',
       features: ['Médecine générale', 'Hospitalisation', 'Dentaire et optique'],
-      color: 'from-red-500 to-red-600'
+      color: 'from-axa-orange to-orange-500',
+      image: 'https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80'
     },
     {
       icon: Shield,
@@ -51,10 +54,10 @@ const Products = () => {
   ];
 
   return (
-    <section id="produits" className="py-20 bg-axa-gray-light">
+    <section id="produits" className="py-20 bg-white">
       <div className="container mx-auto px-4">
         <div className="text-center mb-16">
-          <h2 className="text-4xl font-bold text-axa-blue mb-4">
+          <h2 className="text-4xl font-bold text-axa-gray-dark mb-4">
             Nos Solutions d'Assurance
           </h2>
           <p className="text-xl text-axa-gray max-w-3xl mx-auto">
@@ -72,16 +75,26 @@ const Products = () => {
               }`}
             >
               {product.popular && (
-                <div className="absolute top-0 right-0 bg-axa-red text-white px-3 py-1 text-sm font-medium">
+                <div className="absolute top-0 right-0 bg-axa-red text-white px-3 py-1 text-sm font-medium z-10">
                   Populaire
                 </div>
               )}
               
+              {product.image && (
+                <div className="h-32 overflow-hidden">
+                  <img 
+                    src={product.image} 
+                    alt={product.title}
+                    className="w-full h-full object-cover opacity-80"
+                  />
+                </div>
+              )}
+              
               <CardHeader className="pb-4">
-                <div className={`w-16 h-16 rounded-lg bg-gradient-to-r ${product.color} flex items-center justify-center mb-4`}>
+                <div className={`w-16 h-16 rounded-lg bg-gradient-to-r ${product.color} flex items-center justify-center mb-4 ${product.image ? 'relative -mt-8 z-10 border-4 border-white' : ''}`}>
                   <product.icon className="h-8 w-8 text-white" />
                 </div>
-                <CardTitle className="text-xl text-axa-blue">{product.title}</CardTitle>
+                <CardTitle className="text-xl text-axa-gray-dark">{product.title}</CardTitle>
               </CardHeader>
               
               <CardContent>
@@ -92,14 +105,14 @@ const Products = () => {
                 <div className="space-y-2 mb-6">
                   {product.features.map((feature, idx) => (
                     <div key={idx} className="flex items-center space-x-2">
-                      <div className="w-2 h-2 bg-axa-blue rounded-full"></div>
+                      <div className="w-2 h-2 bg-axa-red rounded-full"></div>
                       <span className="text-sm text-gray-600">{feature}</span>
                     </div>
                   ))}
                 </div>
                 
                 <Button 
-                  className="w-full bg-axa-blue hover:bg-axa-blue-dark text-white group"
+                  className="w-full bg-axa-gray-dark hover:bg-axa-gray-dark/90 text-white group"
                 >
                   En savoir plus
                   <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />

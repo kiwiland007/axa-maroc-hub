@@ -30,12 +30,22 @@ const About = () => {
   ];
 
   return (
-    <section id="apropos" className="py-20 bg-white">
-      <div className="container mx-auto px-4">
+    <section id="apropos" className="py-20 bg-gradient-to-br from-white to-axa-blue-light relative">
+      {/* Background image */}
+      <div 
+        className="absolute inset-0 opacity-5"
+        style={{
+          backgroundImage: `url("https://images.unsplash.com/photo-1605810230434-7631ac76ec81?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80")`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center'
+        }}
+      ></div>
+      
+      <div className="container mx-auto px-4 relative">
         <div className="grid lg:grid-cols-2 gap-16 items-center">
           {/* Contenu textuel */}
           <div>
-            <h2 className="text-4xl font-bold text-axa-blue mb-6">
+            <h2 className="text-4xl font-bold text-axa-gray-dark mb-6">
               MOUMEN TECHNIQUE & PREVOYANCE
             </h2>
             <h3 className="text-xl text-axa-red mb-6">
@@ -63,11 +73,11 @@ const About = () => {
 
             {/* Nos valeurs */}
             <div className="mt-8">
-              <h4 className="text-lg font-semibold text-axa-blue mb-4">Nos Valeurs</h4>
+              <h4 className="text-lg font-semibold text-axa-gray-dark mb-4">Nos Valeurs</h4>
               <div className="grid sm:grid-cols-2 gap-4">
                 {values.map((value, index) => (
-                  <div key={index} className="border-l-4 border-axa-red pl-4">
-                    <h5 className="font-semibold text-axa-blue">{value.title}</h5>
+                  <div key={index} className="border-l-4 border-axa-red pl-4 bg-white/50 p-3 rounded-r-lg">
+                    <h5 className="font-semibold text-axa-gray-dark">{value.title}</h5>
                     <p className="text-sm text-axa-gray">{value.description}</p>
                   </div>
                 ))}
@@ -80,10 +90,10 @@ const About = () => {
             {/* Statistiques */}
             <div className="grid grid-cols-2 gap-4">
               {stats.map((stat, index) => (
-                <Card key={index} className="text-center p-6 border-2 border-gray-100 hover:border-axa-blue transition-colors">
+                <Card key={index} className="text-center p-6 border-2 border-gray-100 hover:border-axa-red transition-colors bg-white/90">
                   <CardContent className="p-0">
                     <stat.icon className="h-8 w-8 text-axa-red mx-auto mb-2" />
-                    <div className="text-3xl font-bold text-axa-blue mb-1">{stat.number}</div>
+                    <div className="text-3xl font-bold text-axa-gray-dark mb-1">{stat.number}</div>
                     <div className="text-sm text-axa-gray">{stat.label}</div>
                   </CardContent>
                 </Card>
@@ -91,7 +101,7 @@ const About = () => {
             </div>
 
             {/* Informations de contact */}
-            <Card className="bg-axa-blue text-white">
+            <Card className="bg-axa-gray-dark text-white">
               <CardContent className="p-6">
                 <h4 className="text-lg font-semibold mb-4">Informations de Contact</h4>
                 <div className="space-y-3">
@@ -112,10 +122,10 @@ const About = () => {
             </Card>
 
             {/* Certifications */}
-            <Card className="bg-axa-gray-light">
+            <Card className="bg-axa-red-light border-axa-red">
               <CardContent className="p-6 text-center">
                 <Award className="h-12 w-12 text-axa-red mx-auto mb-3" />
-                <h4 className="font-semibold text-axa-blue mb-2">Agréments & Certifications</h4>
+                <h4 className="font-semibold text-axa-gray-dark mb-2">Agréments & Certifications</h4>
                 <p className="text-sm text-axa-gray">
                   Agent Général AXA agréé par l'ACAPS<br />
                   Licence d'intermédiation n° XXXX

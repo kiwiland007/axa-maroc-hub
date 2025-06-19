@@ -63,15 +63,19 @@ export default {
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
 				},
-				// Couleurs AXA personnalisées
+				// Palette de couleurs améliorée avec moins de bleu dominant
 				axa: {
-					blue: '#00008F',
-					'blue-light': '#1E3A8A',
-					'blue-dark': '#000066',
+					blue: '#003366',
+					'blue-light': '#E8F1F8',
+					'blue-dark': '#001122',
 					red: '#DC2626',
-					'red-light': '#EF4444',
+					'red-light': '#FEF2F2',
 					gray: '#64748B',
-					'gray-light': '#F1F5F9'
+					'gray-light': '#F8FAFC',
+					'gray-dark': '#374151',
+					white: '#FFFFFF',
+					green: '#059669',
+					orange: '#EA580C'
 				}
 			},
 			borderRadius: {

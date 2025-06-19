@@ -16,7 +16,7 @@ const Header = () => {
   return (
     <header className="fixed top-0 w-full bg-white/95 backdrop-blur-sm border-b border-gray-200 z-50">
       {/* Top bar avec informations de contact */}
-      <div className="bg-axa-blue text-white py-2 hidden md:block">
+      <div className="bg-axa-gray-dark text-white py-2 hidden md:block">
         <div className="container mx-auto px-4 flex justify-between items-center text-sm">
           <div className="flex items-center space-x-6">
             <div className="flex items-center space-x-2">
@@ -39,13 +39,11 @@ const Header = () => {
         <div className="flex justify-between items-center">
           {/* Logo */}
           <div className="flex items-center space-x-3">
-            <div className="w-12 h-12 bg-axa-blue rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold text-xl">MT</span>
-            </div>
-            <div>
-              <h1 className="text-xl font-bold text-axa-blue">MOUMEN TECHNIQUE</h1>
-              <p className="text-sm text-axa-gray">& PREVOYANCE</p>
-            </div>
+            <img 
+              src="/lovable-uploads/545e624c-1ef4-4d84-864b-14d270f5ae44.png" 
+              alt="MOUMEN TECHNIQUE ET PREVOYANCE" 
+              className="h-12 w-auto"
+            />
           </div>
 
           {/* Navigation desktop */}
@@ -54,7 +52,7 @@ const Header = () => {
               <a
                 key={item.name}
                 href={item.href}
-                className="text-gray-700 hover:text-axa-blue transition-colors font-medium"
+                className="text-axa-gray-dark hover:text-axa-red transition-colors font-medium"
               >
                 {item.name}
               </a>
@@ -70,7 +68,7 @@ const Header = () => {
               variant="ghost"
               size="sm"
               onClick={() => setIsMenuOpen(!isMenuOpen)}
-              className="text-axa-blue"
+              className="text-axa-gray-dark"
             >
               {isMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
             </Button>
@@ -85,7 +83,7 @@ const Header = () => {
                 <a
                   key={item.name}
                   href={item.href}
-                  className="text-gray-700 hover:text-axa-blue transition-colors font-medium"
+                  className="text-axa-gray-dark hover:text-axa-red transition-colors font-medium"
                   onClick={() => setIsMenuOpen(false)}
                 >
                   {item.name}
