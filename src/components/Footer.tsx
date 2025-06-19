@@ -29,26 +29,30 @@ const Footer = () => {
     <footer className="bg-axa-gray-dark text-white">
       <div className="container mx-auto px-4 py-16">
         <div className="grid lg:grid-cols-4 md:grid-cols-2 gap-8">
-          {/* Informations entreprise avec logo amélioré */}
+          {/* Informations entreprise avec logo largement amélioré */}
           <div>
-            <div className="mb-6 group">
+            <div className="mb-8 group">
               <div className="relative">
                 <img 
                   src="/lovable-uploads/545e624c-1ef4-4d84-864b-14d270f5ae44.png" 
                   alt="MOUMEN TECHNIQUE ET PREVOYANCE" 
-                  className="h-20 w-auto filter brightness-0 invert transition-transform duration-300 group-hover:scale-105"
+                  className="h-28 w-auto filter brightness-0 invert transition-all duration-300 group-hover:scale-110 drop-shadow-2xl"
                 />
-                <div className="absolute -bottom-1 left-0 w-full h-1 bg-gradient-to-r from-axa-red to-orange-500 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                <div className="absolute -bottom-2 left-0 w-full h-2 bg-gradient-to-r from-axa-red via-orange-500 to-yellow-500 rounded-full opacity-0 group-hover:opacity-100 transition-all duration-500 shadow-lg"></div>
+                <div className="absolute inset-0 bg-gradient-to-br from-transparent via-white/10 to-transparent rounded-lg opacity-0 group-hover:opacity-30 transition-opacity duration-300"></div>
               </div>
-              <div className="mt-3">
-                <div className="text-lg font-bold leading-tight">
+              <div className="mt-4">
+                <div className="text-xl font-bold leading-tight tracking-wide">
                   MOUMEN TECHNIQUE
                 </div>
-                <div className="text-axa-red font-semibold">
+                <div className="text-axa-red font-bold text-lg tracking-wider">
                   & PREVOYANCE
                 </div>
-                <div className="text-xs text-gray-400 mt-1">
+                <div className="text-sm text-gray-400 mt-2 font-medium">
                   Agent Général AXA
+                </div>
+                <div className="text-xs text-orange-400 font-semibold">
+                  ✓ Agréé ACAPS - Plus de 20 ans d'expérience
                 </div>
               </div>
             </div>
@@ -158,7 +162,7 @@ const Footer = () => {
             </p>
             <div className="flex items-center space-x-4 mt-4 md:mt-0">
               <span className="text-sm text-gray-300">Propulsé par AXA</span>
-              <div className="w-10 h-8 bg-white rounded flex items-center justify-center shadow-lg">
+              <div className="w-12 h-10 bg-white rounded flex items-center justify-center shadow-lg">
                 <span className="text-axa-gray-dark font-bold text-sm">AXA</span>
               </div>
             </div>

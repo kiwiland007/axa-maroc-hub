@@ -35,27 +35,31 @@ const Header = () => {
       </div>
 
       {/* Navigation principale */}
-      <nav className="container mx-auto px-4 py-4">
+      <nav className="container mx-auto px-4 py-6">
         <div className="flex justify-between items-center">
-          {/* Logo amélioré */}
-          <div className="flex items-center space-x-3 group">
+          {/* Logo largement amélioré et plus visible */}
+          <div className="flex items-center space-x-4 group">
             <div className="relative">
               <img 
                 src="/lovable-uploads/545e624c-1ef4-4d84-864b-14d270f5ae44.png" 
                 alt="MOUMEN TECHNIQUE ET PREVOYANCE" 
-                className="h-16 w-auto transition-transform duration-300 group-hover:scale-105 drop-shadow-lg"
+                className="h-24 w-auto md:h-28 lg:h-32 transition-all duration-300 group-hover:scale-110 drop-shadow-2xl filter brightness-105 contrast-110"
               />
-              <div className="absolute -bottom-1 left-0 w-full h-1 bg-gradient-to-r from-axa-red to-orange-500 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+              <div className="absolute -bottom-2 left-0 w-full h-2 bg-gradient-to-r from-axa-red via-orange-500 to-yellow-500 rounded-full opacity-0 group-hover:opacity-100 transition-all duration-500 shadow-lg"></div>
+              <div className="absolute inset-0 bg-gradient-to-br from-transparent via-white/10 to-transparent rounded-lg opacity-0 group-hover:opacity-30 transition-opacity duration-300"></div>
             </div>
-            <div className="hidden lg:block">
-              <div className="text-lg font-bold text-axa-gray-dark leading-tight">
+            <div className="hidden lg:block ml-2">
+              <div className="text-2xl font-bold text-axa-gray-dark leading-tight tracking-wide">
                 MOUMEN TECHNIQUE
               </div>
-              <div className="text-sm text-axa-red font-semibold">
+              <div className="text-lg text-axa-red font-bold tracking-wider">
                 & PREVOYANCE
               </div>
-              <div className="text-xs text-axa-gray">
+              <div className="text-sm text-axa-gray font-medium mt-1">
                 Agent Général AXA
+              </div>
+              <div className="text-xs text-orange-600 font-semibold">
+                ✓ Agréé ACAPS - Plus de 20 ans d'expérience
               </div>
             </div>
           </div>
