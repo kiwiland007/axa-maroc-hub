@@ -5,15 +5,41 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { Users, Search, Filter, Phone, Mail, Calendar, MoreHorizontal, UserPlus, Download } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Users, Search, Phone, Mail, Calendar, UserPlus, Download, X } from 'lucide-react';
 import { toast } from 'sonner';
+
+interface Lead {
+  id: number;
+  name: string;
+  email: string;
+  phone: string;
+  type: string;
+  status: string;
+  source: string;
+  date: string;
+  lastContact: string;
+  notes: string;
+}
 
 const LeadsManager = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [typeFilter, setTypeFilter] = useState('all');
+  const [isNewLeadDialogOpen, setIsNewLeadDialogOpen] = useState(false);
+  
+  const [newLead, setNewLead] = useState({
+    name: '',
+    email: '',
+    phone: '',
+    type: '',
+    source: '',
+    notes: ''
+  });
 
-  const [leads, setLeads] = useState([
+  const [leads, setLeads] = useState<Lead[]>([
     { 
       id: 1, 
       name: 'Ahmed Benali', 
@@ -99,7 +125,7 @@ const LeadsManager = () => {
     toast.success('Statut mis à jour');
   };
 
-  const handleContact = (lead: any, method: 'call' | 'email') => {
+  const handleContact = (lead: Lead, method: 'call' | 'email') => {
     if (method === 'call') {
       toast.success(`Appel vers ${lead.name} - ${lead.phone}`);
     } else {
@@ -115,6 +141,33 @@ const LeadsManager = () => {
     );
   };
 
+  const handleAddLead = (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!newLead.name || !newLead.email || !newLead.phone || !newLead.type || !newLead.source) {
+      toast.error('Veuillez remplir tous les champs obligatoires');
+      return;
+    }
+
+    const lead: Lead = {
+      id: Math.max(...leads.map(l => l.id)) + 1,
+      name: newLead.name,
+      email: newLead.email,
+      phone: newLead.phone,
+      type: newLead.type,
+      status: 'Nouveau',
+      source: newLead.source,
+      date: new Date().toISOString().split('T')[0],
+      lastContact: new Date().toISOString().split('T')[0],
+      notes: newLead.notes || 'Nouveau lead ajouté manuellement'
+    };
+
+    setLeads(prev => [lead, ...prev]);
+    setNewLead({ name: '', email: '', phone: '', type: '', source: '', notes: '' });
+    setIsNewLeadDialogOpen(false);
+    toast.success('Nouveau lead ajouté avec succès !');
+  };
+
   const filteredLeads = leads.filter(lead => {
     const matchesSearch = lead.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          lead.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -127,7 +180,7 @@ const LeadsManager = () => {
 
   const exportLeads = () => {
     toast.success('Export des leads en cours...');
-    // Ici on implémenterait l'export réel
+    // Export functionality would be implemented here
   };
 
   return (
@@ -142,14 +195,134 @@ const LeadsManager = () => {
             <Download className="h-4 w-4 mr-2" />
             Exporter
           </Button>
-          <Button className="bg-axa-red hover:bg-axa-red/90">
-            <UserPlus className="h-4 w-4 mr-2" />
-            Nouveau Lead
-          </Button>
+          
+          <Dialog open={isNewLeadDialogOpen} onOpenChange={setIsNewLeadDialogOpen}>
+            <DialogTrigger asChild>
+              <Button className="bg-axa-red hover:bg-axa-red/90">
+                <UserPlus className="h-4 w-4 mr-2" />
+                Nouveau Lead
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[600px]">
+              <DialogHeader>
+                <DialogTitle className="flex items-center space-x-2">
+                  <UserPlus className="h-5 w-5 text-red-500" />
+                  <span>Ajouter un Nouveau Lead</span>
+                </DialogTitle>
+              </DialogHeader>
+              
+              <form onSubmit={handleAddLead} className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="name">Nom complet *</Label>
+                    <Input
+                      id="name"
+                      value={newLead.name}
+                      onChange={(e) => setNewLead(prev => ({ ...prev, name: e.target.value }))}
+                      placeholder="Ex: Ahmed Benali"
+                      required
+                      className="mt-1"
+                    />
+                  </div>
+                  
+                  <div>
+                    <Label htmlFor="phone">Téléphone *</Label>
+                    <Input
+                      id="phone"
+                      type="tel"
+                      value={newLead.phone}
+                      onChange={(e) => setNewLead(prev => ({ ...prev, phone: e.target.value }))}
+                      placeholder="Ex: +212 661-234-567"
+                      required
+                      className="mt-1"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <Label htmlFor="email">Email *</Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    value={newLead.email}
+                    onChange={(e) => setNewLead(prev => ({ ...prev, email: e.target.value }))}
+                    placeholder="Ex: ahmed.benali@email.com"
+                    required
+                    className="mt-1"
+                  />
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="type">Type d'assurance *</Label>
+                    <Select value={newLead.type} onValueChange={(value) => setNewLead(prev => ({ ...prev, type: value }))}>
+                      <SelectTrigger className="mt-1">
+                        <SelectValue placeholder="Sélectionner le type" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Auto">Auto</SelectItem>
+                        <SelectItem value="Habitation">Habitation</SelectItem>
+                        <SelectItem value="Santé">Santé</SelectItem>
+                        <SelectItem value="Prévoyance">Prévoyance</SelectItem>
+                        <SelectItem value="Épargne">Épargne</SelectItem>
+                        <SelectItem value="Professionnelle">Professionnelle</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div>
+                    <Label htmlFor="source">Source *</Label>
+                    <Select value={newLead.source} onValueChange={(value) => setNewLead(prev => ({ ...prev, source: value }))}>
+                      <SelectTrigger className="mt-1">
+                        <SelectValue placeholder="Sélectionner la source" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Site Web">Site Web</SelectItem>
+                        <SelectItem value="Facebook">Facebook</SelectItem>
+                        <SelectItem value="Google Ads">Google Ads</SelectItem>
+                        <SelectItem value="Référence">Référence</SelectItem>
+                        <SelectItem value="Appel direct">Appel direct</SelectItem>
+                        <SelectItem value="Visite bureau">Visite bureau</SelectItem>
+                        <SelectItem value="Autre">Autre</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                <div>
+                  <Label htmlFor="notes">Notes</Label>
+                  <Textarea
+                    id="notes"
+                    value={newLead.notes}
+                    onChange={(e) => setNewLead(prev => ({ ...prev, notes: e.target.value }))}
+                    placeholder="Informations supplémentaires sur le lead..."
+                    rows={3}
+                    className="mt-1"
+                  />
+                </div>
+
+                <div className="flex justify-end space-x-3 pt-4">
+                  <Button 
+                    type="button" 
+                    variant="outline" 
+                    onClick={() => setIsNewLeadDialogOpen(false)}
+                  >
+                    Annuler
+                  </Button>
+                  <Button 
+                    type="submit"
+                    className="bg-red-500 hover:bg-red-600"
+                  >
+                    Ajouter le Lead
+                  </Button>
+                </div>
+              </form>
+            </DialogContent>
+          </Dialog>
         </div>
       </div>
 
-      {/* Filtres */}
+      {/* Filters */}
       <Card>
         <CardContent className="p-6">
           <div className="flex flex-col md:flex-row gap-4">
@@ -196,7 +369,7 @@ const LeadsManager = () => {
         </CardContent>
       </Card>
 
-      {/* Liste des leads */}
+      {/* Leads list */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center space-x-2">
