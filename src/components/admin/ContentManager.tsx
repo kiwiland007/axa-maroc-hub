@@ -6,7 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import { Edit, Save, Upload, Image as ImageIcon, Type, Globe, Plus, Trash2, Eye } from 'lucide-react';
+import { Edit, Save, Upload, Eye, Plus, Trash2, Package } from 'lucide-react';
 import { useContentStore } from '@/hooks/useContentStore';
 import { toast } from 'sonner';
 
@@ -23,7 +23,20 @@ const ContentManager = () => {
     
     // Update products
     editingContent.products.forEach(product => {
-      updateProduct(product.id, product);
+      const existingProduct = content.products.find(p => p.id === product.id);
+      if (existingProduct) {
+        updateProduct(product.id, product);
+      } else {
+        addProduct(product);
+      }
+    });
+
+    // Remove products that were deleted
+    content.products.forEach(product => {
+      const stillExists = editingContent.products.find(p => p.id === product.id);
+      if (!stillExists) {
+        removeProduct(product.id);
+      }
     });
 
     setIsEditing(false);
@@ -47,7 +60,6 @@ const ContentManager = () => {
     input.onchange = (e) => {
       const file = (e.target as HTMLInputElement).files?.[0];
       if (file) {
-        // Simulate image upload - in real app, you'd upload to a service
         const reader = new FileReader();
         reader.onload = (e) => {
           const imageUrl = e.target?.result as string;
@@ -68,16 +80,17 @@ const ContentManager = () => {
 
   const addNewProduct = () => {
     const newProduct = {
-      id: Date.now().toString(),
+      id: `product-${Date.now()}`,
       title: 'Nouveau Produit',
-      description: 'Description du nouveau produit',
+      description: 'Description du nouveau produit d\'assurance',
       icon: 'Package',
-      features: ['Fonctionnalité 1', 'Fonctionnalité 2']
+      features: ['Nouvelle fonctionnalité 1', 'Nouvelle fonctionnalité 2', 'Nouvelle fonctionnalité 3']
     };
     setEditingContent(prev => ({
       ...prev,
       products: [...prev.products, newProduct]
     }));
+    toast.success('Nouveau produit ajouté !');
   };
 
   const removeProductFromEdit = (productId: string) => {
@@ -85,14 +98,57 @@ const ContentManager = () => {
       ...prev,
       products: prev.products.filter(p => p.id !== productId)
     }));
+    toast.success('Produit supprimé !');
+  };
+
+  const updateProductInEdit = (productId: string, field: string, value: any) => {
+    setEditingContent(prev => ({
+      ...prev,
+      products: prev.products.map(p => 
+        p.id === productId ? { ...p, [field]: value } : p
+      )
+    }));
+  };
+
+  const updateProductFeature = (productId: string, featureIndex: number, newValue: string) => {
+    setEditingContent(prev => ({
+      ...prev,
+      products: prev.products.map(p => 
+        p.id === productId 
+          ? { ...p, features: p.features.map((f, i) => i === featureIndex ? newValue : f) }
+          : p
+      )
+    }));
+  };
+
+  const addFeatureToProduct = (productId: string) => {
+    setEditingContent(prev => ({
+      ...prev,
+      products: prev.products.map(p => 
+        p.id === productId 
+          ? { ...p, features: [...p.features, 'Nouvelle fonctionnalité'] }
+          : p
+      )
+    }));
+  };
+
+  const removeFeatureFromProduct = (productId: string, featureIndex: number) => {
+    setEditingContent(prev => ({
+      ...prev,
+      products: prev.products.map(p => 
+        p.id === productId 
+          ? { ...p, features: p.features.filter((_, i) => i !== featureIndex) }
+          : p
+      )
+    }));
   };
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-axa-gray-dark mb-2">Gestion du Contenu</h2>
-          <p className="text-axa-gray">Modifiez le contenu et les images du site public en temps réel</p>
+          <h2 className="text-2xl font-bold text-gray-800 mb-2">Gestion du Contenu</h2>
+          <p className="text-gray-600">Modifiez le contenu et les images du site public en temps réel</p>
         </div>
         <div className="flex space-x-2">
           <Button 
@@ -108,13 +164,13 @@ const ContentManager = () => {
               <Button variant="outline" onClick={handleCancel}>
                 Annuler
               </Button>
-              <Button onClick={handleSave} className="bg-axa-red hover:bg-axa-red/90">
+              <Button onClick={handleSave} className="bg-red-500 hover:bg-red-600">
                 <Save className="h-4 w-4 mr-2" />
                 Sauvegarder
               </Button>
             </>
           ) : (
-            <Button onClick={() => setIsEditing(true)} className="bg-axa-gray-dark hover:bg-axa-gray-dark/90">
+            <Button onClick={() => setIsEditing(true)} className="bg-gray-800 hover:bg-gray-700">
               <Edit className="h-4 w-4 mr-2" />
               Modifier
             </Button>
@@ -133,10 +189,7 @@ const ContentManager = () => {
         <TabsContent value="hero" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center space-x-2">
-                <Globe className="h-5 w-5" />
-                <span>Section Héro - Page d'Accueil</span>
-              </CardTitle>
+              <CardTitle>Section Héro - Page d'Accueil</CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
               <div>
@@ -151,7 +204,7 @@ const ContentManager = () => {
                     className="mt-2"
                   />
                 ) : (
-                  <p className="text-lg font-semibold text-axa-gray-dark mt-2 p-3 bg-gray-50 rounded-lg">{content.hero.title}</p>
+                  <p className="text-lg font-semibold text-gray-800 mt-2 p-3 bg-gray-50 rounded-lg">{content.hero.title}</p>
                 )}
               </div>
 
@@ -168,7 +221,7 @@ const ContentManager = () => {
                     className="mt-2"
                   />
                 ) : (
-                  <p className="text-axa-gray mt-2 p-3 bg-gray-50 rounded-lg">{content.hero.subtitle}</p>
+                  <p className="text-gray-600 mt-2 p-3 bg-gray-50 rounded-lg">{content.hero.subtitle}</p>
                 )}
               </div>
 
@@ -280,9 +333,12 @@ const ContentManager = () => {
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center justify-between">
-                <span>Gestion des Produits</span>
+                <div className="flex items-center space-x-2">
+                  <Package className="h-5 w-5" />
+                  <span>Gestion Complète des Produits</span>
+                </div>
                 {isEditing && (
-                  <Button onClick={addNewProduct} className="bg-axa-red hover:bg-axa-red/90">
+                  <Button onClick={addNewProduct} className="bg-red-500 hover:bg-red-600">
                     <Plus className="h-4 w-4 mr-2" />
                     Ajouter un Produit
                   </Button>
@@ -290,39 +346,36 @@ const ContentManager = () => {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="space-y-6">
+              <div className="space-y-8">
                 {editingContent.products.map((product, index) => (
-                  <div key={product.id} className="border rounded-lg p-4 space-y-4">
+                  <div key={product.id} className="border-2 border-gray-200 rounded-xl p-6 space-y-6 hover:border-red-300 transition-colors">
                     <div className="flex items-center justify-between">
-                      <h4 className="font-semibold">Produit {index + 1}</h4>
+                      <h4 className="font-bold text-xl text-gray-800">Produit {index + 1}: {product.title}</h4>
                       {isEditing && (
                         <Button 
                           variant="outline" 
                           size="sm"
                           onClick={() => removeProductFromEdit(product.id)}
-                          className="text-red-600 hover:text-red-700"
+                          className="text-red-600 hover:text-red-700 hover:bg-red-50"
                         >
-                          <Trash2 className="h-4 w-4" />
+                          <Trash2 className="h-4 w-4 mr-1" />
+                          Supprimer
                         </Button>
                       )}
                     </div>
                     
-                    <div className="grid md:grid-cols-2 gap-4">
+                    <div className="grid md:grid-cols-2 gap-6">
                       <div>
-                        <Label className="text-sm font-medium mb-2">Titre</Label>
+                        <Label className="text-sm font-medium mb-2">Titre du Produit</Label>
                         {isEditing ? (
                           <Input
                             value={product.title}
-                            onChange={(e) => setEditingContent(prev => ({
-                              ...prev,
-                              products: prev.products.map(p => 
-                                p.id === product.id ? { ...p, title: e.target.value } : p
-                              )
-                            }))}
+                            onChange={(e) => updateProductInEdit(product.id, 'title', e.target.value)}
                             className="mt-2"
+                            placeholder="Ex: Assurance Auto"
                           />
                         ) : (
-                          <p className="mt-2 p-3 bg-gray-50 rounded-lg">{product.title}</p>
+                          <p className="mt-2 p-3 bg-gray-50 rounded-lg font-semibold">{product.title}</p>
                         )}
                       </div>
 
@@ -331,17 +384,73 @@ const ContentManager = () => {
                         {isEditing ? (
                           <Input
                             value={product.description}
-                            onChange={(e) => setEditingContent(prev => ({
-                              ...prev,
-                              products: prev.products.map(p => 
-                                p.id === product.id ? { ...p, description: e.target.value } : p
-                              )
-                            }))}
+                            onChange={(e) => updateProductInEdit(product.id, 'description', e.target.value)}
                             className="mt-2"
+                            placeholder="Description courte du produit"
                           />
                         ) : (
                           <p className="mt-2 p-3 bg-gray-50 rounded-lg">{product.description}</p>
                         )}
+                      </div>
+                    </div>
+
+                    <div>
+                      <Label className="text-sm font-medium mb-2">Icône (nom Lucide)</Label>
+                      {isEditing ? (
+                        <Input
+                          value={product.icon}
+                          onChange={(e) => updateProductInEdit(product.id, 'icon', e.target.value)}
+                          className="mt-2"
+                          placeholder="Ex: Car, Home, Heart, Shield"
+                        />
+                      ) : (
+                        <p className="mt-2 p-3 bg-gray-50 rounded-lg font-mono">{product.icon}</p>
+                      )}
+                    </div>
+
+                    <div>
+                      <div className="flex items-center justify-between mb-4">
+                        <Label className="text-sm font-medium">Fonctionnalités du Produit</Label>
+                        {isEditing && (
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => addFeatureToProduct(product.id)}
+                            className="text-green-600 hover:text-green-700"
+                          >
+                            <Plus className="h-4 w-4 mr-1" />
+                            Ajouter
+                          </Button>
+                        )}
+                      </div>
+                      <div className="space-y-3">
+                        {product.features.map((feature, featureIndex) => (
+                          <div key={featureIndex} className="flex items-center space-x-2">
+                            {isEditing ? (
+                              <>
+                                <Input
+                                  value={feature}
+                                  onChange={(e) => updateProductFeature(product.id, featureIndex, e.target.value)}
+                                  className="flex-1"
+                                  placeholder="Fonctionnalité du produit"
+                                />
+                                <Button 
+                                  variant="outline" 
+                                  size="sm"
+                                  onClick={() => removeFeatureFromProduct(product.id, featureIndex)}
+                                  className="text-red-600 hover:text-red-700"
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              </>
+                            ) : (
+                              <div className="flex items-center space-x-2 p-2 bg-gray-50 rounded-lg w-full">
+                                <span className="text-green-600">✓</span>
+                                <span>{feature}</span>
+                              </div>
+                            )}
+                          </div>
+                        ))}
                       </div>
                     </div>
                   </div>
@@ -383,7 +492,7 @@ const ContentManager = () => {
                         />
                       )
                     ) : (
-                      <p className="text-axa-gray mt-2 p-3 bg-gray-50 rounded-lg">{value}</p>
+                      <p className="text-gray-600 mt-2 p-3 bg-gray-50 rounded-lg">{value}</p>
                     )}
                   </div>
                 ))}
@@ -394,13 +503,13 @@ const ContentManager = () => {
       </Tabs>
 
       {isEditing && (
-        <Card className="border-axa-red/20 bg-axa-red/5">
+        <Card className="border-red-200 bg-red-50">
           <CardContent className="p-6">
-            <div className="flex items-center space-x-2 text-axa-red">
+            <div className="flex items-center space-x-2 text-red-600">
               <Edit className="h-5 w-5" />
               <p className="font-medium">Mode Édition Actif</p>
             </div>
-            <p className="text-sm text-axa-gray mt-2">
+            <p className="text-sm text-red-700 mt-2">
               Vous êtes en train de modifier le contenu. Cliquez sur "Sauvegarder" pour appliquer les changements sur le site public.
             </p>
           </CardContent>
