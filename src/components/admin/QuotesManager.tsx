@@ -5,19 +5,36 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { FileText, Search, Plus, Download, Eye, Edit, Send, Calculator } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { FileText, Search, Plus, Download, Eye, Edit, Send, Calculator, X } from 'lucide-react';
 import { toast } from 'sonner';
 
 const QuotesManager = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [typeFilter, setTypeFilter] = useState('all');
+  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [isPreviewDialogOpen, setIsPreviewDialogOpen] = useState(false);
+  const [selectedQuote, setSelectedQuote] = useState<any>(null);
+
+  const [newQuote, setNewQuote] = useState({
+    clientName: '',
+    email: '',
+    phone: '',
+    type: '',
+    amount: '',
+    notes: ''
+  });
 
   const [quotes, setQuotes] = useState([
     {
       id: 'DEV-2024-001',
       clientName: 'Ahmed Benali',
       email: 'ahmed.benali@email.com',
+      phone: '+212 661-234-567',
       type: 'Auto',
       amount: 4500,
       status: 'En attente',
@@ -30,6 +47,7 @@ const QuotesManager = () => {
       id: 'DEV-2024-002',
       clientName: 'Fatima Zahra',
       email: 'fatima.zahra@email.com',
+      phone: '+212 662-345-678',
       type: 'Habitation',
       amount: 2800,
       status: 'Accepté',
@@ -37,42 +55,6 @@ const QuotesManager = () => {
       validUntil: '2024-02-12',
       lastUpdate: '2024-01-18',
       notes: 'Appartement 120m² Casablanca'
-    },
-    {
-      id: 'DEV-2024-003',
-      clientName: 'Mohamed Alami',
-      email: 'mohamed.alami@email.com',
-      type: 'Professionnelle',
-      amount: 12500,
-      status: 'En négociation',
-      createdDate: '2024-01-10',
-      validUntil: '2024-02-10',
-      lastUpdate: '2024-01-19',
-      notes: 'Bureau 500m² + responsabilité civile'
-    },
-    {
-      id: 'DEV-2024-004',
-      clientName: 'Aicha Bennani',
-      email: 'aicha.bennani@email.com',
-      type: 'Santé',
-      amount: 8900,
-      status: 'Refusé',
-      createdDate: '2024-01-08',
-      validUntil: '2024-02-08',
-      lastUpdate: '2024-01-20',
-      notes: 'Famille 4 personnes - formule premium'
-    },
-    {
-      id: 'DEV-2024-005',
-      clientName: 'Youssef Alaoui',
-      email: 'youssef.alaoui@email.com',
-      type: 'Auto',
-      amount: 6200,
-      status: 'Brouillon',
-      createdDate: '2024-01-20',
-      validUntil: '2024-02-20',
-      lastUpdate: '2024-01-20',
-      notes: 'Mercedes Classe A - En cours de finalisation'
     }
   ]);
 
@@ -87,6 +69,50 @@ const QuotesManager = () => {
     }
   };
 
+  const handleAddQuote = () => {
+    if (!newQuote.clientName || !newQuote.email || !newQuote.type) {
+      toast.error('Veuillez remplir tous les champs obligatoires');
+      return;
+    }
+
+    const quote = {
+      id: `DEV-2024-${String(quotes.length + 1).padStart(3, '0')}`,
+      ...newQuote,
+      amount: parseInt(newQuote.amount) || 0,
+      status: 'Brouillon',
+      createdDate: new Date().toISOString().split('T')[0],
+      validUntil: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+      lastUpdate: new Date().toISOString().split('T')[0]
+    };
+
+    setQuotes(prev => [...prev, quote]);
+    setNewQuote({ clientName: '', email: '', phone: '', type: '', amount: '', notes: '' });
+    setIsAddDialogOpen(false);
+    toast.success('Devis créé avec succès!');
+  };
+
+  const handleEditQuote = () => {
+    if (!selectedQuote) return;
+    
+    setQuotes(prev => prev.map(q => 
+      q.id === selectedQuote.id 
+        ? { ...selectedQuote, lastUpdate: new Date().toISOString().split('T')[0] }
+        : q
+    ));
+    setIsEditDialogOpen(false);
+    toast.success('Devis modifié avec succès!');
+  };
+
+  const handlePreview = (quote: any) => {
+    setSelectedQuote(quote);
+    setIsPreviewDialogOpen(true);
+  };
+
+  const handleEdit = (quote: any) => {
+    setSelectedQuote({ ...quote });
+    setIsEditDialogOpen(true);
+  };
+
   const handleStatusChange = (quoteId: string, newStatus: string) => {
     setQuotes(prev => 
       prev.map(quote => 
@@ -96,17 +122,6 @@ const QuotesManager = () => {
       )
     );
     toast.success('Statut du devis mis à jour');
-  };
-
-  const handleSendQuote = (quote: any) => {
-    toast.success(`Devis ${quote.id} envoyé à ${quote.clientName}`);
-    setQuotes(prev => 
-      prev.map(q => 
-        q.id === quote.id 
-          ? { ...q, status: 'En attente', lastUpdate: new Date().toISOString().split('T')[0] }
-          : q
-      )
-    );
   };
 
   const filteredQuotes = quotes.filter(quote => {
@@ -119,14 +134,6 @@ const QuotesManager = () => {
     return matchesSearch && matchesStatus && matchesType;
   });
 
-  const createNewQuote = () => {
-    toast.success('Nouveau devis créé');
-  };
-
-  const exportQuotes = () => {
-    toast.success('Export des devis en cours...');
-  };
-
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -135,14 +142,90 @@ const QuotesManager = () => {
           <p className="text-axa-gray">Génération de devis et gestion des contrats</p>
         </div>
         <div className="flex space-x-2">
-          <Button onClick={exportQuotes} variant="outline">
+          <Button onClick={() => toast.success('Export en cours...')} variant="outline">
             <Download className="h-4 w-4 mr-2" />
             Exporter
           </Button>
-          <Button onClick={createNewQuote} className="bg-axa-red hover:bg-axa-red/90">
-            <Plus className="h-4 w-4 mr-2" />
-            Nouveau Devis
-          </Button>
+          <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+            <DialogTrigger asChild>
+              <Button className="bg-axa-red hover:bg-axa-red/90">
+                <Plus className="h-4 w-4 mr-2" />
+                Nouveau Devis
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-2xl">
+              <DialogHeader>
+                <DialogTitle>Créer un Nouveau Devis</DialogTitle>
+              </DialogHeader>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label>Nom du Client *</Label>
+                  <Input 
+                    value={newQuote.clientName}
+                    onChange={(e) => setNewQuote(prev => ({ ...prev, clientName: e.target.value }))}
+                    placeholder="Nom complet"
+                  />
+                </div>
+                <div>
+                  <Label>Email *</Label>
+                  <Input 
+                    type="email"
+                    value={newQuote.email}
+                    onChange={(e) => setNewQuote(prev => ({ ...prev, email: e.target.value }))}
+                    placeholder="email@example.com"
+                  />
+                </div>
+                <div>
+                  <Label>Téléphone</Label>
+                  <Input 
+                    value={newQuote.phone}
+                    onChange={(e) => setNewQuote(prev => ({ ...prev, phone: e.target.value }))}
+                    placeholder="+212 6XX-XXX-XXX"
+                  />
+                </div>
+                <div>
+                  <Label>Type d'Assurance *</Label>
+                  <Select value={newQuote.type} onValueChange={(value) => setNewQuote(prev => ({ ...prev, type: value }))}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Choisir le type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Auto">Auto</SelectItem>
+                      <SelectItem value="Habitation">Habitation</SelectItem>
+                      <SelectItem value="Santé">Santé</SelectItem>
+                      <SelectItem value="Prévoyance">Prévoyance</SelectItem>
+                      <SelectItem value="Professionnelle">Professionnelle</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label>Montant (DH)</Label>
+                  <Input 
+                    type="number"
+                    value={newQuote.amount}
+                    onChange={(e) => setNewQuote(prev => ({ ...prev, amount: e.target.value }))}
+                    placeholder="0"
+                  />
+                </div>
+                <div className="col-span-2">
+                  <Label>Notes</Label>
+                  <Textarea 
+                    value={newQuote.notes}
+                    onChange={(e) => setNewQuote(prev => ({ ...prev, notes: e.target.value }))}
+                    placeholder="Détails du devis..."
+                  />
+                </div>
+              </div>
+              <div className="flex justify-end space-x-2 mt-4">
+                <Button variant="outline" onClick={() => setIsAddDialogOpen(false)}>
+                  Annuler
+                </Button>
+                <Button onClick={handleAddQuote} className="bg-axa-red hover:bg-axa-red/90">
+                  Créer le Devis
+                </Button>
+              </div>
+            </DialogContent>
+          </Dialog>
         </div>
       </div>
 
@@ -260,16 +343,16 @@ const QuotesManager = () => {
                   
                   <div className="flex flex-col space-y-2 ml-4">
                     <div className="flex space-x-1">
-                      <Button size="sm" variant="outline">
+                      <Button size="sm" variant="outline" onClick={() => handlePreview(quote)}>
                         <Eye className="h-4 w-4" />
                       </Button>
-                      <Button size="sm" variant="outline">
+                      <Button size="sm" variant="outline" onClick={() => handleEdit(quote)}>
                         <Edit className="h-4 w-4" />
                       </Button>
                       <Button 
                         size="sm" 
                         variant="outline"
-                        onClick={() => handleSendQuote(quote)}
+                        onClick={() => toast.success(`Devis ${quote.id} envoyé à ${quote.clientName}`)}
                       >
                         <Send className="h-4 w-4" />
                       </Button>
@@ -300,6 +383,110 @@ const QuotesManager = () => {
           </div>
         </CardContent>
       </Card>
+
+      {/* Dialog d'édition */}
+      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Modifier le Devis {selectedQuote?.id}</DialogTitle>
+          </DialogHeader>
+          {selectedQuote && (
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label>Nom du Client</Label>
+                <Input 
+                  value={selectedQuote.clientName}
+                  onChange={(e) => setSelectedQuote(prev => ({ ...prev, clientName: e.target.value }))}
+                />
+              </div>
+              <div>
+                <Label>Email</Label>
+                <Input 
+                  value={selectedQuote.email}
+                  onChange={(e) => setSelectedQuote(prev => ({ ...prev, email: e.target.value }))}
+                />
+              </div>
+              <div>
+                <Label>Téléphone</Label>
+                <Input 
+                  value={selectedQuote.phone || ''}
+                  onChange={(e) => setSelectedQuote(prev => ({ ...prev, phone: e.target.value }))}
+                />
+              </div>
+              <div>
+                <Label>Montant (DH)</Label>
+                <Input 
+                  type="number"
+                  value={selectedQuote.amount}
+                  onChange={(e) => setSelectedQuote(prev => ({ ...prev, amount: parseInt(e.target.value) || 0 }))}
+                />
+              </div>
+              <div className="col-span-2">
+                <Label>Notes</Label>
+                <Textarea 
+                  value={selectedQuote.notes}
+                  onChange={(e) => setSelectedQuote(prev => ({ ...prev, notes: e.target.value }))}
+                />
+              </div>
+            </div>
+          )}
+          <div className="flex justify-end space-x-2 mt-4">
+            <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>
+              Annuler
+            </Button>
+            <Button onClick={handleEditQuote} className="bg-axa-red hover:bg-axa-red/90">
+              Sauvegarder
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Dialog d'aperçu */}
+      <Dialog open={isPreviewDialogOpen} onOpenChange={setIsPreviewDialogOpen}>
+        <DialogContent className="max-w-4xl">
+          <DialogHeader>
+            <DialogTitle>Aperçu du Devis {selectedQuote?.id}</DialogTitle>
+          </DialogHeader>
+          {selectedQuote && (
+            <div className="bg-white p-8 border rounded-lg">
+              <div className="text-center mb-8">
+                <img 
+                  src="/lovable-uploads/545e624c-1ef4-4d84-864b-14d270f5ae44.png" 
+                  alt="Logo" 
+                  className="h-16 mx-auto mb-4"
+                />
+                <h1 className="text-2xl font-bold">DEVIS D'ASSURANCE</h1>
+                <p className="text-gray-600">Numéro: {selectedQuote.id}</p>
+              </div>
+              
+              <div className="grid grid-cols-2 gap-8 mb-8">
+                <div>
+                  <h3 className="font-bold mb-4">Informations Client</h3>
+                  <p><strong>Nom:</strong> {selectedQuote.clientName}</p>
+                  <p><strong>Email:</strong> {selectedQuote.email}</p>
+                  <p><strong>Téléphone:</strong> {selectedQuote.phone}</p>
+                </div>
+                <div>
+                  <h3 className="font-bold mb-4">Détails du Devis</h3>
+                  <p><strong>Type:</strong> {selectedQuote.type}</p>
+                  <p><strong>Montant:</strong> {selectedQuote.amount.toLocaleString()} DH</p>
+                  <p><strong>Valide jusqu'au:</strong> {selectedQuote.validUntil}</p>
+                </div>
+              </div>
+              
+              <div className="mb-8">
+                <h3 className="font-bold mb-4">Notes</h3>
+                <p>{selectedQuote.notes}</p>
+              </div>
+              
+              <div className="text-center text-sm text-gray-600">
+                <p>MOUMEN TECHNIQUE ET PREVOYANCE - Agent Général AXA</p>
+                <p>Ce devis est valable 30 jours à compter de sa date d'émission</p>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

@@ -5,10 +5,33 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Image, Play, Pause, Eye, Edit, Trash2, Plus, Mail, Target, BarChart3 } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Play, Pause, Eye, Edit, Trash2, Plus, Mail, Target, BarChart3 } from 'lucide-react';
 import { toast } from 'sonner';
 
 const MarketingManager = () => {
+  const [isAddCampaignOpen, setIsAddCampaignOpen] = useState(false);
+  const [isAddEmailOpen, setIsAddEmailOpen] = useState(false);
+  const [isEditCampaignOpen, setIsEditCampaignOpen] = useState(false);
+  const [selectedCampaign, setSelectedCampaign] = useState<any>(null);
+
+  const [newCampaign, setNewCampaign] = useState({
+    name: '',
+    type: '',
+    budget: '',
+    description: ''
+  });
+
+  const [newEmail, setNewEmail] = useState({
+    name: '',
+    type: '',
+    subject: '',
+    content: ''
+  });
+
   const [campaigns, setCampaigns] = useState([
     {
       id: 1,
@@ -37,20 +60,6 @@ const MarketingManager = () => {
       cost_per_lead: 23.6,
       startDate: '2024-01-15',
       endDate: '2024-03-15'
-    },
-    {
-      id: 3,
-      name: 'Santé Famille - Promo',
-      type: 'Facebook Ads',
-      status: 'Pause',
-      budget: 2000,
-      spent: 1800,
-      impressions: 45000,
-      clicks: 980,
-      leads: 42,
-      cost_per_lead: 42.9,
-      startDate: '2023-12-01',
-      endDate: '2024-01-31'
     }
   ]);
 
@@ -91,6 +100,56 @@ const MarketingManager = () => {
     }
   };
 
+  const handleAddCampaign = () => {
+    if (!newCampaign.name || !newCampaign.type || !newCampaign.budget) {
+      toast.error('Veuillez remplir tous les champs obligatoires');
+      return;
+    }
+
+    const campaign = {
+      id: campaigns.length + 1,
+      ...newCampaign,
+      budget: parseInt(newCampaign.budget),
+      status: 'Actif',
+      spent: 0,
+      impressions: 0,
+      clicks: 0,
+      leads: 0,
+      cost_per_lead: 0,
+      startDate: new Date().toISOString().split('T')[0],
+      endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
+    };
+
+    setCampaigns(prev => [...prev, campaign]);
+    setNewCampaign({ name: '', type: '', budget: '', description: '' });
+    setIsAddCampaignOpen(false);
+    toast.success('Campagne créée avec succès!');
+  };
+
+  const handleAddEmail = () => {
+    if (!newEmail.name || !newEmail.subject) {
+      toast.error('Veuillez remplir tous les champs obligatoires');
+      return;
+    }
+
+    const email = {
+      id: emailCampaigns.length + 1,
+      ...newEmail,
+      status: 'Brouillon',
+      recipients: 0,
+      opened: 0,
+      clicked: 0,
+      open_rate: 0,
+      click_rate: 0,
+      sentDate: new Date().toISOString().split('T')[0]
+    };
+
+    setEmailCampaigns(prev => [...prev, email]);
+    setNewEmail({ name: '', type: '', subject: '', content: '' });
+    setIsAddEmailOpen(false);
+    toast.success('Email créé avec succès!');
+  };
+
   const handleCampaignAction = (campaignId: number, action: string) => {
     setCampaigns(prev => 
       prev.map(campaign => 
@@ -102,12 +161,19 @@ const MarketingManager = () => {
     toast.success(`Campagne ${action === 'pause' ? 'mise en pause' : 'activée'}`);
   };
 
-  const createCampaign = () => {
-    toast.success('Nouvelle campagne créée');
+  const handleEditCampaign = (campaign: any) => {
+    setSelectedCampaign({ ...campaign });
+    setIsEditCampaignOpen(true);
   };
 
-  const sendNewsletter = () => {
-    toast.success('Newsletter programmée pour envoi');
+  const saveCampaignEdit = () => {
+    if (!selectedCampaign) return;
+    
+    setCampaigns(prev => prev.map(c => 
+      c.id === selectedCampaign.id ? selectedCampaign : c
+    ));
+    setIsEditCampaignOpen(false);
+    toast.success('Campagne modifiée avec succès!');
   };
 
   return (
@@ -117,10 +183,68 @@ const MarketingManager = () => {
           <h2 className="text-2xl font-bold text-axa-gray-dark mb-2">Marketing Digital</h2>
           <p className="text-axa-gray">Gestion des campagnes et marketing automation</p>
         </div>
-        <Button onClick={createCampaign} className="bg-axa-red hover:bg-axa-red/90">
-          <Plus className="h-4 w-4 mr-2" />
-          Nouvelle Campagne
-        </Button>
+        <Dialog open={isAddCampaignOpen} onOpenChange={setIsAddCampaignOpen}>
+          <DialogTrigger asChild>
+            <Button className="bg-axa-red hover:bg-axa-red/90">
+              <Plus className="h-4 w-4 mr-2" />
+              Nouvelle Campagne
+            </Button>
+          </DialogTrigger>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Créer une Nouvelle Campagne</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div>
+                <Label>Nom de la Campagne *</Label>
+                <Input 
+                  value={newCampaign.name}
+                  onChange={(e) => setNewCampaign(prev => ({ ...prev, name: e.target.value }))}
+                  placeholder="Ex: Assurance Auto - Été 2024"
+                />
+              </div>
+              <div>
+                <Label>Type de Campagne *</Label>
+                <Select value={newCampaign.type} onValueChange={(value) => setNewCampaign(prev => ({ ...prev, type: value }))}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Choisir le type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Facebook Ads">Facebook Ads</SelectItem>
+                    <SelectItem value="Google Ads">Google Ads</SelectItem>
+                    <SelectItem value="Instagram Ads">Instagram Ads</SelectItem>
+                    <SelectItem value="LinkedIn Ads">LinkedIn Ads</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label>Budget (DH) *</Label>
+                <Input 
+                  type="number"
+                  value={newCampaign.budget}
+                  onChange={(e) => setNewCampaign(prev => ({ ...prev, budget: e.target.value }))}
+                  placeholder="5000"
+                />
+              </div>
+              <div>
+                <Label>Description</Label>
+                <Textarea 
+                  value={newCampaign.description}
+                  onChange={(e) => setNewCampaign(prev => ({ ...prev, description: e.target.value }))}
+                  placeholder="Description de la campagne..."
+                />
+              </div>
+            </div>
+            <div className="flex justify-end space-x-2 mt-4">
+              <Button variant="outline" onClick={() => setIsAddCampaignOpen(false)}>
+                Annuler
+              </Button>
+              <Button onClick={handleAddCampaign} className="bg-axa-red hover:bg-axa-red/90">
+                Créer la Campagne
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
 
       <Tabs defaultValue="campaigns" className="space-y-6">
@@ -159,7 +283,7 @@ const MarketingManager = () => {
             <Card>
               <CardContent className="p-4">
                 <div className="text-2xl font-bold text-axa-red">
-                  {(campaigns.reduce((sum, c) => sum + c.spent, 0) / campaigns.reduce((sum, c) => sum + c.leads, 0)).toFixed(1)} DH
+                  {campaigns.length > 0 ? (campaigns.reduce((sum, c) => sum + c.spent, 0) / campaigns.reduce((sum, c) => sum + c.leads, 0)).toFixed(1) : '0'} DH
                 </div>
                 <div className="text-sm text-axa-gray">Coût par Lead</div>
               </CardContent>
@@ -203,7 +327,7 @@ const MarketingManager = () => {
                           </div>
                           <div className="space-y-1">
                             <div className="text-axa-gray">CTR</div>
-                            <div className="font-semibold">{((campaign.clicks / campaign.impressions) * 100).toFixed(2)}%</div>
+                            <div className="font-semibold">{campaign.impressions > 0 ? ((campaign.clicks / campaign.impressions) * 100).toFixed(2) : '0'}%</div>
                           </div>
                         </div>
 
@@ -226,13 +350,13 @@ const MarketingManager = () => {
                         >
                           {campaign.status === 'Actif' ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
                         </Button>
-                        <Button size="sm" variant="outline">
+                        <Button size="sm" variant="outline" onClick={() => toast.success('Aperçu de la campagne')}>
                           <Eye className="h-4 w-4" />
                         </Button>
-                        <Button size="sm" variant="outline">
+                        <Button size="sm" variant="outline" onClick={() => handleEditCampaign(campaign)}>
                           <Edit className="h-4 w-4" />
                         </Button>
-                        <Button size="sm" variant="outline">
+                        <Button size="sm" variant="outline" onClick={() => toast.success('Statistiques affichées')}>
                           <BarChart3 className="h-4 w-4" />
                         </Button>
                       </div>
@@ -258,7 +382,7 @@ const MarketingManager = () => {
             <Card>
               <CardContent className="p-4">
                 <div className="text-2xl font-bold text-green-600">
-                  {((emailCampaigns.reduce((sum, c) => sum + c.opened, 0) / emailCampaigns.reduce((sum, c) => sum + c.recipients, 0)) * 100).toFixed(1)}%
+                  {emailCampaigns.length > 0 ? ((emailCampaigns.reduce((sum, c) => sum + c.opened, 0) / emailCampaigns.reduce((sum, c) => sum + c.recipients, 0)) * 100).toFixed(1) : '0'}%
                 </div>
                 <div className="text-sm text-axa-gray">Taux d'Ouverture</div>
               </CardContent>
@@ -266,7 +390,7 @@ const MarketingManager = () => {
             <Card>
               <CardContent className="p-4">
                 <div className="text-2xl font-bold text-blue-600">
-                  {((emailCampaigns.reduce((sum, c) => sum + c.clicked, 0) / emailCampaigns.reduce((sum, c) => sum + c.recipients, 0)) * 100).toFixed(1)}%
+                  {emailCampaigns.length > 0 ? ((emailCampaigns.reduce((sum, c) => sum + c.clicked, 0) / emailCampaigns.reduce((sum, c) => sum + c.recipients, 0)) * 100).toFixed(1) : '0'}%
                 </div>
                 <div className="text-sm text-axa-gray">Taux de Clic</div>
               </CardContent>
@@ -287,10 +411,68 @@ const MarketingManager = () => {
                   <Mail className="h-5 w-5" />
                   <span>Campagnes Email</span>
                 </div>
-                <Button onClick={sendNewsletter} size="sm" className="bg-axa-red hover:bg-axa-red/90">
-                  <Plus className="h-4 w-4 mr-2" />
-                  Nouveau Mail
-                </Button>
+                <Dialog open={isAddEmailOpen} onOpenChange={setIsAddEmailOpen}>
+                  <DialogTrigger asChild>
+                    <Button size="sm" className="bg-axa-red hover:bg-axa-red/90">
+                      <Plus className="h-4 w-4 mr-2" />
+                      Nouveau Mail
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>Créer une Campagne Email</DialogTitle>
+                    </DialogHeader>
+                    <div className="space-y-4">
+                      <div>
+                        <Label>Nom de la Campagne *</Label>
+                        <Input 
+                          value={newEmail.name}
+                          onChange={(e) => setNewEmail(prev => ({ ...prev, name: e.target.value }))}
+                          placeholder="Ex: Newsletter Février 2024"
+                        />
+                      </div>
+                      <div>
+                        <Label>Type d'Email</Label>
+                        <Select value={newEmail.type} onValueChange={(value) => setNewEmail(prev => ({ ...prev, type: value }))}>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Choisir le type" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="Newsletter">Newsletter</SelectItem>
+                            <SelectItem value="Automation">Automation</SelectItem>
+                            <SelectItem value="Promotion">Promotion</SelectItem>
+                            <SelectItem value="Rappel">Rappel</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div>
+                        <Label>Sujet *</Label>
+                        <Input 
+                          value={newEmail.subject}
+                          onChange={(e) => setNewEmail(prev => ({ ...prev, subject: e.target.value }))}
+                          placeholder="Sujet de l'email"
+                        />
+                      </div>
+                      <div>
+                        <Label>Contenu</Label>
+                        <Textarea 
+                          value={newEmail.content}
+                          onChange={(e) => setNewEmail(prev => ({ ...prev, content: e.target.value }))}
+                          placeholder="Contenu de l'email..."
+                          rows={4}
+                        />
+                      </div>
+                    </div>
+                    <div className="flex justify-end space-x-2 mt-4">
+                      <Button variant="outline" onClick={() => setIsAddEmailOpen(false)}>
+                        Annuler
+                      </Button>
+                      <Button onClick={handleAddEmail} className="bg-axa-red hover:bg-axa-red/90">
+                        Créer l'Email
+                      </Button>
+                    </div>
+                  </DialogContent>
+                </Dialog>
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -328,13 +510,13 @@ const MarketingManager = () => {
                       </div>
                       
                       <div className="flex space-x-2 ml-4">
-                        <Button size="sm" variant="outline">
+                        <Button size="sm" variant="outline" onClick={() => toast.success('Aperçu de l\'email')}>
                           <Eye className="h-4 w-4" />
                         </Button>
-                        <Button size="sm" variant="outline">
+                        <Button size="sm" variant="outline" onClick={() => toast.success('Modification de l\'email')}>
                           <Edit className="h-4 w-4" />
                         </Button>
-                        <Button size="sm" variant="outline">
+                        <Button size="sm" variant="outline" onClick={() => toast.success('Statistiques affichées')}>
                           <BarChart3 className="h-4 w-4" />
                         </Button>
                       </div>
@@ -360,11 +542,11 @@ const MarketingManager = () => {
                   <h3 className="font-semibold mb-2">Page Assurance Auto</h3>
                   <p className="text-sm text-axa-gray mb-3">Taux de conversion: 3.2%</p>
                   <div className="flex space-x-2">
-                    <Button size="sm" variant="outline">
+                    <Button size="sm" variant="outline" onClick={() => toast.success('Page affichée')}>
                       <Eye className="h-4 w-4 mr-1" />
                       Voir
                     </Button>
-                    <Button size="sm" variant="outline">
+                    <Button size="sm" variant="outline" onClick={() => toast.success('Modification de la page')}>
                       <Edit className="h-4 w-4 mr-1" />
                       Modifier
                     </Button>
@@ -374,11 +556,11 @@ const MarketingManager = () => {
                   <h3 className="font-semibold mb-2">Page Habitation</h3>
                   <p className="text-sm text-axa-gray mb-3">Taux de conversion: 2.8%</p>
                   <div className="flex space-x-2">
-                    <Button size="sm" variant="outline">
+                    <Button size="sm" variant="outline" onClick={() => toast.success('Page affichée')}>
                       <Eye className="h-4 w-4 mr-1" />
                       Voir
                     </Button>
-                    <Button size="sm" variant="outline">
+                    <Button size="sm" variant="outline" onClick={() => toast.success('Modification de la page')}>
                       <Edit className="h-4 w-4 mr-1" />
                       Modifier
                     </Button>
@@ -425,6 +607,55 @@ const MarketingManager = () => {
           </Card>
         </TabsContent>
       </Tabs>
+
+      {/* Dialog d'édition de campagne */}
+      <Dialog open={isEditCampaignOpen} onOpenChange={setIsEditCampaignOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Modifier la Campagne</DialogTitle>
+          </DialogHeader>
+          {selectedCampaign && (
+            <div className="space-y-4">
+              <div>
+                <Label>Nom de la Campagne</Label>
+                <Input 
+                  value={selectedCampaign.name}
+                  onChange={(e) => setSelectedCampaign(prev => ({ ...prev, name: e.target.value }))}
+                />
+              </div>
+              <div>
+                <Label>Budget (DH)</Label>
+                <Input 
+                  type="number"
+                  value={selectedCampaign.budget}
+                  onChange={(e) => setSelectedCampaign(prev => ({ ...prev, budget: parseInt(e.target.value) || 0 }))}
+                />
+              </div>
+              <div>
+                <Label>Statut</Label>
+                <Select value={selectedCampaign.status} onValueChange={(value) => setSelectedCampaign(prev => ({ ...prev, status: value }))}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Actif">Actif</SelectItem>
+                    <SelectItem value="Pause">Pause</SelectItem>
+                    <SelectItem value="Terminé">Terminé</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          )}
+          <div className="flex justify-end space-x-2 mt-4">
+            <Button variant="outline" onClick={() => setIsEditCampaignOpen(false)}>
+              Annuler
+            </Button>
+            <Button onClick={saveCampaignEdit} className="bg-axa-red hover:bg-axa-red/90">
+              Sauvegarder
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

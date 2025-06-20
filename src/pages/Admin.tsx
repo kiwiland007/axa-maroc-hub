@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Users, FileText, BarChart3, Settings, Edit, Image, MessageSquare, Calendar } from 'lucide-react';
+import { Users, FileText, BarChart3, Settings, Edit, Image, MessageSquare, Calendar, MapPin } from 'lucide-react';
 import AdminDashboard from '@/components/admin/AdminDashboard';
 import ContentManager from '@/components/admin/ContentManager';
 import LeadsManager from '@/components/admin/LeadsManager';
@@ -10,6 +10,7 @@ import ClientsManager from '@/components/admin/ClientsManager';
 import QuotesManager from '@/components/admin/QuotesManager';
 import Analytics from '@/components/admin/Analytics';
 import MarketingManager from '@/components/admin/MarketingManager';
+import LocationManager from '@/components/admin/LocationManager';
 import AdminSettings from '@/components/admin/AdminSettings';
 
 const Admin = () => {
@@ -23,6 +24,7 @@ const Admin = () => {
     { id: 'quotes', label: 'Devis & Contrats', icon: FileText, component: QuotesManager },
     { id: 'analytics', label: 'Analytics', icon: BarChart3, component: Analytics },
     { id: 'marketing', label: 'Marketing', icon: Image, component: MarketingManager },
+    { id: 'location', label: 'Localisation', icon: MapPin, component: LocationManager },
     { id: 'settings', label: 'Paramètres', icon: Settings, component: AdminSettings },
   ];
 
@@ -51,7 +53,7 @@ const Admin = () => {
 
       <div className="container mx-auto px-4 py-6">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4 lg:grid-cols-8 gap-2 h-auto p-1">
+          <TabsList className="grid w-full grid-cols-3 lg:grid-cols-9 gap-1 h-auto p-1">
             {tabs.map((tab) => (
               <TabsTrigger 
                 key={tab.id} 
