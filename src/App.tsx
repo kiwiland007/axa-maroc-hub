@@ -5,6 +5,9 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
 import Admin from "./pages/Admin";
+import AffaireNouvelleForm from "./components/forms/AffaireNouvelleForm";
+import MRHForm from "./components/forms/MRHForm";
+import SehassurForm from "./components/forms/SehassurForm";
 
 const queryClient = new QueryClient();
 
@@ -16,6 +19,9 @@ const App = () => (
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/admin" element={<Admin />} />
+          <Route path="/formulaires/affaire-nouvelle" element={<AffaireNouvelleForm />} />
+          <Route path="/formulaires/mrh" element={<MRHForm />} />
+          <Route path="/formulaires/sehassur" element={<SehassurForm />} />
         </Routes>
       </BrowserRouter>
     </TooltipProvider>

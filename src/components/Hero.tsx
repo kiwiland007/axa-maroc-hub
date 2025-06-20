@@ -1,6 +1,5 @@
 
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
 import { Shield, Users, Clock, CheckCircle, Star, Award, Phone } from 'lucide-react';
 import { useContentStore } from '@/hooks/useContentStore';
 
@@ -111,23 +110,21 @@ const Hero = () => {
             {/* Features cards */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               {features.map((feature, index) => (
-                <Card key={index} className="bg-white/95 backdrop-blur-sm border-gray-200 hover:bg-white hover:shadow-lg transition-all duration-300 transform hover:scale-105">
-                  <CardContent className="p-4 text-center">
-                    <div className="bg-red-50 rounded-full w-12 h-12 flex items-center justify-center mx-auto mb-3">
-                      <feature.icon className="h-6 w-6 text-red-500" />
-                    </div>
-                    <h3 className="font-bold text-gray-800 mb-1 text-sm">{feature.title}</h3>
-                    <p className="text-gray-600 text-xs">{feature.description}</p>
-                  </CardContent>
-                </Card>
+                <div key={index} className="bg-white/95 backdrop-blur-sm border border-gray-200 rounded-lg p-4 text-center hover:bg-white hover:shadow-lg transition-all duration-300 transform hover:scale-105">
+                  <div className="bg-red-50 rounded-full w-12 h-12 flex items-center justify-center mx-auto mb-3">
+                    <feature.icon className="h-6 w-6 text-red-500" />
+                  </div>
+                  <h3 className="font-bold text-gray-800 mb-1 text-sm">{feature.title}</h3>
+                  <p className="text-gray-600 text-xs">{feature.description}</p>
+                </div>
               ))}
             </div>
           </div>
 
           {/* Quote form with better UX */}
           <div className="animate-fade-in">
-            <Card className="bg-white/98 backdrop-blur-sm shadow-xl border-0 hover:shadow-2xl transition-all duration-500">
-              <CardContent className="p-6 md:p-8">
+            <div className="bg-white/98 backdrop-blur-sm shadow-xl border-0 hover:shadow-2xl transition-all duration-500 rounded-lg">
+              <div className="p-6 md:p-8">
                 <div className="text-center mb-6">
                   <div className="w-14 h-14 bg-gradient-to-br from-red-500 to-orange-500 rounded-full flex items-center justify-center mx-auto mb-4">
                     <Shield className="h-7 w-7 text-white" />
@@ -167,7 +164,7 @@ const Hero = () => {
                     required
                     className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all text-sm md:text-base"
                   >
-                    <option value="">Type d&apos;assurance</option>
+                    <option value="">Type d'assurance</option>
                     <option value="auto">Assurance Auto</option>
                     <option value="habitation">Assurance Habitation</option>
                     <option value="sante">Assurance Santé</option>
@@ -187,8 +184,8 @@ const Hero = () => {
                     Vos données sont protégées et ne seront jamais communiquées à des tiers.
                   </p>
                 </form>
-              </CardContent>
-            </Card>
+              </div>
+            </div>
           </div>
         </div>
       </div>
