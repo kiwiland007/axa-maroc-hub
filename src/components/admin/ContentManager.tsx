@@ -3,53 +3,88 @@ import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Edit, Save, Upload, Image as ImageIcon, Type, Globe } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
+import { Edit, Save, Upload, Image as ImageIcon, Type, Globe, Plus, Trash2, Eye } from 'lucide-react';
+import { useContentStore } from '@/hooks/useContentStore';
+import { toast } from 'sonner';
 
 const ContentManager = () => {
   const [isEditing, setIsEditing] = useState(false);
-  
-  const [content, setContent] = useState({
-    hero: {
-      title: 'Votre Sécurité, Notre Priorité',
-      subtitle: 'MOUMEN TECHNIQUE ET PREVOYANCE vous accompagne depuis plus de 20 ans pour protéger ce qui compte le plus : votre famille, votre maison, votre entreprise.',
-      backgroundImage: 'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80'
-    },
-    about: {
-      title: 'MOUMEN TECHNIQUE & PREVOYANCE',
-      subtitle: 'Votre Agent Général AXA de Confiance',
-      description: 'Depuis plus de 20 ans, MOUMEN TECHNIQUE ET PREVOYANCE accompagne les particuliers et les entreprises dans leurs projets d\'assurance et de prévoyance.',
-      experience: '20+',
-      clients: '5000+',
-      satisfaction: '98%',
-      response: '24h'
-    },
-    contact: {
-      address: '123 Avenue Mohammed V, Casablanca 20000, Maroc',
-      phone: '+212 5XX-XXX-XXX',
-      email: 'contact@moumentechnique.ma',
-      hours: 'Lun-Ven: 8h00-18h00, Sam: 8h00-12h00'
-    }
-  });
+  const { content, updateContent, updateProduct, addProduct, removeProduct } = useContentStore();
+  const [editingContent, setEditingContent] = useState(content);
 
   const handleSave = () => {
-    // Ici on sauvegarderait en base de données
-    console.log('Contenu sauvegardé:', content);
+    // Update all sections
+    updateContent('hero', editingContent.hero);
+    updateContent('about', editingContent.about);
+    updateContent('contact', editingContent.contact);
+    
+    // Update products
+    editingContent.products.forEach(product => {
+      updateProduct(product.id, product);
+    });
+
+    setIsEditing(false);
+    toast.success('Contenu mis à jour avec succès !');
+    
+    // Refresh the page to show changes
+    setTimeout(() => {
+      window.location.reload();
+    }, 1000);
+  };
+
+  const handleCancel = () => {
+    setEditingContent(content);
     setIsEditing(false);
   };
 
   const handleImageUpload = (section: string, field: string) => {
-    // Simulation d'upload d'image
     const input = document.createElement('input');
     input.type = 'file';
     input.accept = 'image/*';
     input.onchange = (e) => {
       const file = (e.target as HTMLInputElement).files?.[0];
       if (file) {
-        // Ici on uploadrait l'image et on récupérerait l'URL
-        console.log('Image uploadée:', file.name);
+        // Simulate image upload - in real app, you'd upload to a service
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          const imageUrl = e.target?.result as string;
+          setEditingContent(prev => ({
+            ...prev,
+            [section]: {
+              ...prev[section as keyof typeof prev],
+              [field]: imageUrl
+            }
+          }));
+          toast.success('Image uploadée avec succès !');
+        };
+        reader.readAsDataURL(file);
       }
     };
     input.click();
+  };
+
+  const addNewProduct = () => {
+    const newProduct = {
+      id: Date.now().toString(),
+      title: 'Nouveau Produit',
+      description: 'Description du nouveau produit',
+      icon: 'Package',
+      features: ['Fonctionnalité 1', 'Fonctionnalité 2']
+    };
+    setEditingContent(prev => ({
+      ...prev,
+      products: [...prev.products, newProduct]
+    }));
+  };
+
+  const removeProductFromEdit = (productId: string) => {
+    setEditingContent(prev => ({
+      ...prev,
+      products: prev.products.filter(p => p.id !== productId)
+    }));
   };
 
   return (
@@ -57,12 +92,20 @@ const ContentManager = () => {
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-bold text-axa-gray-dark mb-2">Gestion du Contenu</h2>
-          <p className="text-axa-gray">Modifiez le contenu et les images du site public</p>
+          <p className="text-axa-gray">Modifiez le contenu et les images du site public en temps réel</p>
         </div>
-        <div className="space-x-2">
+        <div className="flex space-x-2">
+          <Button 
+            variant="outline" 
+            onClick={() => window.open('/', '_blank')}
+            className="flex items-center space-x-2"
+          >
+            <Eye className="h-4 w-4" />
+            <span>Aperçu du Site</span>
+          </Button>
           {isEditing ? (
             <>
-              <Button variant="outline" onClick={() => setIsEditing(false)}>
+              <Button variant="outline" onClick={handleCancel}>
                 Annuler
               </Button>
               <Button onClick={handleSave} className="bg-axa-red hover:bg-axa-red/90">
@@ -95,56 +138,56 @@ const ContentManager = () => {
                 <span>Section Héro - Page d'Accueil</span>
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-6">
               <div>
-                <label className="block text-sm font-medium mb-2">Titre Principal</label>
+                <Label className="text-sm font-medium mb-2">Titre Principal</Label>
                 {isEditing ? (
-                  <input
-                    type="text"
-                    value={content.hero.title}
-                    onChange={(e) => setContent(prev => ({
+                  <Input
+                    value={editingContent.hero.title}
+                    onChange={(e) => setEditingContent(prev => ({
                       ...prev,
                       hero: { ...prev.hero, title: e.target.value }
                     }))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-axa-red"
+                    className="mt-2"
                   />
                 ) : (
-                  <p className="text-lg font-semibold text-axa-gray-dark">{content.hero.title}</p>
+                  <p className="text-lg font-semibold text-axa-gray-dark mt-2 p-3 bg-gray-50 rounded-lg">{content.hero.title}</p>
                 )}
               </div>
 
               <div>
-                <label className="block text-sm font-medium mb-2">Sous-titre</label>
+                <Label className="text-sm font-medium mb-2">Sous-titre</Label>
                 {isEditing ? (
-                  <textarea
-                    value={content.hero.subtitle}
-                    onChange={(e) => setContent(prev => ({
+                  <Textarea
+                    value={editingContent.hero.subtitle}
+                    onChange={(e) => setEditingContent(prev => ({
                       ...prev,
                       hero: { ...prev.hero, subtitle: e.target.value }
                     }))}
                     rows={3}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-axa-red"
+                    className="mt-2"
                   />
                 ) : (
-                  <p className="text-axa-gray">{content.hero.subtitle}</p>
+                  <p className="text-axa-gray mt-2 p-3 bg-gray-50 rounded-lg">{content.hero.subtitle}</p>
                 )}
               </div>
 
               <div>
-                <label className="block text-sm font-medium mb-2">Image de fond</label>
-                <div className="flex items-center space-x-4">
+                <Label className="text-sm font-medium mb-2">Image de fond</Label>
+                <div className="flex items-center space-x-4 mt-2">
                   <img 
-                    src={content.hero.backgroundImage} 
+                    src={editingContent.hero.backgroundImage} 
                     alt="Background" 
-                    className="w-32 h-20 object-cover rounded-lg"
+                    className="w-40 h-24 object-cover rounded-lg border"
                   />
                   {isEditing && (
                     <Button 
                       variant="outline" 
                       onClick={() => handleImageUpload('hero', 'backgroundImage')}
+                      className="flex items-center space-x-2"
                     >
-                      <Upload className="h-4 w-4 mr-2" />
-                      Changer l'image
+                      <Upload className="h-4 w-4" />
+                      <span>Changer l'image</span>
                     </Button>
                   )}
                 </div>
@@ -158,128 +201,76 @@ const ContentManager = () => {
             <CardHeader>
               <CardTitle>Section À Propos</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-6">
               <div className="grid md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium mb-2">Titre</label>
+                  <Label className="text-sm font-medium mb-2">Titre</Label>
                   {isEditing ? (
-                    <input
-                      type="text"
-                      value={content.about.title}
-                      onChange={(e) => setContent(prev => ({
+                    <Input
+                      value={editingContent.about.title}
+                      onChange={(e) => setEditingContent(prev => ({
                         ...prev,
                         about: { ...prev.about, title: e.target.value }
                       }))}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-axa-red"
+                      className="mt-2"
                     />
                   ) : (
-                    <p className="font-semibold">{content.about.title}</p>
+                    <p className="font-semibold mt-2 p-3 bg-gray-50 rounded-lg">{content.about.title}</p>
                   )}
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium mb-2">Sous-titre</label>
+                  <Label className="text-sm font-medium mb-2">Sous-titre</Label>
                   {isEditing ? (
-                    <input
-                      type="text"
-                      value={content.about.subtitle}
-                      onChange={(e) => setContent(prev => ({
+                    <Input
+                      value={editingContent.about.subtitle}
+                      onChange={(e) => setEditingContent(prev => ({
                         ...prev,
                         about: { ...prev.about, subtitle: e.target.value }
                       }))}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-axa-red"
+                      className="mt-2"
                     />
                   ) : (
-                    <p className="text-axa-red">{content.about.subtitle}</p>
+                    <p className="text-axa-red mt-2 p-3 bg-gray-50 rounded-lg">{content.about.subtitle}</p>
                   )}
                 </div>
               </div>
 
               <div>
-                <label className="block text-sm font-medium mb-2">Description</label>
+                <Label className="text-sm font-medium mb-2">Description</Label>
                 {isEditing ? (
-                  <textarea
-                    value={content.about.description}
-                    onChange={(e) => setContent(prev => ({
+                  <Textarea
+                    value={editingContent.about.description}
+                    onChange={(e) => setEditingContent(prev => ({
                       ...prev,
                       about: { ...prev.about, description: e.target.value }
                     }))}
                     rows={4}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-axa-red"
+                    className="mt-2"
                   />
                 ) : (
-                  <p className="text-axa-gray">{content.about.description}</p>
+                  <p className="text-axa-gray mt-2 p-3 bg-gray-50 rounded-lg">{content.about.description}</p>
                 )}
               </div>
 
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <div>
-                  <label className="block text-sm font-medium mb-2">Années d'expérience</label>
-                  {isEditing ? (
-                    <input
-                      type="text"
-                      value={content.about.experience}
-                      onChange={(e) => setContent(prev => ({
-                        ...prev,
-                        about: { ...prev.about, experience: e.target.value }
-                      }))}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-axa-red"
-                    />
-                  ) : (
-                    <p className="text-2xl font-bold">{content.about.experience}</p>
-                  )}
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium mb-2">Clients satisfaits</label>
-                  {isEditing ? (
-                    <input
-                      type="text"
-                      value={content.about.clients}
-                      onChange={(e) => setContent(prev => ({
-                        ...prev,
-                        about: { ...prev.about, clients: e.target.value }
-                      }))}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-axa-red"
-                    />
-                  ) : (
-                    <p className="text-2xl font-bold">{content.about.clients}</p>
-                  )}
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium mb-2">Taux de satisfaction</label>
-                  {isEditing ? (
-                    <input
-                      type="text"
-                      value={content.about.satisfaction}
-                      onChange={(e) => setContent(prev => ({
-                        ...prev,
-                        about: { ...prev.about, satisfaction: e.target.value }
-                      }))}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-axa-red"
-                    />
-                  ) : (
-                    <p className="text-2xl font-bold">{content.about.satisfaction}</p>
-                  )}
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium mb-2">Délai de réponse</label>
-                  {isEditing ? (
-                    <input
-                      type="text"
-                      value={content.about.response}
-                      onChange={(e) => setContent(prev => ({
-                        ...prev,
-                        about: { ...prev.about, response: e.target.value }
-                      }))}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-axa-red"
-                    />
-                  ) : (
-                    <p className="text-2xl font-bold">{content.about.response}</p>
-                  )}
-                </div>
+                {['experience', 'clients', 'satisfaction', 'response'].map((field) => (
+                  <div key={field}>
+                    <Label className="text-sm font-medium mb-2 capitalize">{field}</Label>
+                    {isEditing ? (
+                      <Input
+                        value={editingContent.about[field as keyof typeof editingContent.about]}
+                        onChange={(e) => setEditingContent(prev => ({
+                          ...prev,
+                          about: { ...prev.about, [field]: e.target.value }
+                        }))}
+                        className="mt-2"
+                      />
+                    ) : (
+                      <p className="text-2xl font-bold mt-2 p-3 bg-gray-50 rounded-lg">{content.about[field as keyof typeof content.about]}</p>
+                    )}
+                  </div>
+                ))}
               </div>
             </CardContent>
           </Card>
@@ -288,16 +279,74 @@ const ContentManager = () => {
         <TabsContent value="products" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>Gestion des Produits</CardTitle>
+              <CardTitle className="flex items-center justify-between">
+                <span>Gestion des Produits</span>
+                {isEditing && (
+                  <Button onClick={addNewProduct} className="bg-axa-red hover:bg-axa-red/90">
+                    <Plus className="h-4 w-4 mr-2" />
+                    Ajouter un Produit
+                  </Button>
+                )}
+              </CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-axa-gray mb-4">
-                Gérez les descriptions, images et tarifs de vos produits d'assurance.
-              </p>
-              <Button className="bg-axa-red hover:bg-axa-red/90">
-                <Edit className="h-4 w-4 mr-2" />
-                Modifier les Produits
-              </Button>
+              <div className="space-y-6">
+                {editingContent.products.map((product, index) => (
+                  <div key={product.id} className="border rounded-lg p-4 space-y-4">
+                    <div className="flex items-center justify-between">
+                      <h4 className="font-semibold">Produit {index + 1}</h4>
+                      {isEditing && (
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => removeProductFromEdit(product.id)}
+                          className="text-red-600 hover:text-red-700"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      )}
+                    </div>
+                    
+                    <div className="grid md:grid-cols-2 gap-4">
+                      <div>
+                        <Label className="text-sm font-medium mb-2">Titre</Label>
+                        {isEditing ? (
+                          <Input
+                            value={product.title}
+                            onChange={(e) => setEditingContent(prev => ({
+                              ...prev,
+                              products: prev.products.map(p => 
+                                p.id === product.id ? { ...p, title: e.target.value } : p
+                              )
+                            }))}
+                            className="mt-2"
+                          />
+                        ) : (
+                          <p className="mt-2 p-3 bg-gray-50 rounded-lg">{product.title}</p>
+                        )}
+                      </div>
+
+                      <div>
+                        <Label className="text-sm font-medium mb-2">Description</Label>
+                        {isEditing ? (
+                          <Input
+                            value={product.description}
+                            onChange={(e) => setEditingContent(prev => ({
+                              ...prev,
+                              products: prev.products.map(p => 
+                                p.id === product.id ? { ...p, description: e.target.value } : p
+                              )
+                            }))}
+                            className="mt-2"
+                          />
+                        ) : (
+                          <p className="mt-2 p-3 bg-gray-50 rounded-lg">{product.description}</p>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </CardContent>
           </Card>
         </TabsContent>
@@ -307,80 +356,56 @@ const ContentManager = () => {
             <CardHeader>
               <CardTitle>Informations de Contact</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-6">
               <div className="grid md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium mb-2">Adresse</label>
-                  {isEditing ? (
-                    <textarea
-                      value={content.contact.address}
-                      onChange={(e) => setContent(prev => ({
-                        ...prev,
-                        contact: { ...prev.contact, address: e.target.value }
-                      }))}
-                      rows={2}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-axa-red"
-                    />
-                  ) : (
-                    <p className="text-axa-gray">{content.contact.address}</p>
-                  )}
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium mb-2">Téléphone</label>
-                  {isEditing ? (
-                    <input
-                      type="text"
-                      value={content.contact.phone}
-                      onChange={(e) => setContent(prev => ({
-                        ...prev,
-                        contact: { ...prev.contact, phone: e.target.value }
-                      }))}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-axa-red"
-                    />
-                  ) : (
-                    <p className="text-axa-gray">{content.contact.phone}</p>
-                  )}
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium mb-2">Email</label>
-                  {isEditing ? (
-                    <input
-                      type="email"
-                      value={content.contact.email}
-                      onChange={(e) => setContent(prev => ({
-                        ...prev,
-                        contact: { ...prev.contact, email: e.target.value }
-                      }))}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-axa-red"
-                    />
-                  ) : (
-                    <p className="text-axa-gray">{content.contact.email}</p>
-                  )}
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium mb-2">Horaires</label>
-                  {isEditing ? (
-                    <input
-                      type="text"
-                      value={content.contact.hours}
-                      onChange={(e) => setContent(prev => ({
-                        ...prev,
-                        contact: { ...prev.contact, hours: e.target.value }
-                      }))}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-axa-red"
-                    />
-                  ) : (
-                    <p className="text-axa-gray">{content.contact.hours}</p>
-                  )}
-                </div>
+                {Object.entries(editingContent.contact).map(([key, value]) => (
+                  <div key={key}>
+                    <Label className="text-sm font-medium mb-2 capitalize">{key}</Label>
+                    {isEditing ? (
+                      key === 'address' ? (
+                        <Textarea
+                          value={value}
+                          onChange={(e) => setEditingContent(prev => ({
+                            ...prev,
+                            contact: { ...prev.contact, [key]: e.target.value }
+                          }))}
+                          rows={2}
+                          className="mt-2"
+                        />
+                      ) : (
+                        <Input
+                          value={value}
+                          onChange={(e) => setEditingContent(prev => ({
+                            ...prev,
+                            contact: { ...prev.contact, [key]: e.target.value }
+                          }))}
+                          className="mt-2"
+                        />
+                      )
+                    ) : (
+                      <p className="text-axa-gray mt-2 p-3 bg-gray-50 rounded-lg">{value}</p>
+                    )}
+                  </div>
+                ))}
               </div>
             </CardContent>
           </Card>
         </TabsContent>
       </Tabs>
+
+      {isEditing && (
+        <Card className="border-axa-red/20 bg-axa-red/5">
+          <CardContent className="p-6">
+            <div className="flex items-center space-x-2 text-axa-red">
+              <Edit className="h-5 w-5" />
+              <p className="font-medium">Mode Édition Actif</p>
+            </div>
+            <p className="text-sm text-axa-gray mt-2">
+              Vous êtes en train de modifier le contenu. Cliquez sur "Sauvegarder" pour appliquer les changements sur le site public.
+            </p>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 };
