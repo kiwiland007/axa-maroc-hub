@@ -51,7 +51,7 @@ const Hero = () => {
               size="lg" 
               variant="outline" 
               onClick={scrollToContact}
-              className="border-white text-white hover:bg-white hover:text-gray-800 px-8 py-4 text-lg"
+              className="border-2 border-orange-500 text-orange-500 bg-white hover:bg-orange-500 hover:text-white px-8 py-4 text-lg font-semibold shadow-lg"
             >
               Nous Contacter
             </Button>
