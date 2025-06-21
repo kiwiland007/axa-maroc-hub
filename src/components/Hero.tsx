@@ -26,7 +26,11 @@ const Hero = () => {
 
   const handleQuoteRequest = (e: React.FormEvent) => {
     e.preventDefault();
-    alert('Votre demande de devis a été envoyée ! Nous vous contacterons dans les plus brefs délais.');
+    window.location.href = '/formulaires/affaire-nouvelle';
+  };
+
+  const scrollToProducts = () => {
+    document.getElementById('produits')?.scrollIntoView({ behavior: 'smooth' });
   };
 
   return (
@@ -98,11 +102,20 @@ const Hero = () => {
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 mb-12">
-              <Button size="lg" className="bg-gradient-to-r from-red-500 to-orange-500 hover:from-red-600 hover:to-orange-600 text-white px-8 py-4 text-base md:text-lg shadow-lg hover:shadow-xl transition-all transform hover:scale-105">
+              <Button 
+                size="lg" 
+                onClick={() => window.location.href = '/formulaires/affaire-nouvelle'}
+                className="bg-gradient-to-r from-red-500 to-orange-500 hover:from-red-600 hover:to-orange-600 text-white px-8 py-4 text-base md:text-lg shadow-lg hover:shadow-xl transition-all transform hover:scale-105"
+              >
                 <Phone className="h-5 w-5 mr-2" />
                 Obtenir un Devis Gratuit
               </Button>
-              <Button size="lg" variant="outline" className="border-2 border-red-500 text-red-500 hover:bg-red-500 hover:text-white px-8 py-4 text-base md:text-lg transition-all transform hover:scale-105">
+              <Button 
+                size="lg" 
+                variant="outline" 
+                onClick={scrollToProducts}
+                className="border-2 border-red-500 text-red-500 hover:bg-red-500 hover:text-white px-8 py-4 text-base md:text-lg transition-all transform hover:scale-105"
+              >
                 Nos Produits
               </Button>
             </div>

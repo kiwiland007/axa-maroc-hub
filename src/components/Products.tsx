@@ -3,9 +3,11 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Car, Home, Heart, Shield, PiggyBank, Building2, ArrowRight } from 'lucide-react';
 import { useContentStore } from '@/hooks/useContentStore';
+import { useNavigate } from 'react-router-dom';
 
 const Products = () => {
   const { content } = useContentStore();
+  const navigate = useNavigate();
   
   // Helper function to find product by ID
   const getProductById = (id: string) => {
@@ -14,6 +16,7 @@ const Products = () => {
   
   const products = [
     {
+      id: 'auto',
       icon: Car,
       title: 'Assurance Auto',
       description: 'Protection complète pour votre véhicule : responsabilité civile, tous risques, vol, incendie.',
@@ -23,6 +26,7 @@ const Products = () => {
       image: getProductById('auto')?.image || 'https://images.unsplash.com/photo-1649972904349-6e44c42644a7?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80'
     },
     {
+      id: 'habitation',
       icon: Home,
       title: 'Assurance Habitation',
       description: 'Protégez votre logement contre les risques : incendie, dégâts des eaux, vol, catastrophes naturelles.',
@@ -31,6 +35,7 @@ const Products = () => {
       image: getProductById('habitation')?.image || 'https://images.unsplash.com/photo-1488590528505-98d2b5aba04b?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80'
     },
     {
+      id: 'sante',
       icon: Heart,
       title: 'Assurance Santé',
       description: 'Couverture médicale complète pour vous et votre famille. Remboursements rapides.',
@@ -39,6 +44,7 @@ const Products = () => {
       image: getProductById('sante')?.image || 'https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80'
     },
     {
+      id: 'prevoyance',
       icon: Shield,
       title: 'Prévoyance',
       description: 'Protégez vos proches en cas d\'accident de la vie : décès, invalidité, incapacité.',
@@ -47,6 +53,7 @@ const Products = () => {
       image: getProductById('prevoyance')?.image
     },
     {
+      id: 'epargne',
       icon: PiggyBank,
       title: 'Épargne & Retraite',
       description: 'Constituez et valorisez votre patrimoine pour préparer sereinement votre avenir.',
@@ -55,6 +62,7 @@ const Products = () => {
       image: getProductById('epargne')?.image
     },
     {
+      id: 'professionnelle',
       icon: Building2,
       title: 'Assurance Professionnelle',
       description: 'Solutions sur-mesure pour protéger votre activité professionnelle et vos locaux.',
@@ -64,8 +72,12 @@ const Products = () => {
     }
   ];
 
-  const handleLearnMore = (productTitle: string) => {
-    alert(`Plus d'informations sur ${productTitle} - Cette fonctionnalité sera bientôt disponible !`);
+  const handleLearnMore = (productId: string) => {
+    navigate(`/produits/${productId}`);
+  };
+
+  const handleCompareOffers = () => {
+    navigate('/comparateur');
   };
 
   return (
@@ -127,7 +139,7 @@ const Products = () => {
                 </div>
                 
                 <Button 
-                  onClick={() => handleLearnMore(product.title)}
+                  onClick={() => handleLearnMore(product.id)}
                   className="w-full bg-gray-800 hover:bg-gray-700 text-white group transition-all"
                 >
                   En savoir plus
@@ -139,7 +151,11 @@ const Products = () => {
         </div>
 
         <div className="text-center mt-12">
-          <Button size="lg" className="bg-red-500 hover:bg-red-600 text-white px-8 py-3">
+          <Button 
+            size="lg" 
+            onClick={handleCompareOffers}
+            className="bg-red-500 hover:bg-red-600 text-white px-8 py-3"
+          >
             Comparer nos Offres
           </Button>
         </div>
