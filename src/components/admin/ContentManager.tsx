@@ -6,7 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import { Edit, Save, Upload, Eye, Plus, Trash2, Package } from 'lucide-react';
+import { Edit, Save, Upload, Eye, Plus, Trash2, Package, Image as ImageIcon } from 'lucide-react';
 import { useContentStore } from '@/hooks/useContentStore';
 import { toast } from 'sonner';
 
@@ -53,23 +53,37 @@ const ContentManager = () => {
     setIsEditing(false);
   };
 
-  const handleImageUpload = (section: string, field: string) => {
+  const handleImageUpload = (section: string, field: string, productId?: string) => {
     const input = document.createElement('input');
     input.type = 'file';
     input.accept = 'image/*';
     input.onchange = (e) => {
       const file = (e.target as HTMLInputElement).files?.[0];
       if (file) {
+        // Simulate image upload - in a real app, you'd upload to a server
         const reader = new FileReader();
         reader.onload = (e) => {
           const imageUrl = e.target?.result as string;
-          setEditingContent(prev => ({
-            ...prev,
-            [section]: {
-              ...prev[section as keyof typeof prev],
-              [field]: imageUrl
-            }
-          }));
+          
+          if (productId) {
+            // Update product image
+            setEditingContent(prev => ({
+              ...prev,
+              products: prev.products.map(p => 
+                p.id === productId ? { ...p, image: imageUrl } : p
+              )
+            }));
+          } else {
+            // Update section image
+            setEditingContent(prev => ({
+              ...prev,
+              [section]: {
+                ...prev[section as keyof typeof prev],
+                [field]: imageUrl
+              }
+            }));
+          }
+          
           toast.success('Image uploadée avec succès !');
         };
         reader.readAsDataURL(file);
@@ -84,6 +98,7 @@ const ContentManager = () => {
       title: 'Nouveau Produit',
       description: 'Description du nouveau produit d\'assurance',
       icon: 'Package',
+      image: 'https://images.unsplash.com/photo-1560472354-b33ff0c44a43?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80',
       features: ['Nouvelle fonctionnalité 1', 'Nouvelle fonctionnalité 2', 'Nouvelle fonctionnalité 3']
     };
     setEditingContent(prev => ({
@@ -228,11 +243,18 @@ const ContentManager = () => {
               <div>
                 <Label className="text-sm font-medium mb-2">Image de fond</Label>
                 <div className="flex items-center space-x-4 mt-2">
-                  <img 
-                    src={editingContent.hero.backgroundImage} 
-                    alt="Background" 
-                    className="w-40 h-24 object-cover rounded-lg border"
-                  />
+                  <div className="relative">
+                    <img 
+                      src={editingContent.hero.backgroundImage} 
+                      alt="Background" 
+                      className="w-40 h-24 object-cover rounded-lg border"
+                    />
+                    {isEditing && (
+                      <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center rounded-lg opacity-0 hover:opacity-100 transition-opacity">
+                        <ImageIcon className="h-6 w-6 text-white" />
+                      </div>
+                    )}
+                  </div>
                   {isEditing && (
                     <Button 
                       variant="outline" 
@@ -364,6 +386,36 @@ const ContentManager = () => {
                       )}
                     </div>
                     
+                    {/* Product Image */}
+                    <div>
+                      <Label className="text-sm font-medium mb-2">Image du produit</Label>
+                      <div className="flex items-center space-x-4 mt-2">
+                        <div className="relative">
+                          <img 
+                            src={product.image || 'https://images.unsplash.com/photo-1560472354-b33ff0c44a43?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80'} 
+                            alt={product.title} 
+                            className="w-32 h-20 object-cover rounded-lg border"
+                          />
+                          {isEditing && (
+                            <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center rounded-lg opacity-0 hover:opacity-100 transition-opacity cursor-pointer">
+                              <ImageIcon className="h-5 w-5 text-white" />
+                            </div>
+                          )}
+                        </div>
+                        {isEditing && (
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => handleImageUpload('products', 'image', product.id)}
+                            className="flex items-center space-x-2"
+                          >
+                            <Upload className="h-4 w-4" />
+                            <span>Changer</span>
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+                    
                     <div className="grid md:grid-cols-2 gap-6">
                       <div>
                         <Label className="text-sm font-medium mb-2">Titre du Produit</Label>
@@ -382,11 +434,12 @@ const ContentManager = () => {
                       <div>
                         <Label className="text-sm font-medium mb-2">Description</Label>
                         {isEditing ? (
-                          <Input
+                          <Textarea
                             value={product.description}
                             onChange={(e) => updateProductInEdit(product.id, 'description', e.target.value)}
                             className="mt-2"
                             placeholder="Description courte du produit"
+                            rows={2}
                           />
                         ) : (
                           <p className="mt-2 p-3 bg-gray-50 rounded-lg">{product.description}</p>

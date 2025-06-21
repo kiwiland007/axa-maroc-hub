@@ -3,659 +3,503 @@ import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Play, Pause, Eye, Edit, Trash2, Plus, Mail, Target, BarChart3 } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { 
+  Mail, 
+  MessageSquare, 
+  TrendingUp, 
+  Users, 
+  Calendar,
+  Plus,
+  Send,
+  BarChart3,
+  Target,
+  Eye,
+  Click
+} from 'lucide-react';
 import { toast } from 'sonner';
 
+interface Campaign {
+  id: string;
+  name: string;
+  type: 'email' | 'sms' | 'social';
+  status: 'draft' | 'active' | 'completed';
+  audience: string;
+  sentDate?: string;
+  openRate?: number;
+  clickRate?: number;
+  conversions?: number;
+}
+
+interface SocialPost {
+  id: string;
+  platform: 'facebook' | 'instagram' | 'linkedin';
+  content: string;
+  scheduledDate: string;
+  status: 'scheduled' | 'published';
+  engagement?: number;
+}
+
 const MarketingManager = () => {
-  const [isAddCampaignOpen, setIsAddCampaignOpen] = useState(false);
-  const [isAddEmailOpen, setIsAddEmailOpen] = useState(false);
-  const [isEditCampaignOpen, setIsEditCampaignOpen] = useState(false);
-  const [selectedCampaign, setSelectedCampaign] = useState<any>(null);
+  const [campaigns, setCampaigns] = useState<Campaign[]>([
+    {
+      id: '1',
+      name: 'Campagne Assurance Auto - Printemps 2024',
+      type: 'email',
+      status: 'completed',
+      audience: 'Prospects Auto',
+      sentDate: '2024-03-15',
+      openRate: 24.5,
+      clickRate: 3.2,
+      conversions: 18
+    },
+    {
+      id: '2',
+      name: 'Promotion Assurance Habitation',
+      type: 'sms',
+      status: 'active',
+      audience: 'Clients existants',
+      sentDate: '2024-06-01',
+      openRate: 89.3,
+      clickRate: 12.1,
+      conversions: 45
+    }
+  ]);
+
+  const [socialPosts, setSocialPosts] = useState<SocialPost[]>([
+    {
+      id: '1',
+      platform: 'facebook',
+      content: 'Protégez votre véhicule avec notre assurance auto complète ! 🚗 Devis gratuit en 2 minutes.',
+      scheduledDate: '2024-06-25T10:00',
+      status: 'scheduled',
+      engagement: 0
+    },
+    {
+      id: '2',
+      platform: 'instagram',
+      content: 'Votre maison mérite la meilleure protection 🏠 Découvrez notre assurance habitation.',
+      scheduledDate: '2024-06-20T14:30',
+      status: 'published',
+      engagement: 156
+    }
+  ]);
 
   const [newCampaign, setNewCampaign] = useState({
     name: '',
-    type: '',
-    budget: '',
-    description: ''
-  });
-
-  const [newEmail, setNewEmail] = useState({
-    name: '',
-    type: '',
+    type: 'email' as 'email' | 'sms' | 'social',
+    audience: '',
     subject: '',
     content: ''
   });
 
-  const [campaigns, setCampaigns] = useState([
-    {
-      id: 1,
-      name: 'Assurance Auto - Hiver 2024',
-      type: 'Facebook Ads',
-      status: 'Actif',
-      budget: 5000,
-      spent: 3200,
-      impressions: 125000,
-      clicks: 2850,
-      leads: 127,
-      cost_per_lead: 25.2,
-      startDate: '2024-01-01',
-      endDate: '2024-02-29'
-    },
-    {
-      id: 2,
-      name: 'Habitation - Campagne Printemps',
-      type: 'Google Ads',
-      status: 'Actif',
-      budget: 3500,
-      spent: 2100,
-      impressions: 89000,
-      clicks: 1950,
-      leads: 89,
-      cost_per_lead: 23.6,
-      startDate: '2024-01-15',
-      endDate: '2024-03-15'
-    }
-  ]);
+  const [newPost, setNewPost] = useState({
+    platform: 'facebook' as 'facebook' | 'instagram' | 'linkedin',
+    content: '',
+    scheduledDate: ''
+  });
 
-  const [emailCampaigns, setEmailCampaigns] = useState([
-    {
-      id: 1,
-      name: 'Newsletter Janvier 2024',
-      type: 'Newsletter',
-      status: 'Envoyé',
-      recipients: 2500,
-      opened: 625,
-      clicked: 87,
-      open_rate: 25,
-      click_rate: 3.5,
-      sentDate: '2024-01-15'
-    },
-    {
-      id: 2,
-      name: 'Rappel Renouvellement Auto',
-      type: 'Automation',
-      status: 'Actif',
-      recipients: 450,
-      opened: 180,
-      clicked: 54,
-      open_rate: 40,
-      click_rate: 12,
-      sentDate: '2024-01-20'
+  const handleCreateCampaign = () => {
+    if (!newCampaign.name || !newCampaign.audience || !newCampaign.content) {
+      toast.error('Veuillez remplir tous les champs obligatoires');
+      return;
     }
-  ]);
+
+    const campaign: Campaign = {
+      id: Date.now().toString(),
+      name: newCampaign.name,
+      type: newCampaign.type,
+      status: 'draft',
+      audience: newCampaign.audience
+    };
+
+    setCampaigns([...campaigns, campaign]);
+    setNewCampaign({ name: '', type: 'email', audience: '', subject: '', content: '' });
+    toast.success('Campagne créée avec succès !');
+  };
+
+  const handleSchedulePost = () => {
+    if (!newPost.content || !newPost.scheduledDate) {
+      toast.error('Veuillez remplir tous les champs');
+      return;
+    }
+
+    const post: SocialPost = {
+      id: Date.now().toString(),
+      platform: newPost.platform,
+      content: newPost.content,
+      scheduledDate: newPost.scheduledDate,
+      status: 'scheduled',
+      engagement: 0
+    };
+
+    setSocialPosts([...socialPosts, post]);
+    setNewPost({ platform: 'facebook', content: '', scheduledDate: '' });
+    toast.success('Publication programmée avec succès !');
+  };
+
+  const launchCampaign = (campaignId: string) => {
+    setCampaigns(campaigns.map(c => 
+      c.id === campaignId ? { ...c, status: 'active', sentDate: new Date().toISOString().split('T')[0] } : c
+    ));
+    toast.success('Campagne lancée avec succès !');
+  };
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'Actif': return 'bg-green-100 text-green-800';
-      case 'Pause': return 'bg-orange-100 text-orange-800';
-      case 'Terminé': return 'bg-gray-100 text-gray-800';
-      case 'Envoyé': return 'bg-blue-100 text-blue-800';
+      case 'draft': return 'bg-gray-100 text-gray-800';
+      case 'active': return 'bg-blue-100 text-blue-800';
+      case 'completed': return 'bg-green-100 text-green-800';
+      case 'scheduled': return 'bg-yellow-100 text-yellow-800';
+      case 'published': return 'bg-green-100 text-green-800';
       default: return 'bg-gray-100 text-gray-800';
     }
   };
 
-  const handleAddCampaign = () => {
-    if (!newCampaign.name || !newCampaign.type || !newCampaign.budget) {
-      toast.error('Veuillez remplir tous les champs obligatoires');
-      return;
+  const getPlatformIcon = (platform: string) => {
+    switch (platform) {
+      case 'facebook': return '📘';
+      case 'instagram': return '📷';
+      case 'linkedin': return '💼';
+      default: return '📱';
     }
-
-    const campaign = {
-      id: campaigns.length + 1,
-      ...newCampaign,
-      budget: parseInt(newCampaign.budget),
-      status: 'Actif',
-      spent: 0,
-      impressions: 0,
-      clicks: 0,
-      leads: 0,
-      cost_per_lead: 0,
-      startDate: new Date().toISOString().split('T')[0],
-      endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
-    };
-
-    setCampaigns(prev => [...prev, campaign]);
-    setNewCampaign({ name: '', type: '', budget: '', description: '' });
-    setIsAddCampaignOpen(false);
-    toast.success('Campagne créée avec succès!');
-  };
-
-  const handleAddEmail = () => {
-    if (!newEmail.name || !newEmail.subject) {
-      toast.error('Veuillez remplir tous les champs obligatoires');
-      return;
-    }
-
-    const email = {
-      id: emailCampaigns.length + 1,
-      ...newEmail,
-      status: 'Brouillon',
-      recipients: 0,
-      opened: 0,
-      clicked: 0,
-      open_rate: 0,
-      click_rate: 0,
-      sentDate: new Date().toISOString().split('T')[0]
-    };
-
-    setEmailCampaigns(prev => [...prev, email]);
-    setNewEmail({ name: '', type: '', subject: '', content: '' });
-    setIsAddEmailOpen(false);
-    toast.success('Email créé avec succès!');
-  };
-
-  const handleCampaignAction = (campaignId: number, action: string) => {
-    setCampaigns(prev => 
-      prev.map(campaign => 
-        campaign.id === campaignId 
-          ? { ...campaign, status: action === 'pause' ? 'Pause' : 'Actif' }
-          : campaign
-      )
-    );
-    toast.success(`Campagne ${action === 'pause' ? 'mise en pause' : 'activée'}`);
-  };
-
-  const handleEditCampaign = (campaign: any) => {
-    setSelectedCampaign({ ...campaign });
-    setIsEditCampaignOpen(true);
-  };
-
-  const saveCampaignEdit = () => {
-    if (!selectedCampaign) return;
-    
-    setCampaigns(prev => prev.map(c => 
-      c.id === selectedCampaign.id ? selectedCampaign : c
-    ));
-    setIsEditCampaignOpen(false);
-    toast.success('Campagne modifiée avec succès!');
   };
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-2xl font-bold text-axa-gray-dark mb-2">Marketing Digital</h2>
-          <p className="text-axa-gray">Gestion des campagnes et marketing automation</p>
-        </div>
-        <Dialog open={isAddCampaignOpen} onOpenChange={setIsAddCampaignOpen}>
-          <DialogTrigger asChild>
-            <Button className="bg-axa-red hover:bg-axa-red/90">
-              <Plus className="h-4 w-4 mr-2" />
-              Nouvelle Campagne
-            </Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Créer une Nouvelle Campagne</DialogTitle>
-            </DialogHeader>
-            <div className="space-y-4">
+      <div>
+        <h2 className="text-2xl font-bold text-gray-800 mb-2">Marketing Digital</h2>
+        <p className="text-gray-600">Gérez vos campagnes marketing et votre présence sur les réseaux sociaux</p>
+      </div>
+
+      {/* Dashboard Overview */}
+      <div className="grid md:grid-cols-4 gap-4">
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center space-x-2">
+              <Mail className="h-8 w-8 text-blue-500" />
               <div>
-                <Label>Nom de la Campagne *</Label>
-                <Input 
-                  value={newCampaign.name}
-                  onChange={(e) => setNewCampaign(prev => ({ ...prev, name: e.target.value }))}
-                  placeholder="Ex: Assurance Auto - Été 2024"
-                />
-              </div>
-              <div>
-                <Label>Type de Campagne *</Label>
-                <Select value={newCampaign.type} onValueChange={(value) => setNewCampaign(prev => ({ ...prev, type: value }))}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Choisir le type" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Facebook Ads">Facebook Ads</SelectItem>
-                    <SelectItem value="Google Ads">Google Ads</SelectItem>
-                    <SelectItem value="Instagram Ads">Instagram Ads</SelectItem>
-                    <SelectItem value="LinkedIn Ads">LinkedIn Ads</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <Label>Budget (DH) *</Label>
-                <Input 
-                  type="number"
-                  value={newCampaign.budget}
-                  onChange={(e) => setNewCampaign(prev => ({ ...prev, budget: e.target.value }))}
-                  placeholder="5000"
-                />
-              </div>
-              <div>
-                <Label>Description</Label>
-                <Textarea 
-                  value={newCampaign.description}
-                  onChange={(e) => setNewCampaign(prev => ({ ...prev, description: e.target.value }))}
-                  placeholder="Description de la campagne..."
-                />
+                <div className="text-2xl font-bold">12</div>
+                <div className="text-sm text-gray-600">Campagnes actives</div>
               </div>
             </div>
-            <div className="flex justify-end space-x-2 mt-4">
-              <Button variant="outline" onClick={() => setIsAddCampaignOpen(false)}>
-                Annuler
-              </Button>
-              <Button onClick={handleAddCampaign} className="bg-axa-red hover:bg-axa-red/90">
-                Créer la Campagne
-              </Button>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center space-x-2">
+              <Eye className="h-8 w-8 text-green-500" />
+              <div>
+                <div className="text-2xl font-bold">28.4%</div>
+                <div className="text-sm text-gray-600">Taux d'ouverture</div>
+              </div>
             </div>
-          </DialogContent>
-        </Dialog>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center space-x-2">
+              <Click className="h-8 w-8 text-orange-500" />
+              <div>
+                <div className="text-2xl font-bold">5.8%</div>
+                <div className="text-sm text-gray-600">Taux de clic</div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center space-x-2">
+              <Target className="h-8 w-8 text-red-500" />
+              <div>
+                <div className="text-2xl font-bold">143</div>
+                <div className="text-sm text-gray-600">Conversions</div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
       <Tabs defaultValue="campaigns" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="campaigns">Campagnes Pub</TabsTrigger>
-          <TabsTrigger value="email">Email Marketing</TabsTrigger>
-          <TabsTrigger value="landing">Landing Pages</TabsTrigger>
+        <TabsList className="grid w-full grid-cols-3">
+          <TabsTrigger value="campaigns">Campagnes Email/SMS</TabsTrigger>
           <TabsTrigger value="social">Réseaux Sociaux</TabsTrigger>
+          <TabsTrigger value="analytics">Analytics</TabsTrigger>
         </TabsList>
 
         <TabsContent value="campaigns" className="space-y-6">
-          {/* Stats globales */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <Card>
-              <CardContent className="p-4">
-                <div className="text-2xl font-bold text-axa-gray-dark">{campaigns.length}</div>
-                <div className="text-sm text-axa-gray">Campagnes Actives</div>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="p-4">
-                <div className="text-2xl font-bold text-green-600">
-                  {campaigns.reduce((sum, c) => sum + c.spent, 0).toLocaleString()} DH
-                </div>
-                <div className="text-sm text-axa-gray">Budget Dépensé</div>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="p-4">
-                <div className="text-2xl font-bold text-blue-600">
-                  {campaigns.reduce((sum, c) => sum + c.leads, 0)}
-                </div>
-                <div className="text-sm text-axa-gray">Leads Générés</div>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="p-4">
-                <div className="text-2xl font-bold text-axa-red">
-                  {campaigns.length > 0 ? (campaigns.reduce((sum, c) => sum + c.spent, 0) / campaigns.reduce((sum, c) => sum + c.leads, 0)).toFixed(1) : '0'} DH
-                </div>
-                <div className="text-sm text-axa-gray">Coût par Lead</div>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Liste des campagnes */}
+          {/* Create New Campaign */}
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center space-x-2">
-                <Target className="h-5 w-5" />
-                <span>Campagnes Publicitaires</span>
+                <Plus className="h-5 w-5" />
+                <span>Nouvelle Campagne</span>
               </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid md:grid-cols-2 gap-4">
+                <div>
+                  <Label>Nom de la campagne *</Label>
+                  <Input
+                    value={newCampaign.name}
+                    onChange={(e) => setNewCampaign({...newCampaign, name: e.target.value})}
+                    placeholder="Ex: Promotion Été 2024"
+                  />
+                </div>
+                <div>
+                  <Label>Type de campagne</Label>
+                  <Select value={newCampaign.type} onValueChange={(value: 'email' | 'sms' | 'social') => setNewCampaign({...newCampaign, type: value})}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="email">Email</SelectItem>
+                      <SelectItem value="sms">SMS</SelectItem>
+                      <SelectItem value="social">Réseaux Sociaux</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div>
+                <Label>Audience cible *</Label>
+                <Select value={newCampaign.audience} onValueChange={(value) => setNewCampaign({...newCampaign, audience: value})}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Sélectionner l'audience" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="prospects-auto">Prospects Auto</SelectItem>
+                    <SelectItem value="prospects-habitation">Prospects Habitation</SelectItem>
+                    <SelectItem value="clients-existants">Clients existants</SelectItem>
+                    <SelectItem value="leads-recents">Leads récents</SelectItem>
+                    <SelectItem value="tous">Tous les contacts</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {newCampaign.type === 'email' && (
+                <div>
+                  <Label>Sujet de l'email</Label>
+                  <Input
+                    value={newCampaign.subject}
+                    onChange={(e) => setNewCampaign({...newCampaign, subject: e.target.value})}
+                    placeholder="Objet de votre email"
+                  />
+                </div>
+              )}
+
+              <div>
+                <Label>Contenu du message *</Label>
+                <Textarea
+                  value={newCampaign.content}
+                  onChange={(e) => setNewCampaign({...newCampaign, content: e.target.value})}
+                  rows={4}
+                  placeholder="Rédigez votre message..."
+                />
+              </div>
+
+              <Button onClick={handleCreateCampaign} className="bg-blue-500 hover:bg-blue-600">
+                <Plus className="h-4 w-4 mr-2" />
+                Créer la campagne
+              </Button>
+            </CardContent>
+          </Card>
+
+          {/* Campaigns List */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Campagnes</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
                 {campaigns.map((campaign) => (
-                  <div key={campaign.id} className="border rounded-lg p-4 hover:bg-gray-50 transition-colors">
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1">
-                        <div className="flex items-center space-x-3 mb-2">
-                          <h3 className="font-semibold text-axa-gray-dark">{campaign.name}</h3>
-                          <Badge className={getStatusColor(campaign.status)}>
-                            {campaign.status}
-                          </Badge>
-                          <Badge variant="outline">{campaign.type}</Badge>
-                        </div>
-                        
-                        <div className="grid md:grid-cols-4 gap-4 text-sm mb-3">
-                          <div className="space-y-1">
-                            <div className="text-axa-gray">Budget / Dépensé</div>
-                            <div className="font-semibold">{campaign.budget.toLocaleString()} / {campaign.spent.toLocaleString()} DH</div>
-                          </div>
-                          <div className="space-y-1">
-                            <div className="text-axa-gray">Impressions / Clics</div>
-                            <div className="font-semibold">{campaign.impressions.toLocaleString()} / {campaign.clicks.toLocaleString()}</div>
-                          </div>
-                          <div className="space-y-1">
-                            <div className="text-axa-gray">Leads / Coût par Lead</div>
-                            <div className="font-semibold">{campaign.leads} / {campaign.cost_per_lead} DH</div>
-                          </div>
-                          <div className="space-y-1">
-                            <div className="text-axa-gray">CTR</div>
-                            <div className="font-semibold">{campaign.impressions > 0 ? ((campaign.clicks / campaign.impressions) * 100).toFixed(2) : '0'}%</div>
-                          </div>
-                        </div>
-
-                        <div className="w-full bg-gray-200 rounded-full h-2">
-                          <div 
-                            className="bg-axa-red h-2 rounded-full" 
-                            style={{ width: `${(campaign.spent / campaign.budget) * 100}%` }}
-                          ></div>
-                        </div>
-                        <div className="text-xs text-axa-gray mt-1">
-                          {((campaign.spent / campaign.budget) * 100).toFixed(1)}% du budget utilisé
-                        </div>
+                  <div key={campaign.id} className="border rounded-lg p-4">
+                    <div className="flex items-center justify-between mb-3">
+                      <div>
+                        <h4 className="font-semibold">{campaign.name}</h4>
+                        <p className="text-sm text-gray-600">Audience: {campaign.audience}</p>
                       </div>
-                      
-                      <div className="flex space-x-2 ml-4">
-                        <Button 
-                          size="sm" 
-                          variant="outline"
-                          onClick={() => handleCampaignAction(campaign.id, campaign.status === 'Actif' ? 'pause' : 'play')}
-                        >
-                          {campaign.status === 'Actif' ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
-                        </Button>
-                        <Button size="sm" variant="outline" onClick={() => toast.success('Aperçu de la campagne')}>
-                          <Eye className="h-4 w-4" />
-                        </Button>
-                        <Button size="sm" variant="outline" onClick={() => handleEditCampaign(campaign)}>
-                          <Edit className="h-4 w-4" />
-                        </Button>
-                        <Button size="sm" variant="outline" onClick={() => toast.success('Statistiques affichées')}>
-                          <BarChart3 className="h-4 w-4" />
-                        </Button>
+                      <div className="flex items-center space-x-2">
+                        <span className={`px-2 py-1 rounded-full text-xs ${getStatusColor(campaign.status)}`}>
+                          {campaign.status === 'draft' ? 'Brouillon' : 
+                           campaign.status === 'active' ? 'Active' : 'Terminée'}
+                        </span>
+                        {campaign.status === 'draft' && (
+                          <Button size="sm" onClick={() => launchCampaign(campaign.id)}>
+                            <Send className="h-4 w-4 mr-1" />
+                            Lancer
+                          </Button>
+                        )}
                       </div>
                     </div>
+                    
+                    {campaign.status !== 'draft' && (
+                      <div className="grid grid-cols-3 gap-4 mt-3 pt-3 border-t">
+                        <div className="text-center">
+                          <div className="text-lg font-bold text-blue-600">{campaign.openRate}%</div>
+                          <div className="text-sm text-gray-600">Ouvertures</div>
+                        </div>
+                        <div className="text-center">
+                          <div className="text-lg font-bold text-green-600">{campaign.clickRate}%</div>
+                          <div className="text-sm text-gray-600">Clics</div>
+                        </div>
+                        <div className="text-center">
+                          <div className="text-lg font-bold text-orange-600">{campaign.conversions}</div>
+                          <div className="text-sm text-gray-600">Conversions</div>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 ))}
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="email" className="space-y-6">
-          {/* Stats email */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <Card>
-              <CardContent className="p-4">
-                <div className="text-2xl font-bold text-axa-gray-dark">
-                  {emailCampaigns.reduce((sum, c) => sum + c.recipients, 0)}
-                </div>
-                <div className="text-sm text-axa-gray">Emails Envoyés</div>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="p-4">
-                <div className="text-2xl font-bold text-green-600">
-                  {emailCampaigns.length > 0 ? ((emailCampaigns.reduce((sum, c) => sum + c.opened, 0) / emailCampaigns.reduce((sum, c) => sum + c.recipients, 0)) * 100).toFixed(1) : '0'}%
-                </div>
-                <div className="text-sm text-axa-gray">Taux d'Ouverture</div>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="p-4">
-                <div className="text-2xl font-bold text-blue-600">
-                  {emailCampaigns.length > 0 ? ((emailCampaigns.reduce((sum, c) => sum + c.clicked, 0) / emailCampaigns.reduce((sum, c) => sum + c.recipients, 0)) * 100).toFixed(1) : '0'}%
-                </div>
-                <div className="text-sm text-axa-gray">Taux de Clic</div>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="p-4">
-                <div className="text-2xl font-bold text-axa-red">2 950</div>
-                <div className="text-sm text-axa-gray">Abonnés Newsletter</div>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Campagnes email */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center justify-between">
-                <div className="flex items-center space-x-2">
-                  <Mail className="h-5 w-5" />
-                  <span>Campagnes Email</span>
-                </div>
-                <Dialog open={isAddEmailOpen} onOpenChange={setIsAddEmailOpen}>
-                  <DialogTrigger asChild>
-                    <Button size="sm" className="bg-axa-red hover:bg-axa-red/90">
-                      <Plus className="h-4 w-4 mr-2" />
-                      Nouveau Mail
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent>
-                    <DialogHeader>
-                      <DialogTitle>Créer une Campagne Email</DialogTitle>
-                    </DialogHeader>
-                    <div className="space-y-4">
-                      <div>
-                        <Label>Nom de la Campagne *</Label>
-                        <Input 
-                          value={newEmail.name}
-                          onChange={(e) => setNewEmail(prev => ({ ...prev, name: e.target.value }))}
-                          placeholder="Ex: Newsletter Février 2024"
-                        />
-                      </div>
-                      <div>
-                        <Label>Type d'Email</Label>
-                        <Select value={newEmail.type} onValueChange={(value) => setNewEmail(prev => ({ ...prev, type: value }))}>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Choisir le type" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="Newsletter">Newsletter</SelectItem>
-                            <SelectItem value="Automation">Automation</SelectItem>
-                            <SelectItem value="Promotion">Promotion</SelectItem>
-                            <SelectItem value="Rappel">Rappel</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      <div>
-                        <Label>Sujet *</Label>
-                        <Input 
-                          value={newEmail.subject}
-                          onChange={(e) => setNewEmail(prev => ({ ...prev, subject: e.target.value }))}
-                          placeholder="Sujet de l'email"
-                        />
-                      </div>
-                      <div>
-                        <Label>Contenu</Label>
-                        <Textarea 
-                          value={newEmail.content}
-                          onChange={(e) => setNewEmail(prev => ({ ...prev, content: e.target.value }))}
-                          placeholder="Contenu de l'email..."
-                          rows={4}
-                        />
-                      </div>
-                    </div>
-                    <div className="flex justify-end space-x-2 mt-4">
-                      <Button variant="outline" onClick={() => setIsAddEmailOpen(false)}>
-                        Annuler
-                      </Button>
-                      <Button onClick={handleAddEmail} className="bg-axa-red hover:bg-axa-red/90">
-                        Créer l'Email
-                      </Button>
-                    </div>
-                  </DialogContent>
-                </Dialog>
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {emailCampaigns.map((campaign) => (
-                  <div key={campaign.id} className="border rounded-lg p-4 hover:bg-gray-50 transition-colors">
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1">
-                        <div className="flex items-center space-x-3 mb-2">
-                          <h3 className="font-semibold text-axa-gray-dark">{campaign.name}</h3>
-                          <Badge className={getStatusColor(campaign.status)}>
-                            {campaign.status}
-                          </Badge>
-                          <Badge variant="outline">{campaign.type}</Badge>
-                        </div>
-                        
-                        <div className="grid md:grid-cols-4 gap-4 text-sm">
-                          <div className="space-y-1">
-                            <div className="text-axa-gray">Destinataires</div>
-                            <div className="font-semibold">{campaign.recipients.toLocaleString()}</div>
-                          </div>
-                          <div className="space-y-1">
-                            <div className="text-axa-gray">Taux d'Ouverture</div>
-                            <div className="font-semibold text-green-600">{campaign.open_rate}%</div>
-                          </div>
-                          <div className="space-y-1">
-                            <div className="text-axa-gray">Taux de Clic</div>
-                            <div className="font-semibold text-blue-600">{campaign.click_rate}%</div>
-                          </div>
-                          <div className="space-y-1">
-                            <div className="text-axa-gray">Date d'Envoi</div>
-                            <div className="font-semibold">{campaign.sentDate}</div>
-                          </div>
-                        </div>
-                      </div>
-                      
-                      <div className="flex space-x-2 ml-4">
-                        <Button size="sm" variant="outline" onClick={() => toast.success('Aperçu de l\'email')}>
-                          <Eye className="h-4 w-4" />
-                        </Button>
-                        <Button size="sm" variant="outline" onClick={() => toast.success('Modification de l\'email')}>
-                          <Edit className="h-4 w-4" />
-                        </Button>
-                        <Button size="sm" variant="outline" onClick={() => toast.success('Statistiques affichées')}>
-                          <BarChart3 className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="landing" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Landing Pages</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-axa-gray mb-4">
-                Créez et optimisez vos pages de destination pour maximiser les conversions.
-              </p>
-              <div className="grid md:grid-cols-2 gap-4">
-                <div className="border rounded-lg p-4">
-                  <h3 className="font-semibold mb-2">Page Assurance Auto</h3>
-                  <p className="text-sm text-axa-gray mb-3">Taux de conversion: 3.2%</p>
-                  <div className="flex space-x-2">
-                    <Button size="sm" variant="outline" onClick={() => toast.success('Page affichée')}>
-                      <Eye className="h-4 w-4 mr-1" />
-                      Voir
-                    </Button>
-                    <Button size="sm" variant="outline" onClick={() => toast.success('Modification de la page')}>
-                      <Edit className="h-4 w-4 mr-1" />
-                      Modifier
-                    </Button>
-                  </div>
-                </div>
-                <div className="border rounded-lg p-4">
-                  <h3 className="font-semibold mb-2">Page Habitation</h3>
-                  <p className="text-sm text-axa-gray mb-3">Taux de conversion: 2.8%</p>
-                  <div className="flex space-x-2">
-                    <Button size="sm" variant="outline" onClick={() => toast.success('Page affichée')}>
-                      <Eye className="h-4 w-4 mr-1" />
-                      Voir
-                    </Button>
-                    <Button size="sm" variant="outline" onClick={() => toast.success('Modification de la page')}>
-                      <Edit className="h-4 w-4 mr-1" />
-                      Modifier
-                    </Button>
-                  </div>
-                </div>
               </div>
             </CardContent>
           </Card>
         </TabsContent>
 
         <TabsContent value="social" className="space-y-6">
+          {/* Schedule New Post */}
           <Card>
             <CardHeader>
-              <CardTitle>Gestion des Réseaux Sociaux</CardTitle>
+              <CardTitle className="flex items-center space-x-2">
+                <MessageSquare className="h-5 w-5" />
+                <span>Programmer une Publication</span>
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div>
+                <Label>Plateforme</Label>
+                <Select value={newPost.platform} onValueChange={(value: 'facebook' | 'instagram' | 'linkedin') => setNewPost({...newPost, platform: value})}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="facebook">📘 Facebook</SelectItem>
+                    <SelectItem value="instagram">📷 Instagram</SelectItem>
+                    <SelectItem value="linkedin">💼 LinkedIn</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <Label>Contenu de la publication</Label>
+                <Textarea
+                  value={newPost.content}
+                  onChange={(e) => setNewPost({...newPost, content: e.target.value})}
+                  rows={3}
+                  placeholder="Rédigez votre publication..."
+                />
+              </div>
+
+              <div>
+                <Label>Date et heure de publication</Label>
+                <Input
+                  type="datetime-local"
+                  value={newPost.scheduledDate}
+                  onChange={(e) => setNewPost({...newPost, scheduledDate: e.target.value})}
+                />
+              </div>
+
+              <Button onClick={handleSchedulePost} className="bg-purple-500 hover:bg-purple-600">
+                <Calendar className="h-4 w-4 mr-2" />
+                Programmer la publication
+              </Button>
+            </CardContent>
+          </Card>
+
+          {/* Social Posts List */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Publications Programmées</CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-axa-gray mb-4">
-                Planifiez et publiez vos contenus sur Facebook, Instagram et LinkedIn.
-              </p>
               <div className="space-y-4">
-                <div className="border rounded-lg p-4">
-                  <div className="flex items-center justify-between mb-2">
-                    <h3 className="font-semibold">Facebook Business</h3>
-                    <Badge className="bg-blue-100 text-blue-800">Connecté</Badge>
+                {socialPosts.map((post) => (
+                  <div key={post.id} className="border rounded-lg p-4">
+                    <div className="flex items-start justify-between mb-3">
+                      <div className="flex items-center space-x-3">
+                        <span className="text-2xl">{getPlatformIcon(post.platform)}</span>
+                        <div>
+                          <div className="font-medium capitalize">{post.platform}</div>
+                          <div className="text-sm text-gray-600">
+                            {new Date(post.scheduledDate).toLocaleString('fr-FR')}
+                          </div>
+                        </div>
+                      </div>
+                      <span className={`px-2 py-1 rounded-full text-xs ${getStatusColor(post.status)}`}>
+                        {post.status === 'scheduled' ? 'Programmée' : 'Publiée'}
+                      </span>
+                    </div>
+                    
+                    <p className="text-gray-700 mb-3">{post.content}</p>
+                    
+                    {post.status === 'published' && (
+                      <div className="flex items-center space-x-4 text-sm text-gray-600">
+                        <span>❤️ {post.engagement} interactions</span>
+                      </div>
+                    )}
                   </div>
-                  <p className="text-sm text-axa-gray">1,250 abonnés • 15 posts ce mois</p>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="analytics" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center space-x-2">
+                <BarChart3 className="h-5 w-5" />
+                <span>Performances Marketing</span>
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid md:grid-cols-2 gap-8">
+                <div>
+                  <h4 className="font-semibold mb-4">Campagnes Email</h4>
+                  <div className="space-y-3">
+                    <div className="flex justify-between items-center">
+                      <span>Taux d'ouverture moyen</span>
+                      <span className="font-bold text-blue-600">28.4%</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span>Taux de clic moyen</span>
+                      <span className="font-bold text-green-600">5.8%</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span>Taux de conversion</span>
+                      <span className="font-bold text-orange-600">2.1%</span>
+                    </div>
+                  </div>
                 </div>
-                <div className="border rounded-lg p-4">
-                  <div className="flex items-center justify-between mb-2">
-                    <h3 className="font-semibold">Instagram</h3>
-                    <Badge className="bg-orange-100 text-orange-800">À connecter</Badge>
+                
+                <div>
+                  <h4 className="font-semibold mb-4">Réseaux Sociaux</h4>
+                  <div className="space-y-3">
+                    <div className="flex justify-between items-center">
+                      <span>Publications ce mois</span>
+                      <span className="font-bold">24</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span>Engagement total</span>
+                      <span className="font-bold text-purple-600">1,247</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span>Nouveaux followers</span>
+                      <span className="font-bold text-blue-600">+89</span>
+                    </div>
                   </div>
-                  <p className="text-sm text-axa-gray">Compte non connecté</p>
-                </div>
-                <div className="border rounded-lg p-4">
-                  <div className="flex items-center justify-between mb-2">
-                    <h3 className="font-semibold">LinkedIn</h3>
-                    <Badge className="bg-blue-100 text-blue-800">Connecté</Badge>
-                  </div>
-                  <p className="text-sm text-axa-gray">890 connections • 8 posts ce mois</p>
                 </div>
               </div>
             </CardContent>
           </Card>
         </TabsContent>
       </Tabs>
-
-      {/* Dialog d'édition de campagne */}
-      <Dialog open={isEditCampaignOpen} onOpenChange={setIsEditCampaignOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Modifier la Campagne</DialogTitle>
-          </DialogHeader>
-          {selectedCampaign && (
-            <div className="space-y-4">
-              <div>
-                <Label>Nom de la Campagne</Label>
-                <Input 
-                  value={selectedCampaign.name}
-                  onChange={(e) => setSelectedCampaign(prev => ({ ...prev, name: e.target.value }))}
-                />
-              </div>
-              <div>
-                <Label>Budget (DH)</Label>
-                <Input 
-                  type="number"
-                  value={selectedCampaign.budget}
-                  onChange={(e) => setSelectedCampaign(prev => ({ ...prev, budget: parseInt(e.target.value) || 0 }))}
-                />
-              </div>
-              <div>
-                <Label>Statut</Label>
-                <Select value={selectedCampaign.status} onValueChange={(value) => setSelectedCampaign(prev => ({ ...prev, status: value }))}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Actif">Actif</SelectItem>
-                    <SelectItem value="Pause">Pause</SelectItem>
-                    <SelectItem value="Terminé">Terminé</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-          )}
-          <div className="flex justify-end space-x-2 mt-4">
-            <Button variant="outline" onClick={() => setIsEditCampaignOpen(false)}>
-              Annuler
-            </Button>
-            <Button onClick={saveCampaignEdit} className="bg-axa-red hover:bg-axa-red/90">
-              Sauvegarder
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 };
