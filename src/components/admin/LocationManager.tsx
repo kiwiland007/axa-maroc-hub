@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -29,8 +28,8 @@ const LocationManager = () => {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-axa-gray-dark mb-2">Gestion de la Localisation</h2>
-          <p className="text-axa-gray">Mise à jour des informations de contact et localisation</p>
+          <h2 className="text-2xl font-bold text-gray-800 mb-2">Gestion de la Localisation</h2>
+          <p className="text-gray-600">Mise à jour des informations de contact et localisation</p>
         </div>
         <div className="flex space-x-2">
           <Button 
@@ -46,7 +45,7 @@ const LocationManager = () => {
               <Button variant="outline" onClick={handleCancel}>
                 Annuler
               </Button>
-              <Button onClick={handleSave} className="bg-axa-red hover:bg-axa-red/90">
+              <Button onClick={handleSave} className="bg-red-500 hover:bg-red-600">
                 <Save className="h-4 w-4 mr-2" />
                 Sauvegarder
               </Button>
@@ -61,7 +60,6 @@ const LocationManager = () => {
       </div>
 
       <div className="grid lg:grid-cols-2 gap-6">
-        {/* Informations de Contact */}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center space-x-2">
@@ -150,7 +148,6 @@ const LocationManager = () => {
           </CardContent>
         </Card>
 
-        {/* Aperçu Carte et Localisation */}
         <Card>
           <CardHeader>
             <CardTitle>Aperçu de Localisation</CardTitle>

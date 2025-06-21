@@ -60,13 +60,11 @@ const ContentManager = () => {
     input.onchange = (e) => {
       const file = (e.target as HTMLInputElement).files?.[0];
       if (file) {
-        // Simulate image upload - in a real app, you'd upload to a server
         const reader = new FileReader();
         reader.onload = (e) => {
           const imageUrl = e.target?.result as string;
           
           if (productId) {
-            // Update product image
             setEditingContent(prev => ({
               ...prev,
               products: prev.products.map(p => 
@@ -74,7 +72,6 @@ const ContentManager = () => {
               )
             }));
           } else {
-            // Update section image
             setEditingContent(prev => ({
               ...prev,
               [section]: {
@@ -306,7 +303,7 @@ const ContentManager = () => {
                       className="mt-2"
                     />
                   ) : (
-                    <p className="text-axa-red mt-2 p-3 bg-gray-50 rounded-lg">{content.about.subtitle}</p>
+                    <p className="text-red-500 mt-2 p-3 bg-gray-50 rounded-lg">{content.about.subtitle}</p>
                   )}
                 </div>
               </div>
@@ -324,7 +321,7 @@ const ContentManager = () => {
                     className="mt-2"
                   />
                 ) : (
-                  <p className="text-axa-gray mt-2 p-3 bg-gray-50 rounded-lg">{content.about.description}</p>
+                  <p className="text-gray-600 mt-2 p-3 bg-gray-50 rounded-lg">{content.about.description}</p>
                 )}
               </div>
 
@@ -526,7 +523,7 @@ const ContentManager = () => {
                     {isEditing ? (
                       key === 'address' ? (
                         <Textarea
-                          value={value}
+                          value={value as string}
                           onChange={(e) => setEditingContent(prev => ({
                             ...prev,
                             contact: { ...prev.contact, [key]: e.target.value }
@@ -536,7 +533,7 @@ const ContentManager = () => {
                         />
                       ) : (
                         <Input
-                          value={value}
+                          value={value as string}
                           onChange={(e) => setEditingContent(prev => ({
                             ...prev,
                             contact: { ...prev.contact, [key]: e.target.value }
@@ -545,7 +542,7 @@ const ContentManager = () => {
                         />
                       )
                     ) : (
-                      <p className="text-gray-600 mt-2 p-3 bg-gray-50 rounded-lg">{value}</p>
+                      <p className="text-gray-600 mt-2 p-3 bg-gray-50 rounded-lg">{value as string}</p>
                     )}
                   </div>
                 ))}
