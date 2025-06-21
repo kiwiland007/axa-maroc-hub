@@ -18,7 +18,7 @@ import {
   BarChart3,
   Target,
   Eye,
-  Click
+  MousePointer
 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -204,7 +204,7 @@ const MarketingManager = () => {
         <Card>
           <CardContent className="p-6">
             <div className="flex items-center space-x-2">
-              <Click className="h-8 w-8 text-orange-500" />
+              <MousePointer className="h-8 w-8 text-orange-500" />
               <div>
                 <div className="text-2xl font-bold">5.8%</div>
                 <div className="text-sm text-gray-600">Taux de clic</div>
