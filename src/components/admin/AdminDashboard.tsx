@@ -1,200 +1,223 @@
 
-import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Users, FileText, TrendingUp, Mail, Phone, Calendar, AlertCircle, Eye } from 'lucide-react';
-import { toast } from 'sonner';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
+import { Users, FileText, TrendingUp, Shield, Phone, Mail, Calendar, AlertCircle } from 'lucide-react';
 
 const AdminDashboard = () => {
-  const [stats, setStats] = useState([
-    { title: 'Leads ce mois', value: '127', change: '+12%', icon: Mail, color: 'text-blue-600', trend: 'up' },
-    { title: 'Nouveaux clients', value: '23', change: '+8%', icon: Users, color: 'text-green-600', trend: 'up' },
-    { title: 'Devis en cours', value: '45', change: '+15%', icon: FileText, color: 'text-orange-600', trend: 'up' },
-    { title: 'CA mensuel', value: '156 000 DH', change: '+22%', icon: TrendingUp, color: 'text-purple-600', trend: 'up' },
-  ]);
-
-  const [recentLeads, setRecentLeads] = useState([
-    { id: 1, name: 'Ahmed Benali', email: 'ahmed@email.com', type: 'Auto', status: 'Nouveau', time: '2h', phone: '+212 661-234-567' },
-    { id: 2, name: 'Fatima Zahra', email: 'fatima@email.com', type: 'Habitation', status: 'Contacté', time: '4h', phone: '+212 662-345-678' },
-    { id: 3, name: 'Mohamed Alami', email: 'mohamed@email.com', type: 'Santé', status: 'Devis envoyé', time: '6h', phone: '+212 663-456-789' },
-    { id: 4, name: 'Aicha Bennani', email: 'aicha@email.com', type: 'Prévoyance', status: 'Nouveau', time: '1h', phone: '+212 664-567-890' },
-    { id: 5, name: 'Youssef Alaoui', email: 'youssef@email.com', type: 'Auto', status: 'Suivi', time: '8h', phone: '+212 665-678-901' },
-  ]);
-
-  const [upcomingTasks] = useState([
-    { id: 1, task: 'Rappel client M. Bennani', type: 'call', time: '14:30', priority: 'high' },
-    { id: 2, task: 'RDV Mme Alaoui', type: 'meeting', time: '16:00', priority: 'medium' },
-    { id: 3, task: 'Suivi devis auto', type: 'follow', time: '17:30', priority: 'low' },
-    { id: 4, task: 'Présentation produits entreprise', type: 'meeting', time: '09:00', priority: 'high' },
-  ]);
-
-  const handleContactLead = (leadId: number, method: 'call' | 'email') => {
-    const lead = recentLeads.find(l => l.id === leadId);
-    if (lead) {
-      if (method === 'call') {
-        toast.success(`Appel vers ${lead.name} - ${lead.phone}`);
-      } else {
-        toast.success(`Email envoyé à ${lead.name}`);
-      }
-      
-      // Mettre à jour le statut
-      setRecentLeads(prev => 
-        prev.map(l => 
-          l.id === leadId 
-            ? { ...l, status: method === 'call' ? 'Contacté' : 'Email envoyé' }
-            : l
-        )
-      );
+  const stats = [
+    {
+      title: 'Clients Actifs',
+      value: '1,247',
+      change: '+12%',
+      icon: Users,
+      color: 'text-blue-600',
+      bgColor: 'bg-blue-100'
+    },
+    {
+      title: 'Nouveaux Leads',
+      value: '89',
+      change: '+8%',
+      icon: TrendingUp,
+      color: 'text-green-600',
+      bgColor: 'bg-green-100'
+    },
+    {
+      title: 'Contrats Actifs',
+      value: '2,156',
+      change: '+15%',
+      icon: FileText,
+      color: 'text-purple-600',
+      bgColor: 'bg-purple-100'
+    },
+    {
+      title: 'Primes Collectées',
+      value: '12.5M DHS',
+      change: '+22%',
+      icon: Shield,
+      color: 'text-orange-600',
+      bgColor: 'bg-orange-100'
     }
-  };
+  ];
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'Nouveau': return 'bg-blue-100 text-blue-800';
-      case 'Contacté': return 'bg-green-100 text-green-800';
-      case 'Devis envoyé': return 'bg-orange-100 text-orange-800';
-      case 'Email envoyé': return 'bg-purple-100 text-purple-800';
-      case 'Suivi': return 'bg-yellow-100 text-yellow-800';
-      default: return 'bg-gray-100 text-gray-800';
-    }
-  };
+  const monthlyData = [
+    { month: 'Jan', contrats: 45, primes: 980000 },
+    { month: 'Fév', contrats: 52, primes: 1120000 },
+    { month: 'Mar', contrats: 48, primes: 1050000 },
+    { month: 'Avr', contrats: 61, primes: 1340000 },
+    { month: 'Mai', contrats: 55, primes: 1200000 },
+    { month: 'Juin', contrats: 67, primes: 1450000 }
+  ];
 
-  const getPriorityColor = (priority: string) => {
-    switch (priority) {
-      case 'high': return 'bg-red-500';
-      case 'medium': return 'bg-orange-500';
-      case 'low': return 'bg-green-500';
-      default: return 'bg-gray-500';
+  const productData = [
+    { name: 'Auto', value: 35, color: '#ef4444' },
+    { name: 'Habitation', value: 25, color: '#3b82f6' },
+    { name: 'Santé', value: 20, color: '#10b981' },
+    { name: 'Prévoyance', value: 12, color: '#f59e0b' },
+    { name: 'Autres', value: 8, color: '#8b5cf6' }
+  ];
+
+  const recentActivities = [
+    {
+      id: 1,
+      type: 'lead',
+      message: 'Nouveau lead: Ahmed Benali - Assurance Auto',
+      time: 'Il y a 5 min',
+      icon: Phone,
+      color: 'text-blue-600'
+    },
+    {
+      id: 2,
+      type: 'contract',
+      message: 'Contrat signé: Fatima El Mansouri - Habitation',
+      time: 'Il y a 15 min',
+      icon: FileText,
+      color: 'text-green-600'
+    },
+    {
+      id: 3,
+      type: 'message',
+      message: 'Message reçu: Demande de devis santé',
+      time: 'Il y a 32 min',
+      icon: Mail,
+      color: 'text-purple-600'
+    },
+    {
+      id: 4,
+      type: 'alert',
+      message: 'Renouvellement à venir: 15 contrats ce mois',
+      time: 'Il y a 1h',
+      icon: AlertCircle,
+      color: 'text-orange-600'
     }
-  };
+  ];
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-2xl font-bold text-axa-gray-dark mb-2">Tableau de Bord</h2>
-          <p className="text-axa-gray">Vue d'ensemble de votre activité</p>
-        </div>
-        <Button 
-          onClick={() => window.open('/', '_blank')}
-          variant="outline"
-          className="flex items-center space-x-2"
-        >
-          <Eye className="h-4 w-4" />
-          <span>Voir le site public</span>
-        </Button>
-      </div>
-
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {stats.map((stat, index) => (
-          <Card key={index} className="hover:shadow-lg transition-shadow">
+          <Card key={index}>
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-axa-gray mb-1">{stat.title}</p>
-                  <p className="text-2xl font-bold text-axa-gray-dark">{stat.value}</p>
-                  <p className={`text-sm ${stat.trend === 'up' ? 'text-green-600' : 'text-red-600'}`}>
-                    {stat.change}
-                  </p>
+                  <p className="text-sm font-medium text-gray-600">{stat.title}</p>
+                  <p className="text-2xl font-bold text-gray-900">{stat.value}</p>
+                  <p className="text-sm text-green-600">{stat.change} vs mois dernier</p>
                 </div>
-                <stat.icon className={`h-8 w-8 ${stat.color}`} />
+                <div className={`${stat.bgColor} p-3 rounded-lg`}>
+                  <stat.icon className={`h-6 w-6 ${stat.color}`} />
+                </div>
               </div>
             </CardContent>
           </Card>
         ))}
       </div>
 
-      <div className="grid lg:grid-cols-2 gap-6">
-        {/* Recent Leads */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Graphique des contrats */}
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center space-x-2">
-              <Mail className="h-5 w-5" />
-              <span>Leads Récents</span>
-            </CardTitle>
+            <CardTitle>Évolution des Contrats</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4 max-h-96 overflow-y-auto">
-              {recentLeads.map((lead) => (
-                <div key={lead.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
-                  <div className="flex-1">
-                    <p className="font-medium text-axa-gray-dark">{lead.name}</p>
-                    <p className="text-sm text-axa-gray">{lead.email}</p>
-                    <p className="text-xs text-axa-gray">{lead.type} • {lead.phone}</p>
-                  </div>
-                  <div className="flex flex-col items-end space-y-2">
-                    <span className={`inline-block px-2 py-1 text-xs rounded ${getStatusColor(lead.status)}`}>
-                      {lead.status}
-                    </span>
-                    <p className="text-xs text-axa-gray">il y a {lead.time}</p>
-                    <div className="flex space-x-1">
-                      <Button 
-                        size="sm" 
-                        variant="outline"
-                        onClick={() => handleContactLead(lead.id, 'call')}
-                        className="px-2 py-1 h-6"
-                      >
-                        <Phone className="h-3 w-3" />
-                      </Button>
-                      <Button 
-                        size="sm" 
-                        variant="outline"
-                        onClick={() => handleContactLead(lead.id, 'email')}
-                        className="px-2 py-1 h-6"
-                      >
-                        <Mail className="h-3 w-3" />
-                      </Button>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
+            <ResponsiveContainer width="100%" height={300}>
+              <BarChart data={monthlyData}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="month" />
+                <YAxis />
+                <Tooltip />
+                <Bar dataKey="contrats" fill="#ef4444" />
+              </BarChart>
+            </ResponsiveContainer>
           </CardContent>
         </Card>
 
-        {/* Upcoming Tasks */}
+        {/* Répartition par produit */}
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center space-x-2">
-              <Calendar className="h-5 w-5" />
-              <span>Tâches à Venir</span>
-            </CardTitle>
+            <CardTitle>Répartition par Produit</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
-              {upcomingTasks.map((task) => (
-                <div key={task.id} className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
-                  <div className={`w-3 h-3 rounded-full ${getPriorityColor(task.priority)}`}></div>
-                  <div className="flex-1">
-                    <p className="font-medium text-axa-gray-dark">{task.task}</p>
-                    <p className="text-xs text-axa-gray capitalize">Priorité: {task.priority}</p>
-                  </div>
-                  <span className="text-sm text-axa-gray font-medium">{task.time}</span>
-                </div>
-              ))}
-            </div>
+            <ResponsiveContainer width="100%" height={300}>
+              <PieChart>
+                <Pie
+                  data={productData}
+                  cx="50%"
+                  cy="50%"
+                  labelLine={false}
+                  label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                  outerRadius={80}
+                  fill="#8884d8"
+                  dataKey="value"
+                >
+                  {productData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={entry.color} />
+                  ))}
+                </Pie>
+                <Tooltip />
+              </PieChart>
+            </ResponsiveContainer>
           </CardContent>
         </Card>
       </div>
 
-      {/* Alerts */}
-      <Card className="border-orange-200 bg-orange-50">
+      {/* Activités récentes */}
+      <Card>
         <CardHeader>
-          <CardTitle className="flex items-center space-x-2 text-orange-800">
-            <AlertCircle className="h-5 w-5" />
-            <span>Alertes & Notifications</span>
+          <CardTitle className="flex items-center">
+            <Calendar className="h-5 w-5 mr-2" />
+            Activités Récentes
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="space-y-2">
-            <p className="text-sm text-orange-800">• 3 contrats arrivent à échéance ce mois</p>
-            <p className="text-sm text-orange-800">• 5 devis en attente de réponse depuis plus de 7 jours</p>
-            <p className="text-sm text-orange-800">• Nouvelle campagne Facebook génère 15% de leads en plus</p>
-            <p className="text-sm text-orange-800">• Rappel: Formation produits AXA demain à 14h</p>
+          <div className="space-y-4">
+            {recentActivities.map((activity) => (
+              <div key={activity.id} className="flex items-start space-x-4 p-4 rounded-lg border border-gray-100 hover:bg-gray-50 transition-colors">
+                <div className={`p-2 rounded-lg bg-gray-100`}>
+                  <activity.icon className={`h-4 w-4 ${activity.color}`} />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium text-gray-900">{activity.message}</p>
+                  <p className="text-sm text-gray-500">{activity.time}</p>
+                </div>
+              </div>
+            ))}
           </div>
         </CardContent>
       </Card>
+
+      {/* Métriques rapides */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <Card>
+          <CardHeader>
+            <CardTitle>Taux de Conversion</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-3xl font-bold text-green-600">68.5%</div>
+            <p className="text-sm text-gray-600">Leads → Clients</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Valeur Moyenne</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-3xl font-bold text-blue-600">5,820 DHS</div>
+            <p className="text-sm text-gray-600">Prime par contrat</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Satisfaction Client</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-3xl font-bold text-purple-600">4.8/5</div>
+            <p className="text-sm text-gray-600">Note moyenne</p>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 };

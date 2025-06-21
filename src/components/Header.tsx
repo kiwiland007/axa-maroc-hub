@@ -2,23 +2,45 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Menu, X, Phone, Mail } from 'lucide-react';
+import { useNavigate, useLocation } from 'react-router-dom';
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const navigate = useNavigate();
+  const location = useLocation();
 
   const navigation = [
-    { name: 'Accueil', href: '#accueil' },
-    { name: 'Nos Produits', href: '#produits' },
-    { name: 'À Propos', href: '#apropos' },
-    { name: 'Contact', href: '#contact' },
+    { name: 'Accueil', href: '#accueil', path: '/' },
+    { name: 'Nos Produits', href: '#produits', path: '/' },
+    { name: 'À Propos', href: '#apropos', path: '/' },
+    { name: 'Contact', href: '#contact', path: '/' },
   ];
 
-  const scrollToSection = (href: string) => {
-    const sectionId = href.replace('#', '');
-    const element = document.getElementById(sectionId);
-    if (element) {
-      element.scrollIntoView({ behavior: 'smooth' });
+  const scrollToSection = (href: string, path: string) => {
+    // Si on n'est pas sur la page d'accueil, naviguer d'abord vers l'accueil
+    if (location.pathname !== path) {
+      navigate(path);
+      // Attendre que la navigation soit terminée puis scroller
+      setTimeout(() => {
+        const sectionId = href.replace('#', '');
+        const element = document.getElementById(sectionId);
+        if (element) {
+          element.scrollIntoView({ behavior: 'smooth' });
+        }
+      }, 100);
+    } else {
+      // Si on est déjà sur la bonne page, scroller directement
+      const sectionId = href.replace('#', '');
+      const element = document.getElementById(sectionId);
+      if (element) {
+        element.scrollIntoView({ behavior: 'smooth' });
+      }
     }
+    setIsMenuOpen(false);
+  };
+
+  const handleDevisClick = () => {
+    navigate('/formulaires/affaire-nouvelle');
     setIsMenuOpen(false);
   };
 
@@ -47,7 +69,10 @@ const Header = () => {
       <nav className="container mx-auto px-4 py-6">
         <div className="flex justify-between items-center">
           {/* Logo largement amélioré et plus visible */}
-          <div className="flex items-center space-x-4 group">
+          <div 
+            className="flex items-center space-x-4 group cursor-pointer"
+            onClick={() => navigate('/')}
+          >
             <div className="relative">
               <img 
                 src="/lovable-uploads/545e624c-1ef4-4d84-864b-14d270f5ae44.png" 
@@ -78,14 +103,17 @@ const Header = () => {
             {navigation.map((item) => (
               <button
                 key={item.name}
-                onClick={() => scrollToSection(item.href)}
+                onClick={() => scrollToSection(item.href, item.path)}
                 className="text-gray-800 hover:text-red-600 transition-colors font-medium relative group cursor-pointer"
               >
                 {item.name}
                 <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-red-600 transition-all duration-300 group-hover:w-full"></span>
               </button>
             ))}
-            <Button className="bg-gradient-to-r from-red-500 to-orange-500 hover:from-red-600 hover:to-orange-600 text-white shadow-lg">
+            <Button 
+              onClick={handleDevisClick}
+              className="bg-gradient-to-r from-red-500 to-orange-500 hover:from-red-600 hover:to-orange-600 text-white shadow-lg"
+            >
               Devis Gratuit
             </Button>
           </div>
@@ -110,13 +138,16 @@ const Header = () => {
               {navigation.map((item) => (
                 <button
                   key={item.name}
-                  onClick={() => scrollToSection(item.href)}
+                  onClick={() => scrollToSection(item.href, item.path)}
                   className="text-gray-800 hover:text-red-600 transition-colors font-medium text-left"
                 >
                   {item.name}
                 </button>
               ))}
-              <Button className="bg-gradient-to-r from-red-500 to-orange-500 hover:from-red-600 hover:to-orange-600 text-white w-fit">
+              <Button 
+                onClick={handleDevisClick}
+                className="bg-gradient-to-r from-red-500 to-orange-500 hover:from-red-600 hover:to-orange-600 text-white w-fit"
+              >
                 Devis Gratuit
               </Button>
             </div>
