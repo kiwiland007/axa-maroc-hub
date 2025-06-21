@@ -7,6 +7,11 @@ import { useContentStore } from '@/hooks/useContentStore';
 const Products = () => {
   const { content } = useContentStore();
   
+  // Helper function to find product by ID
+  const getProductById = (id: string) => {
+    return content.products.find(product => product.id === id);
+  };
+  
   const products = [
     {
       icon: Car,
@@ -15,7 +20,7 @@ const Products = () => {
       features: ['Assistance 24h/7j', 'Véhicule de remplacement', 'Protection du conducteur'],
       color: 'from-red-500 to-red-600',
       popular: true,
-      image: content.products.auto?.image || 'https://images.unsplash.com/photo-1649972904349-6e44c42644a7?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80'
+      image: getProductById('auto')?.image || 'https://images.unsplash.com/photo-1649972904349-6e44c42644a7?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80'
     },
     {
       icon: Home,
@@ -23,7 +28,7 @@ const Products = () => {
       description: 'Protégez votre logement contre les risques : incendie, dégâts des eaux, vol, catastrophes naturelles.',
       features: ['Responsabilité civile vie privée', 'Assistance habitation', 'Garantie mobilier'],
       color: 'from-green-500 to-green-600',
-      image: content.products.habitation?.image || 'https://images.unsplash.com/photo-1488590528505-98d2b5aba04b?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80'
+      image: getProductById('habitation')?.image || 'https://images.unsplash.com/photo-1488590528505-98d2b5aba04b?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80'
     },
     {
       icon: Heart,
@@ -31,7 +36,7 @@ const Products = () => {
       description: 'Couverture médicale complète pour vous et votre famille. Remboursements rapides.',
       features: ['Médecine générale', 'Hospitalisation', 'Dentaire et optique'],
       color: 'from-orange-500 to-orange-600',
-      image: content.products.sante?.image || 'https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80'
+      image: getProductById('sante')?.image || 'https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80'
     },
     {
       icon: Shield,
@@ -39,7 +44,7 @@ const Products = () => {
       description: 'Protégez vos proches en cas d\'accident de la vie : décès, invalidité, incapacité.',
       features: ['Capital décès', 'Rente invalidité', 'Indemnités journalières'],
       color: 'from-purple-500 to-purple-600',
-      image: content.products.prevoyance?.image
+      image: getProductById('prevoyance')?.image
     },
     {
       icon: PiggyBank,
@@ -47,7 +52,7 @@ const Products = () => {
       description: 'Constituez et valorisez votre patrimoine pour préparer sereinement votre avenir.',
       features: ['Épargne disponible', 'Retraite complémentaire', 'Transmission patrimoine'],
       color: 'from-yellow-500 to-yellow-600',
-      image: content.products.epargne?.image
+      image: getProductById('epargne')?.image
     },
     {
       icon: Building2,
@@ -55,7 +60,7 @@ const Products = () => {
       description: 'Solutions sur-mesure pour protéger votre activité professionnelle et vos locaux.',
       features: ['Responsabilité civile pro', 'Multirisque professionnelle', 'Protection juridique'],
       color: 'from-indigo-500 to-indigo-600',
-      image: content.products.professionnelle?.image
+      image: getProductById('professionnelle')?.image
     }
   ];
 
