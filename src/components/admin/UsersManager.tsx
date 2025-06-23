@@ -412,7 +412,7 @@ const UsersManager = () => {
                 <select
                   id="role"
                   value={newUser.role}
-                  onChange={(e) => setNewUser({...newUser, role: e.target.value})}
+                  onChange={(e) => setNewUser({...newUser, role: e.target.value as User['role']})}
                   className="w-full border border-gray-300 rounded-md px-3 py-2"
                 >
                   {roles.map(role => (
