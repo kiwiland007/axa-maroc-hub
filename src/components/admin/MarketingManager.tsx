@@ -1,189 +1,352 @@
 
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Textarea } from '@/components/ui/textarea';
+import { Badge } from '@/components/ui/badge';
 import { 
   Mail, 
   MessageSquare, 
-  TrendingUp, 
-  Users, 
-  Calendar,
-  Plus,
-  Send,
+  Share2, 
   BarChart3,
-  Target,
+  Users,
+  TrendingUp,
+  Calendar,
+  Send,
   Eye,
-  MousePointer
+  Edit,
+  Trash2,
+  Plus,
+  Image as ImageIcon,
+  Video,
+  FileText
 } from 'lucide-react';
 import { toast } from 'sonner';
 
-interface Campaign {
-  id: string;
-  name: string;
-  type: 'email' | 'sms' | 'social';
-  status: 'draft' | 'active' | 'completed';
-  audience: string;
-  sentDate?: string;
-  openRate?: number;
-  clickRate?: number;
-  conversions?: number;
-}
-
-interface SocialPost {
-  id: string;
-  platform: 'facebook' | 'instagram' | 'linkedin';
-  content: string;
-  scheduledDate: string;
-  status: 'scheduled' | 'published';
-  engagement?: number;
-}
-
 const MarketingManager = () => {
-  const [campaigns, setCampaigns] = useState<Campaign[]>([
+  const [activeTab, setActiveTab] = useState('campaigns');
+  const [campaigns, setCampaigns] = useState([
     {
       id: '1',
-      name: 'Campagne Assurance Auto - Printemps 2024',
+      nom: 'Campagne Assurance Auto 2024',
       type: 'email',
-      status: 'completed',
-      audience: 'Prospects Auto',
-      sentDate: '2024-03-15',
-      openRate: 24.5,
-      clickRate: 3.2,
-      conversions: 18
+      statut: 'active',
+      dateCreation: '2024-01-15',
+      destinataires: 1250,
+      ouvertures: 312,
+      clics: 45,
+      conversions: 8
     },
     {
       id: '2',
-      name: 'Promotion Assurance Habitation',
-      type: 'sms',
-      status: 'active',
-      audience: 'Clients existants',
-      sentDate: '2024-06-01',
-      openRate: 89.3,
-      clickRate: 12.1,
-      conversions: 45
+      nom: 'Promo Habitation Printemps',
+      type: 'social',
+      statut: 'planifiee',
+      dateCreation: '2024-01-20',
+      destinataires: 3500,
+      ouvertures: 0,
+      clics: 0,
+      conversions: 0
     }
   ]);
 
-  const [socialPosts, setSocialPosts] = useState<SocialPost[]>([
+  const [socialPosts, setSocialPosts] = useState([
     {
       id: '1',
-      platform: 'facebook',
-      content: 'Protégez votre véhicule avec notre assurance auto complète ! 🚗 Devis gratuit en 2 minutes.',
-      scheduledDate: '2024-06-25T10:00',
-      status: 'scheduled',
-      engagement: 0
+      contenu: 'Protégez votre véhicule avec nos formules auto complètes ! 🚗',
+      plateforme: 'Facebook',
+      statut: 'publie',
+      datePublication: '2024-01-15',
+      vues: 1250,
+      interactions: 89,
+      partages: 12
     },
     {
       id: '2',
-      platform: 'instagram',
-      content: 'Votre maison mérite la meilleure protection 🏠 Découvrez notre assurance habitation.',
-      scheduledDate: '2024-06-20T14:30',
-      status: 'published',
-      engagement: 156
+      contenu: 'Votre maison mérite la meilleure protection 🏠 #AssuranceHabitation',
+      plateforme: 'Instagram',
+      statut: 'programme',
+      datePublication: '2024-01-25',
+      vues: 0,
+      interactions: 0,
+      partages: 0
     }
   ]);
 
   const [newCampaign, setNewCampaign] = useState({
-    name: '',
-    type: 'email' as 'email' | 'sms' | 'social',
-    audience: '',
-    subject: '',
-    content: ''
-  });
-
-  const [newPost, setNewPost] = useState({
-    platform: 'facebook' as 'facebook' | 'instagram' | 'linkedin',
-    content: '',
-    scheduledDate: ''
+    nom: '',
+    type: 'email',
+    sujet: '',
+    contenu: '',
+    segment: 'tous',
+    dateEnvoi: ''
   });
 
   const handleCreateCampaign = () => {
-    if (!newCampaign.name || !newCampaign.audience || !newCampaign.content) {
+    if (!newCampaign.nom || !newCampaign.sujet || !newCampaign.contenu) {
       toast.error('Veuillez remplir tous les champs obligatoires');
       return;
     }
 
-    const campaign: Campaign = {
+    const campaign = {
       id: Date.now().toString(),
-      name: newCampaign.name,
+      nom: newCampaign.nom,
       type: newCampaign.type,
-      status: 'draft',
-      audience: newCampaign.audience
+      statut: newCampaign.dateEnvoi ? 'planifiee' : 'brouillon',
+      dateCreation: new Date().toISOString().split('T')[0],
+      destinataires: 0,
+      ouvertures: 0,
+      clics: 0,
+      conversions: 0
     };
 
     setCampaigns([...campaigns, campaign]);
-    setNewCampaign({ name: '', type: 'email', audience: '', subject: '', content: '' });
+    setNewCampaign({
+      nom: '',
+      type: 'email',
+      sujet: '',
+      contenu: '',
+      segment: 'tous',
+      dateEnvoi: ''
+    });
     toast.success('Campagne créée avec succès !');
-  };
-
-  const handleSchedulePost = () => {
-    if (!newPost.content || !newPost.scheduledDate) {
-      toast.error('Veuillez remplir tous les champs');
-      return;
-    }
-
-    const post: SocialPost = {
-      id: Date.now().toString(),
-      platform: newPost.platform,
-      content: newPost.content,
-      scheduledDate: newPost.scheduledDate,
-      status: 'scheduled',
-      engagement: 0
-    };
-
-    setSocialPosts([...socialPosts, post]);
-    setNewPost({ platform: 'facebook', content: '', scheduledDate: '' });
-    toast.success('Publication programmée avec succès !');
-  };
-
-  const launchCampaign = (campaignId: string) => {
-    setCampaigns(campaigns.map(c => 
-      c.id === campaignId ? { ...c, status: 'active', sentDate: new Date().toISOString().split('T')[0] } : c
-    ));
-    toast.success('Campagne lancée avec succès !');
   };
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'draft': return 'bg-gray-100 text-gray-800';
-      case 'active': return 'bg-blue-100 text-blue-800';
-      case 'completed': return 'bg-green-100 text-green-800';
-      case 'scheduled': return 'bg-yellow-100 text-yellow-800';
-      case 'published': return 'bg-green-100 text-green-800';
+      case 'active': return 'bg-green-100 text-green-800';
+      case 'planifiee': return 'bg-blue-100 text-blue-800';
+      case 'terminee': return 'bg-gray-100 text-gray-800';
+      case 'brouillon': return 'bg-yellow-100 text-yellow-800';
       default: return 'bg-gray-100 text-gray-800';
     }
   };
 
-  const getPlatformIcon = (platform: string) => {
-    switch (platform) {
-      case 'facebook': return '📘';
-      case 'instagram': return '📷';
-      case 'linkedin': return '💼';
-      default: return '📱';
-    }
+  const calculateRate = (value: number, total: number) => {
+    return total > 0 ? ((value / total) * 100).toFixed(1) : '0';
   };
 
-  return (
+  const renderCampaigns = () => (
     <div className="space-y-6">
-      <div>
-        <h2 className="text-2xl font-bold text-gray-800 mb-2">Marketing Digital</h2>
-        <p className="text-gray-600">Gérez vos campagnes marketing et votre présence sur les réseaux sociaux</p>
-      </div>
-
-      {/* Dashboard Overview */}
-      <div className="grid md:grid-cols-4 gap-4">
+      {/* Statistiques des campagnes */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         <Card>
           <CardContent className="p-6">
             <div className="flex items-center space-x-2">
               <Mail className="h-8 w-8 text-blue-500" />
               <div>
-                <div className="text-2xl font-bold">12</div>
-                <div className="text-sm text-gray-600">Campagnes actives</div>
+                <div className="text-2xl font-bold">{campaigns.length}</div>
+                <div className="text-sm text-gray-600">Campagnes</div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center space-x-2">
+              <Users className="h-8 w-8 text-green-500" />
+              <div>
+                <div className="text-2xl font-bold">
+                  {campaigns.reduce((acc, c) => acc + c.destinataires, 0).toLocaleString()}
+                </div>
+                <div className="text-sm text-gray-600">Destinataires</div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center space-x-2">
+              <Eye className="h-8 w-8 text-orange-500" />
+              <div>
+                <div className="text-2xl font-bold">
+                  {calculateRate(
+                    campaigns.reduce((acc, c) => acc + c.ouvertures, 0),
+                    campaigns.reduce((acc, c) => acc + c.destinataires, 0)
+                  )}%
+                </div>
+                <div className="text-sm text-gray-600">Taux d'ouverture</div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center space-x-2">
+              <TrendingUp className="h-8 w-8 text-purple-500" />
+              <div>
+                <div className="text-2xl font-bold">
+                  {campaigns.reduce((acc, c) => acc + c.conversions, 0)}
+                </div>
+                <div className="text-sm text-gray-600">Conversions</div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Création de campagne */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Créer une nouvelle campagne</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <Label>Nom de la campagne *</Label>
+              <Input
+                value={newCampaign.nom}
+                onChange={(e) => setNewCampaign({...newCampaign, nom: e.target.value})}
+                placeholder="Ex: Campagne Auto Été 2024"
+              />
+            </div>
+            <div>
+              <Label>Type de campagne</Label>
+              <select
+                value={newCampaign.type}
+                onChange={(e) => setNewCampaign({...newCampaign, type: e.target.value})}
+                className="w-full border border-gray-300 rounded-md px-3 py-2"
+              >
+                <option value="email">Email</option>
+                <option value="sms">SMS</option>
+                <option value="social">Réseaux sociaux</option>
+              </select>
+            </div>
+            <div>
+              <Label>Sujet/Titre *</Label>
+              <Input
+                value={newCampaign.sujet}
+                onChange={(e) => setNewCampaign({...newCampaign, sujet: e.target.value})}
+                placeholder="Sujet de votre campagne"
+              />
+            </div>
+            <div>
+              <Label>Segment cible</Label>
+              <select
+                value={newCampaign.segment}
+                onChange={(e) => setNewCampaign({...newCampaign, segment: e.target.value})}
+                className="w-full border border-gray-300 rounded-md px-3 py-2"
+              >
+                <option value="tous">Tous les contacts</option>
+                <option value="clients">Clients existants</option>
+                <option value="prospects">Prospects</option>
+                <option value="leads">Leads actifs</option>
+              </select>
+            </div>
+            <div className="md:col-span-2">
+              <Label>Contenu *</Label>
+              <Textarea
+                value={newCampaign.contenu}
+                onChange={(e) => setNewCampaign({...newCampaign, contenu: e.target.value})}
+                placeholder="Rédigez le contenu de votre campagne..."
+                rows={4}
+              />
+            </div>
+            <div>
+              <Label>Date d'envoi (optionnel)</Label>
+              <Input
+                type="datetime-local"
+                value={newCampaign.dateEnvoi}
+                onChange={(e) => setNewCampaign({...newCampaign, dateEnvoi: e.target.value})}
+              />
+            </div>
+          </div>
+          <div className="flex space-x-4 mt-6">
+            <Button onClick={handleCreateCampaign} className="bg-blue-600 hover:bg-blue-700">
+              <Plus className="h-4 w-4 mr-2" />
+              Créer la campagne
+            </Button>
+            <Button variant="outline">
+              <Eye className="h-4 w-4 mr-2" />
+              Aperçu
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Liste des campagnes */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Campagnes existantes</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            {campaigns.map((campaign) => (
+              <div key={campaign.id} className="border rounded-lg p-4">
+                <div className="flex justify-between items-start mb-4">
+                  <div>
+                    <h3 className="font-semibold text-lg">{campaign.nom}</h3>
+                    <div className="flex items-center space-x-2 mt-1">
+                      <Badge className={getStatusColor(campaign.statut)}>
+                        {campaign.statut}
+                      </Badge>
+                      <Badge variant="outline">{campaign.type}</Badge>
+                      <span className="text-sm text-gray-500">
+                        Créée le {new Date(campaign.dateCreation).toLocaleDateString('fr-FR')}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="flex space-x-2">
+                    <Button variant="outline" size="sm">
+                      <Eye className="h-4 w-4" />
+                    </Button>
+                    <Button variant="outline" size="sm">
+                      <Edit className="h-4 w-4" />
+                    </Button>
+                    <Button variant="outline" size="sm" className="text-red-600">
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                  <div className="bg-blue-50 p-3 rounded">
+                    <div className="font-semibold text-blue-800">{campaign.destinataires.toLocaleString()}</div>
+                    <div className="text-blue-600">Destinataires</div>
+                  </div>
+                  <div className="bg-green-50 p-3 rounded">
+                    <div className="font-semibold text-green-800">
+                      {campaign.ouvertures} ({calculateRate(campaign.ouvertures, campaign.destinataires)}%)
+                    </div>
+                    <div className="text-green-600">Ouvertures</div>
+                  </div>
+                  <div className="bg-orange-50 p-3 rounded">
+                    <div className="font-semibold text-orange-800">
+                      {campaign.clics} ({calculateRate(campaign.clics, campaign.ouvertures)}%)
+                    </div>
+                    <div className="text-orange-600">Clics</div>
+                  </div>
+                  <div className="bg-purple-50 p-3 rounded">
+                    <div className="font-semibold text-purple-800">
+                      {campaign.conversions} ({calculateRate(campaign.conversions, campaign.clics)}%)
+                    </div>
+                    <div className="text-purple-600">Conversions</div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+
+  const renderSocialMedia = () => (
+    <div className="space-y-6">
+      {/* Statistiques réseaux sociaux */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center space-x-2">
+              <Share2 className="h-8 w-8 text-blue-500" />
+              <div>
+                <div className="text-2xl font-bold">{socialPosts.length}</div>
+                <div className="text-sm text-gray-600">Publications</div>
               </div>
             </div>
           </CardContent>
@@ -194,8 +357,10 @@ const MarketingManager = () => {
             <div className="flex items-center space-x-2">
               <Eye className="h-8 w-8 text-green-500" />
               <div>
-                <div className="text-2xl font-bold">28.4%</div>
-                <div className="text-sm text-gray-600">Taux d'ouverture</div>
+                <div className="text-2xl font-bold">
+                  {socialPosts.reduce((acc, p) => acc + p.vues, 0).toLocaleString()}
+                </div>
+                <div className="text-sm text-gray-600">Vues totales</div>
               </div>
             </div>
           </CardContent>
@@ -204,10 +369,12 @@ const MarketingManager = () => {
         <Card>
           <CardContent className="p-6">
             <div className="flex items-center space-x-2">
-              <MousePointer className="h-8 w-8 text-orange-500" />
+              <MessageSquare className="h-8 w-8 text-orange-500" />
               <div>
-                <div className="text-2xl font-bold">5.8%</div>
-                <div className="text-sm text-gray-600">Taux de clic</div>
+                <div className="text-2xl font-bold">
+                  {socialPosts.reduce((acc, p) => acc + p.interactions, 0)}
+                </div>
+                <div className="text-sm text-gray-600">Interactions</div>
               </div>
             </div>
           </CardContent>
@@ -216,290 +383,170 @@ const MarketingManager = () => {
         <Card>
           <CardContent className="p-6">
             <div className="flex items-center space-x-2">
-              <Target className="h-8 w-8 text-red-500" />
+              <TrendingUp className="h-8 w-8 text-purple-500" />
               <div>
-                <div className="text-2xl font-bold">143</div>
-                <div className="text-sm text-gray-600">Conversions</div>
+                <div className="text-2xl font-bold">
+                  {socialPosts.reduce((acc, p) => acc + p.partages, 0)}
+                </div>
+                <div className="text-sm text-gray-600">Partages</div>
               </div>
             </div>
           </CardContent>
         </Card>
       </div>
 
-      <Tabs defaultValue="campaigns" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="campaigns">Campagnes Email/SMS</TabsTrigger>
-          <TabsTrigger value="social">Réseaux Sociaux</TabsTrigger>
-          <TabsTrigger value="analytics">Analytics</TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="campaigns" className="space-y-6">
-          {/* Create New Campaign */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center space-x-2">
-                <Plus className="h-5 w-5" />
-                <span>Nouvelle Campagne</span>
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid md:grid-cols-2 gap-4">
-                <div>
-                  <Label>Nom de la campagne *</Label>
-                  <Input
-                    value={newCampaign.name}
-                    onChange={(e) => setNewCampaign({...newCampaign, name: e.target.value})}
-                    placeholder="Ex: Promotion Été 2024"
-                  />
-                </div>
-                <div>
-                  <Label>Type de campagne</Label>
-                  <Select value={newCampaign.type} onValueChange={(value: 'email' | 'sms' | 'social') => setNewCampaign({...newCampaign, type: value})}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="email">Email</SelectItem>
-                      <SelectItem value="sms">SMS</SelectItem>
-                      <SelectItem value="social">Réseaux Sociaux</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-
-              <div>
-                <Label>Audience cible *</Label>
-                <Select value={newCampaign.audience} onValueChange={(value) => setNewCampaign({...newCampaign, audience: value})}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Sélectionner l'audience" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="prospects-auto">Prospects Auto</SelectItem>
-                    <SelectItem value="prospects-habitation">Prospects Habitation</SelectItem>
-                    <SelectItem value="clients-existants">Clients existants</SelectItem>
-                    <SelectItem value="leads-recents">Leads récents</SelectItem>
-                    <SelectItem value="tous">Tous les contacts</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {newCampaign.type === 'email' && (
-                <div>
-                  <Label>Sujet de l'email</Label>
-                  <Input
-                    value={newCampaign.subject}
-                    onChange={(e) => setNewCampaign({...newCampaign, subject: e.target.value})}
-                    placeholder="Objet de votre email"
-                  />
-                </div>
-              )}
-
-              <div>
-                <Label>Contenu du message *</Label>
-                <Textarea
-                  value={newCampaign.content}
-                  onChange={(e) => setNewCampaign({...newCampaign, content: e.target.value})}
-                  rows={4}
-                  placeholder="Rédigez votre message..."
-                />
-              </div>
-
-              <Button onClick={handleCreateCampaign} className="bg-blue-500 hover:bg-blue-600">
-                <Plus className="h-4 w-4 mr-2" />
-                Créer la campagne
-              </Button>
-            </CardContent>
-          </Card>
-
-          {/* Campaigns List */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Campagnes</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {campaigns.map((campaign) => (
-                  <div key={campaign.id} className="border rounded-lg p-4">
-                    <div className="flex items-center justify-between mb-3">
-                      <div>
-                        <h4 className="font-semibold">{campaign.name}</h4>
-                        <p className="text-sm text-gray-600">Audience: {campaign.audience}</p>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <span className={`px-2 py-1 rounded-full text-xs ${getStatusColor(campaign.status)}`}>
-                          {campaign.status === 'draft' ? 'Brouillon' : 
-                           campaign.status === 'active' ? 'Active' : 'Terminée'}
-                        </span>
-                        {campaign.status === 'draft' && (
-                          <Button size="sm" onClick={() => launchCampaign(campaign.id)}>
-                            <Send className="h-4 w-4 mr-1" />
-                            Lancer
-                          </Button>
-                        )}
-                      </div>
-                    </div>
-                    
-                    {campaign.status !== 'draft' && (
-                      <div className="grid grid-cols-3 gap-4 mt-3 pt-3 border-t">
-                        <div className="text-center">
-                          <div className="text-lg font-bold text-blue-600">{campaign.openRate}%</div>
-                          <div className="text-sm text-gray-600">Ouvertures</div>
-                        </div>
-                        <div className="text-center">
-                          <div className="text-lg font-bold text-green-600">{campaign.clickRate}%</div>
-                          <div className="text-sm text-gray-600">Clics</div>
-                        </div>
-                        <div className="text-center">
-                          <div className="text-lg font-bold text-orange-600">{campaign.conversions}</div>
-                          <div className="text-sm text-gray-600">Conversions</div>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="social" className="space-y-6">
-          {/* Schedule New Post */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center space-x-2">
-                <MessageSquare className="h-5 w-5" />
-                <span>Programmer une Publication</span>
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
+      {/* Programmation de posts */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Programmer une publication</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <Label>Plateforme</Label>
-                <Select value={newPost.platform} onValueChange={(value: 'facebook' | 'instagram' | 'linkedin') => setNewPost({...newPost, platform: value})}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="facebook">📘 Facebook</SelectItem>
-                    <SelectItem value="instagram">📷 Instagram</SelectItem>
-                    <SelectItem value="linkedin">💼 LinkedIn</SelectItem>
-                  </SelectContent>
-                </Select>
+                <select className="w-full border border-gray-300 rounded-md px-3 py-2">
+                  <option>Facebook</option>
+                  <option>Instagram</option>
+                  <option>LinkedIn</option>
+                  <option>Twitter</option>
+                </select>
               </div>
-
               <div>
-                <Label>Contenu de la publication</Label>
-                <Textarea
-                  value={newPost.content}
-                  onChange={(e) => setNewPost({...newPost, content: e.target.value})}
-                  rows={3}
-                  placeholder="Rédigez votre publication..."
-                />
+                <Label>Type de contenu</Label>
+                <select className="w-full border border-gray-300 rounded-md px-3 py-2">
+                  <option>Texte</option>
+                  <option>Image</option>
+                  <option>Vidéo</option>
+                  <option>Lien</option>
+                </select>
               </div>
-
+            </div>
+            <div>
+              <Label>Contenu de la publication</Label>
+              <Textarea 
+                placeholder="Rédigez votre publication..."
+                rows={3}
+              />
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <Label>Date et heure de publication</Label>
-                <Input
-                  type="datetime-local"
-                  value={newPost.scheduledDate}
-                  onChange={(e) => setNewPost({...newPost, scheduledDate: e.target.value})}
-                />
+                <Input type="datetime-local" />
               </div>
-
-              <Button onClick={handleSchedulePost} className="bg-purple-500 hover:bg-purple-600">
+              <div>
+                <Label>Hashtags</Label>
+                <Input placeholder="#assurance #protection #maroc" />
+              </div>
+            </div>
+            <div className="flex space-x-4">
+              <Button className="bg-blue-600 hover:bg-blue-700">
                 <Calendar className="h-4 w-4 mr-2" />
-                Programmer la publication
+                Programmer
               </Button>
-            </CardContent>
-          </Card>
+              <Button variant="outline">
+                <Send className="h-4 w-4 mr-2" />
+                Publier maintenant
+              </Button>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
-          {/* Social Posts List */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Publications Programmées</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {socialPosts.map((post) => (
-                  <div key={post.id} className="border rounded-lg p-4">
-                    <div className="flex items-start justify-between mb-3">
-                      <div className="flex items-center space-x-3">
-                        <span className="text-2xl">{getPlatformIcon(post.platform)}</span>
-                        <div>
-                          <div className="font-medium capitalize">{post.platform}</div>
-                          <div className="text-sm text-gray-600">
-                            {new Date(post.scheduledDate).toLocaleString('fr-FR')}
-                          </div>
-                        </div>
-                      </div>
-                      <span className={`px-2 py-1 rounded-full text-xs ${getStatusColor(post.status)}`}>
-                        {post.status === 'scheduled' ? 'Programmée' : 'Publiée'}
-                      </span>
+      {/* Liste des publications */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Publications récentes</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            {socialPosts.map((post) => (
+              <div key={post.id} className="border rounded-lg p-4">
+                <div className="flex justify-between items-start mb-3">
+                  <div className="flex-1">
+                    <p className="text-gray-800 mb-2">{post.contenu}</p>
+                    <div className="flex items-center space-x-4 text-sm text-gray-500">
+                      <Badge variant="outline">{post.plateforme}</Badge>
+                      <Badge className={getStatusColor(post.statut)}>
+                        {post.statut}
+                      </Badge>
+                      <span>{new Date(post.datePublication).toLocaleDateString('fr-FR')}</span>
                     </div>
-                    
-                    <p className="text-gray-700 mb-3">{post.content}</p>
-                    
-                    {post.status === 'published' && (
-                      <div className="flex items-center space-x-4 text-sm text-gray-600">
-                        <span>❤️ {post.engagement} interactions</span>
-                      </div>
-                    )}
                   </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="analytics" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center space-x-2">
-                <BarChart3 className="h-5 w-5" />
-                <span>Performances Marketing</span>
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid md:grid-cols-2 gap-8">
-                <div>
-                  <h4 className="font-semibold mb-4">Campagnes Email</h4>
-                  <div className="space-y-3">
-                    <div className="flex justify-between items-center">
-                      <span>Taux d'ouverture moyen</span>
-                      <span className="font-bold text-blue-600">28.4%</span>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <span>Taux de clic moyen</span>
-                      <span className="font-bold text-green-600">5.8%</span>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <span>Taux de conversion</span>
-                      <span className="font-bold text-orange-600">2.1%</span>
-                    </div>
+                  <div className="flex space-x-2">
+                    <Button variant="outline" size="sm">
+                      <Edit className="h-4 w-4" />
+                    </Button>
+                    <Button variant="outline" size="sm" className="text-red-600">
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
                   </div>
                 </div>
-                
-                <div>
-                  <h4 className="font-semibold mb-4">Réseaux Sociaux</h4>
-                  <div className="space-y-3">
-                    <div className="flex justify-between items-center">
-                      <span>Publications ce mois</span>
-                      <span className="font-bold">24</span>
+
+                {post.statut === 'publie' && (
+                  <div className="grid grid-cols-3 gap-4 text-sm bg-gray-50 p-3 rounded">
+                    <div className="text-center">
+                      <div className="font-semibold text-blue-600">{post.vues.toLocaleString()}</div>
+                      <div className="text-gray-600">Vues</div>
                     </div>
-                    <div className="flex justify-between items-center">
-                      <span>Engagement total</span>
-                      <span className="font-bold text-purple-600">1,247</span>
+                    <div className="text-center">
+                      <div className="font-semibold text-green-600">{post.interactions}</div>
+                      <div className="text-gray-600">Interactions</div>
                     </div>
-                    <div className="flex justify-between items-center">
-                      <span>Nouveaux followers</span>
-                      <span className="font-bold text-blue-600">+89</span>
+                    <div className="text-center">
+                      <div className="font-semibold text-orange-600">{post.partages}</div>
+                      <div className="text-gray-600">Partages</div>
                     </div>
                   </div>
-                </div>
+                )}
               </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-2xl font-bold text-gray-800 mb-2">Marketing Digital</h2>
+          <p className="text-gray-600">Gérez vos campagnes et votre présence digitale</p>
+        </div>
+      </div>
+
+      {/* Onglets */}
+      <div className="border-b border-gray-200">
+        <nav className="-mb-px flex space-x-8">
+          <button
+            onClick={() => setActiveTab('campaigns')}
+            className={`py-2 px-1 border-b-2 font-medium text-sm ${
+              activeTab === 'campaigns'
+                ? 'border-red-500 text-red-600'
+                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+            }`}
+          >
+            <Mail className="h-4 w-4 inline mr-2" />
+            Campagnes Email
+          </button>
+          <button
+            onClick={() => setActiveTab('social')}
+            className={`py-2 px-1 border-b-2 font-medium text-sm ${
+              activeTab === 'social'
+                ? 'border-red-500 text-red-600'
+                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+            }`}
+          >
+            <Share2 className="h-4 w-4 inline mr-2" />
+            Réseaux Sociaux
+          </button>
+        </nav>
+      </div>
+
+      {/* Contenu des onglets */}
+      {activeTab === 'campaigns' && renderCampaigns()}
+      {activeTab === 'social' && renderSocialMedia()}
     </div>
   );
 };
