@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -86,8 +85,8 @@ const UsersManager = () => {
     prenom: '',
     email: '',
     telephone: '',
-    role: 'agent',
-    permissions: []
+    role: 'agent' as User['role'],
+    permissions: [] as string[]
   });
 
   const roles = [
@@ -154,7 +153,7 @@ const UsersManager = () => {
       prenom: '',
       email: '',
       telephone: '',
-      role: 'agent',
+      role: 'agent' as User['role'],
       permissions: []
     });
     setShowAddForm(false);
