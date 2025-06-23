@@ -173,6 +173,13 @@ const ContentManager = () => {
     }));
   };
 
+  const updateAboutSection = (field: string, value: string) => {
+    setEditingContent(prev => ({
+      ...prev,
+      about: { ...prev.about, [field]: value }
+    }));
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -233,6 +240,7 @@ const ContentManager = () => {
                       hero: { ...prev.hero, title: e.target.value }
                     }))}
                     className="mt-2"
+                    placeholder="Titre principal de la section héro"
                   />
                 ) : (
                   <p className="text-lg font-semibold text-gray-800 mt-2 p-3 bg-gray-50 rounded-lg">{content.hero.title}</p>
@@ -250,6 +258,7 @@ const ContentManager = () => {
                     }))}
                     rows={3}
                     className="mt-2"
+                    placeholder="Description sous le titre principal"
                   />
                 ) : (
                   <p className="text-gray-600 mt-2 p-3 bg-gray-50 rounded-lg">{content.hero.subtitle}</p>
@@ -266,7 +275,10 @@ const ContentManager = () => {
                       className="w-40 h-24 object-cover rounded-lg border"
                     />
                     {isEditing && (
-                      <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center rounded-lg opacity-0 hover:opacity-100 transition-opacity cursor-pointer">
+                      <div 
+                        className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center rounded-lg opacity-0 hover:opacity-100 transition-opacity cursor-pointer"
+                        onClick={() => handleImageUpload('hero', 'backgroundImage')}
+                      >
                         <ImageIcon className="h-6 w-6 text-white" />
                       </div>
                     )}
@@ -293,55 +305,78 @@ const ContentManager = () => {
               <CardTitle>Section À Propos</CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
-              <div className="grid md:grid-cols-2 gap-4">
-                <div>
-                  <Label className="text-sm font-medium mb-2">Titre</Label>
-                  {isEditing ? (
-                    <Input
-                      value={editingContent.about.title}
-                      onChange={(e) => setEditingContent(prev => ({
-                        ...prev,
-                        about: { ...prev.about, title: e.target.value }
-                      }))}
-                      className="mt-2"
-                    />
-                  ) : (
-                    <p className="font-semibold mt-2 p-3 bg-gray-50 rounded-lg">{content.about.title}</p>
-                  )}
-                </div>
-
-                <div>
-                  <Label className="text-sm font-medium mb-2">Sous-titre</Label>
-                  {isEditing ? (
-                    <Input
-                      value={editingContent.about.subtitle}
-                      onChange={(e) => setEditingContent(prev => ({
-                        ...prev,
-                        about: { ...prev.about, subtitle: e.target.value }
-                      }))}
-                      className="mt-2"
-                    />
-                  ) : (
-                    <p className="text-red-500 mt-2 p-3 bg-gray-50 rounded-lg">{content.about.subtitle}</p>
-                  )}
-                </div>
+              <div>
+                <Label className="text-sm font-medium mb-2">Titre</Label>
+                {isEditing ? (
+                  <Input
+                    value={editingContent.about.title}
+                    onChange={(e) => updateAboutSection('title', e.target.value)}
+                    className="mt-2"
+                    placeholder="Titre de la section À Propos"
+                  />
+                ) : (
+                  <p className="font-semibold mt-2 p-3 bg-gray-50 rounded-lg">{content.about.title}</p>
+                )}
               </div>
 
               <div>
-                <Label className="text-sm font-medium mb-2">Description</Label>
+                <Label className="text-sm font-medium mb-2">Sous-titre</Label>
+                {isEditing ? (
+                  <Input
+                    value={editingContent.about.subtitle}
+                    onChange={(e) => updateAboutSection('subtitle', e.target.value)}
+                    className="mt-2"
+                    placeholder="Sous-titre de la section À Propos"
+                  />
+                ) : (
+                  <p className="text-red-500 mt-2 p-3 bg-gray-50 rounded-lg">{content.about.subtitle}</p>
+                )}
+              </div>
+
+              <div>
+                <Label className="text-sm font-medium mb-2">Description principale</Label>
                 {isEditing ? (
                   <Textarea
                     value={editingContent.about.description}
-                    onChange={(e) => setEditingContent(prev => ({
-                      ...prev,
-                      about: { ...prev.about, description: e.target.value }
-                    }))}
+                    onChange={(e) => updateAboutSection('description', e.target.value)}
                     rows={4}
                     className="mt-2"
+                    placeholder="Description complète de votre entreprise"
                   />
                 ) : (
                   <p className="text-gray-600 mt-2 p-3 bg-gray-50 rounded-lg">{content.about.description}</p>
                 )}
+              </div>
+
+              <div>
+                <Label className="text-sm font-medium mb-2">Image de la section À Propos</Label>
+                <div className="flex items-center space-x-4 mt-2">
+                  <div className="relative">
+                    <img 
+                      src={editingContent.about.image || 'https://images.unsplash.com/photo-1560472354-b33ff0c44a43?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80'} 
+                      alt="About" 
+                      className="w-40 h-24 object-cover rounded-lg border"
+                    />
+                    {isEditing && (
+                      <div 
+                        className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center rounded-lg opacity-0 hover:opacity-100 transition-opacity cursor-pointer"
+                        onClick={() => handleImageUpload('about', 'image')}
+                      >
+                        <ImageIcon className="h-6 w-6 text-white" />
+                      </div>
+                    )}
+                  </div>
+                  {isEditing && (
+                    <Button 
+                      variant="outline" 
+                      onClick={() => handleImageUpload('about', 'image')}
+                      className="flex items-center space-x-2"
+                    >
+                      <Upload className="h-4 w-4" />
+                      <span>Changer l'image</span>
+                    </Button>
+                  )}
+                </div>
               </div>
 
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -351,11 +386,9 @@ const ContentManager = () => {
                     {isEditing ? (
                       <Input
                         value={editingContent.about[field as keyof typeof editingContent.about]}
-                        onChange={(e) => setEditingContent(prev => ({
-                          ...prev,
-                          about: { ...prev.about, [field]: e.target.value }
-                        }))}
+                        onChange={(e) => updateAboutSection(field, e.target.value)}
                         className="mt-2"
+                        placeholder={`Valeur pour ${field}`}
                       />
                     ) : (
                       <p className="text-2xl font-bold mt-2 p-3 bg-gray-50 rounded-lg">{content.about[field as keyof typeof content.about]}</p>

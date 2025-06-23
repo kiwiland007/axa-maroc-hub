@@ -1,4 +1,3 @@
-
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
@@ -12,6 +11,7 @@ interface Content {
     title: string;
     subtitle: string;
     description: string;
+    image?: string;
     experience: string;
     clients: string;
     satisfaction: string;
@@ -67,6 +67,7 @@ export const useContentStore = create<ContentStore>()(
           title: "À Propos de Moumen Technique et Prévoyance",
           subtitle: "Plus de 20 ans d'expertise",
           description: "Depuis plus de 20 ans, nous accompagnons particuliers et professionnels dans la protection de leurs biens les plus précieux avec expertise et proximité.",
+          image: "https://images.unsplash.com/photo-1560472354-b33ff0c44a43?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
           experience: "20+ ans",
           clients: "5000+",
           satisfaction: "98%",
@@ -175,6 +176,7 @@ export const useContentStore = create<ContentStore>()(
         try {
           // Dans un environnement réel, vous enverriez l'image à votre serveur
           // Pour cette démo, nous retournons directement l'URL de données
+          console.log('Saving image:', path);
           return imageData;
         } catch (error) {
           console.error('Erreur lors de la sauvegarde de l\'image:', error);
