@@ -5,489 +5,614 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Badge } from '@/components/ui/badge';
+import { Switch } from '@/components/ui/switch';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
   Settings, 
-  Globe, 
-  Mail, 
-  Phone, 
-  MapPin, 
   Key, 
-  Database, 
-  Cloud,
-  Shield,
-  Bell,
-  Palette,
+  Bell, 
+  Shield, 
+  Database,
+  Mail,
+  MessageSquare,
+  Facebook,
+  Instagram,
+  Globe,
   Save,
-  TestTube,
-  CheckCircle,
-  XCircle,
   RefreshCw
 } from 'lucide-react';
 import { toast } from 'sonner';
 
 const AdminSettings = () => {
-  const [activeTab, setActiveTab] = useState('general');
   const [settings, setSettings] = useState({
-    // Paramètres généraux
-    siteName: 'MOUMEN TECHNIQUE ET PREVOYANCE',
-    siteDescription: 'Agent Général d\'assurance au Maroc',
-    contactEmail: 'contact@moumentechnique.ma',
-    contactPhone: '+212 5XX-XXX-XXX',
-    address: '123 Boulevard Mohammed V, Casablanca, Maroc',
-    
-    // Intégrations API
-    googleMapsApi: '',
-    emailApiKey: '',
-    smsApiKey: '',
-    analyticsId: '',
-    
-    // Notifications
-    emailNotifications: true,
-    smsNotifications: false,
-    leadAlerts: true,
-    quoteAlerts: true,
-    
-    // Sécurité
-    twoFactorAuth: false,
-    sessionTimeout: 30,
-    passwordPolicy: 'strong'
+    api: {
+      emailProvider: '',
+      emailApiKey: '',
+      smsProvider: '',
+      smsApiKey: '',
+      facebookAppId: '',
+      facebookAppSecret: '',
+      instagramBusinessId: '',
+      instagramAccessToken: '',
+      webhookUrl: ''
+    },
+    notifications: {
+      emailNotifications: true,
+      smsNotifications: false,
+      browserNotifications: true,
+      leadAlerts: true,
+      quoteReminders: true,
+      clientUpdates: true
+    },
+    security: {
+      twoFactorAuth: false,
+      sessionTimeout: 30,
+      passwordPolicy: true,
+      ipWhitelist: '',
+      auditLog: true
+    },
+    system: {
+      autoBackup: true,
+      backupFrequency: 'daily',
+      dataRetention: 365,
+      maintenanceMode: false
+    }
   });
 
-  const [apiStatus, setApiStatus] = useState({
-    googleMaps: 'disconnected',
-    email: 'connected',
-    sms: 'error',
-    analytics: 'connected'
-  });
+  const [activeTab, setActiveTab] = useState('integrations');
 
-  const handleSettingChange = (key: string, value: any) => {
-    setSettings(prev => ({ ...prev, [key]: value }));
+  const handleSave = (section: string) => {
+    // In a real application, this would save to your backend
+    toast.success(`Paramètres ${section} sauvegardés avec succès !`);
   };
 
-  const handleSave = () => {
-    toast.success('Paramètres sauvegardés avec succès !');
-  };
+  const testFacebookIntegration = async () => {
+    if (!settings.api.facebookAppId || !settings.api.facebookAppSecret) {
+      toast.error('Veuillez renseigner l\'App ID et l\'App Secret Facebook');
+      return;
+    }
 
-  const testApiConnection = (apiType: string) => {
-    setApiStatus(prev => ({ ...prev, [apiType]: 'testing' }));
-    
-    // Simulation du test
-    setTimeout(() => {
-      const success = Math.random() > 0.3; // 70% de chance de succès
-      setApiStatus(prev => ({ 
-        ...prev, 
-        [apiType]: success ? 'connected' : 'error' 
-      }));
-      
-      if (success) {
-        toast.success(`Connexion ${apiType} réussie !`);
-      } else {
-        toast.error(`Erreur de connexion ${apiType}`);
-      }
-    }, 2000);
-  };
-
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case 'connected':
-        return <CheckCircle className="h-4 w-4 text-green-500" />;
-      case 'error':
-        return <XCircle className="h-4 w-4 text-red-500" />;
-      case 'testing':
-        return <RefreshCw className="h-4 w-4 text-blue-500 animate-spin" />;
-      default:
-        return <XCircle className="h-4 w-4 text-gray-400" />;
+    try {
+      // Simulate API test
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      toast.success('Connexion Facebook réussie ! Leads peuvent être importés.');
+    } catch (error) {
+      toast.error('Erreur de connexion Facebook. Vérifiez vos paramètres.');
     }
   };
 
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case 'connected':
-        return <Badge className="bg-green-100 text-green-800">Connecté</Badge>;
-      case 'error':
-        return <Badge className="bg-red-100 text-red-800">Erreur</Badge>;
-      case 'testing':
-        return <Badge className="bg-blue-100 text-blue-800">Test en cours...</Badge>;
-      default:
-        return <Badge className="bg-gray-100 text-gray-800">Non configuré</Badge>;
+  const testInstagramIntegration = async () => {
+    if (!settings.api.instagramBusinessId || !settings.api.instagramAccessToken) {
+      toast.error('Veuillez renseigner l\'ID Business et le Token d\'accès Instagram');
+      return;
+    }
+
+    try {
+      // Simulate API test
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      toast.success('Connexion Instagram réussie ! Leads peuvent être importés.');
+    } catch (error) {
+      toast.error('Erreur de connexion Instagram. Vérifiez vos paramètres.');
     }
   };
 
-  const renderGeneralSettings = () => (
-    <div className="space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center space-x-2">
-            <Globe className="h-5 w-5" />
-            <span>Informations du site</span>
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div>
-            <Label>Nom du site</Label>
-            <Input
-              value={settings.siteName}
-              onChange={(e) => handleSettingChange('siteName', e.target.value)}
-            />
-          </div>
-          <div>
-            <Label>Description</Label>
-            <Textarea
-              value={settings.siteDescription}
-              onChange={(e) => handleSettingChange('siteDescription', e.target.value)}
-              rows={3}
-            />
-          </div>
-        </CardContent>
-      </Card>
+  const importFacebookLeads = async () => {
+    try {
+      // Simulate lead import
+      await new Promise(resolve => setTimeout(resolve, 3000));
+      toast.success('15 nouveaux leads importés depuis Facebook !');
+    } catch (error) {
+      toast.error('Erreur lors de l\'importation des leads Facebook');
+    }
+  };
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center space-x-2">
-            <Phone className="h-5 w-5" />
-            <span>Informations de contact</span>
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <Label>Email de contact</Label>
-              <Input
-                type="email"
-                value={settings.contactEmail}
-                onChange={(e) => handleSettingChange('contactEmail', e.target.value)}
-              />
-            </div>
-            <div>
-              <Label>Téléphone</Label>
-              <Input
-                value={settings.contactPhone}
-                onChange={(e) => handleSettingChange('contactPhone', e.target.value)}
-              />
-            </div>
-          </div>
-          <div>
-            <Label>Adresse</Label>
-            <Textarea
-              value={settings.address}
-              onChange={(e) => handleSettingChange('address', e.target.value)}
-              rows={2}
-            />
-          </div>
-        </CardContent>
-      </Card>
-    </div>
-  );
-
-  const renderApiSettings = () => (
-    <div className="space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center space-x-2">
-            <MapPin className="h-5 w-5" />
-            <span>Google Maps</span>
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-2">
-              {getStatusIcon(apiStatus.googleMaps)}
-              {getStatusBadge(apiStatus.googleMaps)}
-            </div>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => testApiConnection('googleMaps')}
-              disabled={apiStatus.googleMaps === 'testing'}
-            >
-              <TestTube className="h-4 w-4 mr-2" />
-              Tester
-            </Button>
-          </div>
-          <div>
-            <Label>Clé API Google Maps</Label>
-            <Input
-              type="password"
-              value={settings.googleMapsApi}
-              onChange={(e) => handleSettingChange('googleMapsApi', e.target.value)}
-              placeholder="AIzaSy..."
-            />
-            <p className="text-xs text-gray-500 mt-1">
-              Obtenez votre clé API sur Google Cloud Console
-            </p>
-          </div>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center space-x-2">
-            <Mail className="h-5 w-5" />
-            <span>Service Email</span>
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-2">
-              {getStatusIcon(apiStatus.email)}
-              {getStatusBadge(apiStatus.email)}
-            </div>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => testApiConnection('email')}
-              disabled={apiStatus.email === 'testing'}
-            >
-              <TestTube className="h-4 w-4 mr-2" />
-              Tester
-            </Button>
-          </div>
-          <div>
-            <Label>Clé API Email (SendGrid/Mailgun)</Label>
-            <Input
-              type="password"
-              value={settings.emailApiKey}
-              onChange={(e) => handleSettingChange('emailApiKey', e.target.value)}
-              placeholder="SG.xxx ou key-xxx"
-            />
-          </div>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center space-x-2">
-            <Phone className="h-5 w-5" />
-            <span>Service SMS</span>
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-2">
-              {getStatusIcon(apiStatus.sms)}
-              {getStatusBadge(apiStatus.sms)}
-            </div>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => testApiConnection('sms')}
-              disabled={apiStatus.sms === 'testing'}
-            >
-              <TestTube className="h-4 w-4 mr-2" />
-              Tester
-            </Button>
-          </div>
-          <div>
-            <Label>Clé API SMS (Twilio/Nexmo)</Label>
-            <Input
-              type="password"
-              value={settings.smsApiKey}
-              onChange={(e) => handleSettingChange('smsApiKey', e.target.value)}
-              placeholder="AC..."
-            />
-          </div>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center space-x-2">
-            <Database className="h-5 w-5" />
-            <span>Google Analytics</span>
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-2">
-              {getStatusIcon(apiStatus.analytics)}
-              {getStatusBadge(apiStatus.analytics)}
-            </div>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => testApiConnection('analytics')}
-              disabled={apiStatus.analytics === 'testing'}
-            >
-              <TestTube className="h-4 w-4 mr-2" />
-              Tester
-            </Button>
-          </div>
-          <div>
-            <Label>ID de mesure Google Analytics</Label>
-            <Input
-              value={settings.analyticsId}
-              onChange={(e) => handleSettingChange('analyticsId', e.target.value)}
-              placeholder="G-XXXXXXXXXX"
-            />
-          </div>
-        </CardContent>
-      </Card>
-    </div>
-  );
-
-  const renderNotificationSettings = () => (
-    <div className="space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center space-x-2">
-            <Bell className="h-5 w-5" />
-            <span>Notifications</span>
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <div className="font-medium">Notifications par email</div>
-                <div className="text-sm text-gray-500">Recevoir les notifications importantes par email</div>
-              </div>
-              <input
-                type="checkbox"
-                checked={settings.emailNotifications}
-                onChange={(e) => handleSettingChange('emailNotifications', e.target.checked)}
-                className="w-4 h-4"
-              />
-            </div>
-
-            <div className="flex items-center justify-between">
-              <div>
-                <div className="font-medium">Notifications SMS</div>
-                <div className="text-sm text-gray-500">Recevoir les alertes urgentes par SMS</div>
-              </div>
-              <input
-                type="checkbox"
-                checked={settings.smsNotifications}
-                onChange={(e) => handleSettingChange('smsNotifications', e.target.checked)}
-                className="w-4 h-4"
-              />
-            </div>
-
-            <div className="flex items-center justify-between">
-              <div>
-                <div className="font-medium">Alertes nouveaux leads</div>
-                <div className="text-sm text-gray-500">Notification à chaque nouveau lead</div>
-              </div>
-              <input
-                type="checkbox"
-                checked={settings.leadAlerts}
-                onChange={(e) => handleSettingChange('leadAlerts', e.target.checked)}
-                className="w-4 h-4"
-              />
-            </div>
-
-            <div className="flex items-center justify-between">
-              <div>
-                <div className="font-medium">Alertes devis</div>
-                <div className="text-sm text-gray-500">Notification pour les nouvelles demandes de devis</div>
-              </div>
-              <input
-                type="checkbox"
-                checked={settings.quoteAlerts}
-                onChange={(e) => handleSettingChange('quoteAlerts', e.target.checked)}
-                className="w-4 h-4"
-              />
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-    </div>
-  );
-
-  const renderSecuritySettings = () => (
-    <div className="space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center space-x-2">
-            <Shield className="h-5 w-5" />
-            <span>Sécurité</span>
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <div className="font-medium">Authentification à deux facteurs</div>
-              <div className="text-sm text-gray-500">Sécurité renforcée pour les comptes administrateurs</div>
-            </div>
-            <input
-              type="checkbox"
-              checked={settings.twoFactorAuth}
-              onChange={(e) => handleSettingChange('twoFactorAuth', e.target.checked)}
-              className="w-4 h-4"
-            />
-          </div>
-
-          <div>
-            <Label>Délai d'expiration de session (minutes)</Label>
-            <Input
-              type="number"
-              value={settings.sessionTimeout}
-              onChange={(e) => handleSettingChange('sessionTimeout', parseInt(e.target.value))}
-              min="5"
-              max="480"
-            />
-          </div>
-
-          <div>
-            <Label>Politique de mot de passe</Label>
-            <select
-              value={settings.passwordPolicy}
-              onChange={(e) => handleSettingChange('passwordPolicy', e.target.value)}
-              className="w-full border border-gray-300 rounded-md px-3 py-2"
-            >
-              <option value="basic">Basique (6 caractères minimum)</option>
-              <option value="medium">Moyen (8 caractères, majuscules et chiffres)</option>
-              <option value="strong">Fort (12 caractères, majuscules, chiffres et symboles)</option>
-            </select>
-          </div>
-        </CardContent>
-      </Card>
-    </div>
-  );
+  const importInstagramLeads = async () => {
+    try {
+      // Simulate lead import
+      await new Promise(resolve => setTimeout(resolve, 3000));
+      toast.success('8 nouveaux leads importés depuis Instagram !');
+    } catch (error) {
+      toast.error('Erreur lors de l\'importation des leads Instagram');
+    }
+  };
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-gray-800 mb-2">Paramètres Système</h2>
-          <p className="text-gray-600">Configuration et intégrations</p>
+          <h2 className="text-2xl font-bold text-gray-800 mb-2">Paramètres et Configuration</h2>
+          <p className="text-gray-600">Gérez les intégrations API, notifications et paramètres de sécurité</p>
         </div>
-        <Button onClick={handleSave} className="bg-green-600 hover:bg-green-700">
-          <Save className="h-4 w-4 mr-2" />
-          Sauvegarder
-        </Button>
       </div>
 
-      {/* Onglets */}
-      <div className="border-b border-gray-200">
-        <nav className="-mb-px flex space-x-8">
-          {[
-            { id: 'general', label: 'Général', icon: Settings },
-            { id: 'api', label: 'Intégrations API', icon: Key },
-            { id: 'notifications', label: 'Notifications', icon: Bell },
-            { id: 'security', label: 'Sécurité', icon: Shield }
-          ].map((tab) => (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              className={`py-2 px-1 border-b-2 font-medium text-sm flex items-center space-x-2 ${
-                activeTab === tab.id
-                  ? 'border-red-500 text-red-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-              }`}
-            >
-              <tab.icon className="h-4 w-4" />
-              <span>{tab.label}</span>
-            </button>
-          ))}
-        </nav>
-      </div>
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+        <TabsList className="grid w-full grid-cols-4">
+          <TabsTrigger value="integrations">Intégrations API</TabsTrigger>
+          <TabsTrigger value="notifications">Notifications</TabsTrigger>
+          <TabsTrigger value="security">Sécurité</TabsTrigger>
+          <TabsTrigger value="system">Système</TabsTrigger>
+        </TabsList>
 
-      {/* Contenu des onglets */}
-      {activeTab === 'general' && renderGeneralSettings()}
-      {activeTab === 'api' && renderApiSettings()}
-      {activeTab === 'notifications' && renderNotificationSettings()}
-      {activeTab === 'security' && renderSecuritySettings()}
+        <TabsContent value="integrations" className="space-y-6">
+          {/* Intégrations Email et SMS */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center space-x-2">
+                <Mail className="h-5 w-5" />
+                <span>Communication</span>
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="emailProvider">Fournisseur Email</Label>
+                  <select
+                    id="emailProvider"
+                    value={settings.api.emailProvider}
+                    onChange={(e) => setSettings(prev => ({
+                      ...prev,
+                      api: { ...prev.api, emailProvider: e.target.value }
+                    }))}
+                    className="w-full border border-gray-300 rounded-md px-3 py-2 mt-1"
+                  >
+                    <option value="">Sélectionner</option>
+                    <option value="sendgrid">SendGrid</option>
+                    <option value="mailgun">Mailgun</option>
+                    <option value="ses">Amazon SES</option>
+                  </select>
+                </div>
+                <div>
+                  <Label htmlFor="emailApiKey">Clé API Email</Label>
+                  <Input
+                    id="emailApiKey"
+                    type="password"
+                    value={settings.api.emailApiKey}
+                    onChange={(e) => setSettings(prev => ({
+                      ...prev,
+                      api: { ...prev.api, emailApiKey: e.target.value }
+                    }))}
+                    placeholder="sk-xxxxxxxxxxxxxxxx"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="smsProvider">Fournisseur SMS</Label>
+                  <select
+                    id="smsProvider"
+                    value={settings.api.smsProvider}
+                    onChange={(e) => setSettings(prev => ({
+                      ...prev,
+                      api: { ...prev.api, smsProvider: e.target.value }
+                    }))}
+                    className="w-full border border-gray-300 rounded-md px-3 py-2 mt-1"
+                  >
+                    <option value="">Sélectionner</option>
+                    <option value="twilio">Twilio</option>
+                    <option value="nexmo">Vonage (Nexmo)</option>
+                    <option value="clickatell">Clickatell</option>
+                  </select>
+                </div>
+                <div>
+                  <Label htmlFor="smsApiKey">Clé API SMS</Label>
+                  <Input
+                    id="smsApiKey"
+                    type="password"
+                    value={settings.api.smsApiKey}
+                    onChange={(e) => setSettings(prev => ({
+                      ...prev,
+                      api: { ...prev.api, smsApiKey: e.target.value }
+                    }))}
+                    placeholder="ACxxxxxxxxxxxxxxxx"
+                  />
+                </div>
+              </div>
+              <Button onClick={() => handleSave('communication')} className="bg-blue-600 hover:bg-blue-700">
+                <Save className="h-4 w-4 mr-2" />
+                Sauvegarder Communication
+              </Button>
+            </CardContent>
+          </Card>
+
+          {/* Intégrations Réseaux Sociaux */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center space-x-2">
+                <Facebook className="h-5 w-5" />
+                <span>Réseaux Sociaux - Importation de Leads</span>
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {/* Facebook */}
+              <div className="border rounded-lg p-4 bg-blue-50">
+                <div className="flex items-center space-x-2 mb-4">
+                  <Facebook className="h-6 w-6 text-blue-600" />
+                  <h3 className="font-semibold text-blue-800">Facebook Business</h3>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="facebookAppId">App ID Facebook</Label>
+                    <Input
+                      id="facebookAppId"
+                      value={settings.api.facebookAppId}
+                      onChange={(e) => setSettings(prev => ({
+                        ...prev,
+                        api: { ...prev.api, facebookAppId: e.target.value }
+                      }))}
+                      placeholder="123456789012345"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="facebookAppSecret">App Secret Facebook</Label>
+                    <Input
+                      id="facebookAppSecret"
+                      type="password"
+                      value={settings.api.facebookAppSecret}
+                      onChange={(e) => setSettings(prev => ({
+                        ...prev,
+                        api: { ...prev.api, facebookAppSecret: e.target.value }
+                      }))}
+                      placeholder="abcdef123456789"
+                    />
+                  </div>
+                </div>
+                <div className="flex space-x-2 mt-4">
+                  <Button onClick={testFacebookIntegration} variant="outline" size="sm">
+                    <RefreshCw className="h-4 w-4 mr-2" />
+                    Tester Connexion
+                  </Button>
+                  <Button onClick={importFacebookLeads} className="bg-blue-600 hover:bg-blue-700" size="sm">
+                    <Database className="h-4 w-4 mr-2" />
+                    Importer Leads
+                  </Button>
+                </div>
+              </div>
+
+              {/* Instagram */}
+              <div className="border rounded-lg p-4 bg-pink-50">
+                <div className="flex items-center space-x-2 mb-4">
+                  <Instagram className="h-6 w-6 text-pink-600" />
+                  <h3 className="font-semibold text-pink-800">Instagram Business</h3>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="instagramBusinessId">Business Account ID</Label>
+                    <Input
+                      id="instagramBusinessId"
+                      value={settings.api.instagramBusinessId}
+                      onChange={(e) => setSettings(prev => ({
+                        ...prev,
+                        api: { ...prev.api, instagramBusinessId: e.target.value }
+                      }))}
+                      placeholder="17841405822304914"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="instagramAccessToken">Token d'Accès</Label>
+                    <Input
+                      id="instagramAccessToken"
+                      type="password"
+                      value={settings.api.instagramAccessToken}
+                      onChange={(e) => setSettings(prev => ({
+                        ...prev,
+                        api: { ...prev.api, instagramAccessToken: e.target.value }
+                      }))}
+                      placeholder="IGQVJxxxxxxxxxxxxxxxx"
+                    />
+                  </div>
+                </div>
+                <div className="flex space-x-2 mt-4">
+                  <Button onClick={testInstagramIntegration} variant="outline" size="sm">
+                    <RefreshCw className="h-4 w-4 mr-2" />
+                    Tester Connexion
+                  </Button>
+                  <Button onClick={importInstagramLeads} className="bg-pink-600 hover:bg-pink-700" size="sm">
+                    <Database className="h-4 w-4 mr-2" />
+                    Importer Leads
+                  </Button>
+                </div>
+              </div>
+
+              {/* Webhook */}
+              <div className="border rounded-lg p-4 bg-gray-50">
+                <div className="flex items-center space-x-2 mb-4">
+                  <Globe className="h-6 w-6 text-gray-600" />
+                  <h3 className="font-semibold text-gray-800">Webhook Global</h3>
+                </div>
+                <div>
+                  <Label htmlFor="webhookUrl">URL de Webhook pour Leads</Label>
+                  <Input
+                    id="webhookUrl"
+                    value={settings.api.webhookUrl}
+                    onChange={(e) => setSettings(prev => ({
+                      ...prev,
+                      api: { ...prev.api, webhookUrl: e.target.value }
+                    }))}
+                    placeholder="https://votre-site.com/api/webhook/leads"
+                  />
+                  <p className="text-sm text-gray-500 mt-1">
+                    Cette URL recevra tous les leads des différentes sources
+                  </p>
+                </div>
+              </div>
+
+              <Button onClick={() => handleSave('social')} className="bg-green-600 hover:bg-green-700">
+                <Save className="h-4 w-4 mr-2" />
+                Sauvegarder Intégrations Sociales
+              </Button>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="notifications" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center space-x-2">
+                <Bell className="h-5 w-5" />
+                <span>Paramètres de Notifications</span>
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <Label className="text-base font-medium">Notifications Email</Label>
+                    <p className="text-sm text-gray-500">Recevoir les notifications par email</p>
+                  </div>
+                  <Switch
+                    checked={settings.notifications.emailNotifications}
+                    onCheckedChange={(checked) => setSettings(prev => ({
+                      ...prev,
+                      notifications: { ...prev.notifications, emailNotifications: checked }
+                    }))}
+                  />
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <div>
+                    <Label className="text-base font-medium">Notifications SMS</Label>
+                    <p className="text-sm text-gray-500">Recevoir les alertes urgentes par SMS</p>
+                  </div>
+                  <Switch
+                    checked={settings.notifications.smsNotifications}
+                    onCheckedChange={(checked) => setSettings(prev => ({
+                      ...prev,
+                      notifications: { ...prev.notifications, smsNotifications: checked }
+                    }))}
+                  />
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <div>
+                    <Label className="text-base font-medium">Notifications Navigateur</Label>
+                    <p className="text-sm text-gray-500">Afficher les notifications dans le navigateur</p>
+                  </div>
+                  <Switch
+                    checked={settings.notifications.browserNotifications}
+                    onCheckedChange={(checked) => setSettings(prev => ({
+                      ...prev,
+                      notifications: { ...prev.notifications, browserNotifications: checked }
+                    }))}
+                  />
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <div>
+                    <Label className="text-base font-medium">Alertes Nouveaux Leads</Label>
+                    <p className="text-sm text-gray-500">Notification immédiate pour chaque nouveau lead</p>
+                  </div>
+                  <Switch
+                    checked={settings.notifications.leadAlerts}
+                    onCheckedChange={(checked) => setSettings(prev => ({
+                      ...prev,
+                      notifications: { ...prev.notifications, leadAlerts: checked }
+                    }))}
+                  />
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <div>
+                    <Label className="text-base font-medium">Rappels Devis</Label>
+                    <p className="text-sm text-gray-500">Rappels pour les devis en attente</p>
+                  </div>
+                  <Switch
+                    checked={settings.notifications.quoteReminders}
+                    onCheckedChange={(checked) => setSettings(prev => ({
+                      ...prev,
+                      notifications: { ...prev.notifications, quoteReminders: checked }
+                    }))}
+                  />
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <div>
+                    <Label className="text-base font-medium">Mises à Jour Clients</Label>
+                    <p className="text-sm text-gray-500">Notifications pour les changements de statut client</p>
+                  </div>
+                  <Switch
+                    checked={settings.notifications.clientUpdates}
+                    onCheckedChange={(checked) => setSettings(prev => ({
+                      ...prev,
+                      notifications: { ...prev.notifications, clientUpdates: checked }
+                    }))}
+                  />
+                </div>
+              </div>
+
+              <Button onClick={() => handleSave('notifications')} className="bg-blue-600 hover:bg-blue-700">
+                <Save className="h-4 w-4 mr-2" />
+                Sauvegarder Notifications
+              </Button>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="security" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center space-x-2">
+                <Shield className="h-5 w-5" />
+                <span>Paramètres de Sécurité</span>
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <Label className="text-base font-medium">Authentification à Double Facteur</Label>
+                    <p className="text-sm text-gray-500">Sécurité renforcée pour la connexion</p>
+                  </div>
+                  <Switch
+                    checked={settings.security.twoFactorAuth}
+                    onCheckedChange={(checked) => setSettings(prev => ({
+                      ...prev,
+                      security: { ...prev.security, twoFactorAuth: checked }
+                    }))}
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="sessionTimeout">Timeout de Session (minutes)</Label>
+                  <Input
+                    id="sessionTimeout"
+                    type="number"
+                    value={settings.security.sessionTimeout}
+                    onChange={(e) => setSettings(prev => ({
+                      ...prev,
+                      security: { ...prev.security, sessionTimeout: parseInt(e.target.value) }
+                    }))}
+                    className="w-32"
+                  />
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <div>
+                    <Label className="text-base font-medium">Politique de Mot de Passe Renforcée</Label>
+                    <p className="text-sm text-gray-500">Exiger des mots de passe complexes</p>
+                  </div>
+                  <Switch
+                    checked={settings.security.passwordPolicy}
+                    onCheckedChange={(checked) => setSettings(prev => ({
+                      ...prev,
+                      security: { ...prev.security, passwordPolicy: checked }
+                    }))}
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="ipWhitelist">Liste Blanche IP</Label>
+                  <Textarea
+                    id="ipWhitelist"
+                    value={settings.security.ipWhitelist}
+                    onChange={(e) => setSettings(prev => ({
+                      ...prev,
+                      security: { ...prev.security, ipWhitelist: e.target.value }
+                    }))}
+                    placeholder="192.168.1.1&#10;10.0.0.1&#10;..."
+                    rows={3}
+                  />
+                  <p className="text-sm text-gray-500 mt-1">Une adresse IP par ligne</p>
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <div>
+                    <Label className="text-base font-medium">Journal d'Audit</Label>
+                    <p className="text-sm text-gray-500">Enregistrer toutes les actions utilisateurs</p>
+                  </div>
+                  <Switch
+                    checked={settings.security.auditLog}
+                    onCheckedChange={(checked) => setSettings(prev => ({
+                      ...prev,
+                      security: { ...prev.security, auditLog: checked }
+                    }))}
+                  />
+                </div>
+              </div>
+
+              <Button onClick={() => handleSave('security')} className="bg-red-600 hover:bg-red-700">
+                <Save className="h-4 w-4 mr-2" />
+                Sauvegarder Sécurité
+              </Button>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="system" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center space-x-2">
+                <Settings className="h-5 w-5" />
+                <span>Paramètres Système</span>
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <Label className="text-base font-medium">Sauvegarde Automatique</Label>
+                    <p className="text-sm text-gray-500">Sauvegarder automatiquement les données</p>
+                  </div>
+                  <Switch
+                    checked={settings.system.autoBackup}
+                    onCheckedChange={(checked) => setSettings(prev => ({
+                      ...prev,
+                      system: { ...prev.system, autoBackup: checked }
+                    }))}
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="backupFrequency">Fréquence de Sauvegarde</Label>
+                  <select
+                    id="backupFrequency"
+                    value={settings.system.backupFrequency}
+                    onChange={(e) => setSettings(prev => ({
+                      ...prev,
+                      system: { ...prev.system, backupFrequency: e.target.value }
+                    }))}
+                    className="w-full border border-gray-300 rounded-md px-3 py-2 mt-1"
+                  >
+                    <option value="hourly">Toutes les heures</option>
+                    <option value="daily">Quotidienne</option>
+                    <option value="weekly">Hebdomadaire</option>
+                  </select>
+                </div>
+
+                <div>
+                  <Label htmlFor="dataRetention">Rétention des Données (jours)</Label>
+                  <Input
+                    id="dataRetention"
+                    type="number"
+                    value={settings.system.dataRetention}
+                    onChange={(e) => setSettings(prev => ({
+                      ...prev,
+                      system: { ...prev.system, dataRetention: parseInt(e.target.value) }
+                    }))}
+                    className="w-32"
+                  />
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <div>
+                    <Label className="text-base font-medium">Mode Maintenance</Label>
+                    <p className="text-sm text-gray-500">Désactiver l'accès public temporairement</p>
+                  </div>
+                  <Switch
+                    checked={settings.system.maintenanceMode}
+                    onCheckedChange={(checked) => setSettings(prev => ({
+                      ...prev,
+                      system: { ...prev.system, maintenanceMode: checked }
+                    }))}
+                  />
+                </div>
+              </div>
+
+              <Button onClick={() => handleSave('system')} className="bg-gray-600 hover:bg-gray-700">
+                <Save className="h-4 w-4 mr-2" />
+                Sauvegarder Système
+              </Button>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };

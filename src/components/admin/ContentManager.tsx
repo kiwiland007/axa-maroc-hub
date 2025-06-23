@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -6,46 +5,52 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import { Edit, Save, Upload, Eye, Plus, Trash2, Package, Image as ImageIcon } from 'lucide-react';
+import { Edit, Save, Upload, Eye, Plus, Trash2, Package, Image as ImageIcon, FileText } from 'lucide-react';
 import { useContentStore } from '@/hooks/useContentStore';
 import { toast } from 'sonner';
 
 const ContentManager = () => {
   const [isEditing, setIsEditing] = useState(false);
-  const { content, updateContent, updateProduct, addProduct, removeProduct } = useContentStore();
+  const { content, updateContent, updateProduct, addProduct, removeProduct, saveImage } = useContentStore();
   const [editingContent, setEditingContent] = useState(content);
 
-  const handleSave = () => {
-    // Update all sections
-    updateContent('hero', editingContent.hero);
-    updateContent('about', editingContent.about);
-    updateContent('contact', editingContent.contact);
-    
-    // Update products
-    editingContent.products.forEach(product => {
-      const existingProduct = content.products.find(p => p.id === product.id);
-      if (existingProduct) {
-        updateProduct(product.id, product);
-      } else {
-        addProduct(product);
-      }
-    });
+  const handleSave = async () => {
+    try {
+      // Update all sections
+      updateContent('hero', editingContent.hero);
+      updateContent('about', editingContent.about);
+      updateContent('contact', editingContent.contact);
+      updateContent('legal', editingContent.legal);
+      
+      // Update products
+      editingContent.products.forEach(product => {
+        const existingProduct = content.products.find(p => p.id === product.id);
+        if (existingProduct) {
+          updateProduct(product.id, product);
+        } else {
+          addProduct(product);
+        }
+      });
 
-    // Remove products that were deleted
-    content.products.forEach(product => {
-      const stillExists = editingContent.products.find(p => p.id === product.id);
-      if (!stillExists) {
-        removeProduct(product.id);
-      }
-    });
+      // Remove products that were deleted
+      content.products.forEach(product => {
+        const stillExists = editingContent.products.find(p => p.id === product.id);
+        if (!stillExists) {
+          removeProduct(product.id);
+        }
+      });
 
-    setIsEditing(false);
-    toast.success('Contenu mis à jour avec succès !');
-    
-    // Refresh the page to show changes
-    setTimeout(() => {
-      window.location.reload();
-    }, 1000);
+      setIsEditing(false);
+      toast.success('Contenu mis à jour avec succès !');
+      
+      // Refresh the page to show changes
+      setTimeout(() => {
+        window.location.reload();
+      }, 1000);
+    } catch (error) {
+      console.error('Erreur lors de la sauvegarde:', error);
+      toast.error('Erreur lors de la sauvegarde du contenu');
+    }
   };
 
   const handleCancel = () => {
@@ -53,37 +58,50 @@ const ContentManager = () => {
     setIsEditing(false);
   };
 
-  const handleImageUpload = (section: string, field: string, productId?: string) => {
+  const handleImageUpload = async (section: string, field: string, productId?: string) => {
     const input = document.createElement('input');
     input.type = 'file';
     input.accept = 'image/*';
-    input.onchange = (e) => {
+    input.onchange = async (e) => {
       const file = (e.target as HTMLInputElement).files?.[0];
       if (file) {
-        const reader = new FileReader();
-        reader.onload = (e) => {
-          const imageUrl = e.target?.result as string;
-          
-          if (productId) {
-            setEditingContent(prev => ({
-              ...prev,
-              products: prev.products.map(p => 
-                p.id === productId ? { ...p, image: imageUrl } : p
-              )
-            }));
-          } else {
-            setEditingContent(prev => ({
-              ...prev,
-              [section]: {
-                ...prev[section as keyof typeof prev],
-                [field]: imageUrl
+        try {
+          const reader = new FileReader();
+          reader.onload = async (e) => {
+            const imageUrl = e.target?.result as string;
+            
+            try {
+              // Save the image using the store function
+              const savedImageUrl = await saveImage(imageUrl, `${section}-${field}-${Date.now()}`);
+              
+              if (productId) {
+                setEditingContent(prev => ({
+                  ...prev,
+                  products: prev.products.map(p => 
+                    p.id === productId ? { ...p, image: savedImageUrl } : p
+                  )
+                }));
+              } else {
+                setEditingContent(prev => ({
+                  ...prev,
+                  [section]: {
+                    ...prev[section as keyof typeof prev],
+                    [field]: savedImageUrl
+                  }
+                }));
               }
-            }));
-          }
-          
-          toast.success('Image uploadée avec succès !');
-        };
-        reader.readAsDataURL(file);
+              
+              toast.success('Image uploadée et sauvegardée avec succès !');
+            } catch (error) {
+              console.error('Erreur lors de la sauvegarde de l\'image:', error);
+              toast.error('Erreur lors de la sauvegarde de l\'image');
+            }
+          };
+          reader.readAsDataURL(file);
+        } catch (error) {
+          console.error('Erreur lors du traitement de l\'image:', error);
+          toast.error('Erreur lors du traitement de l\'image');
+        }
       }
     };
     input.click();
@@ -191,11 +209,12 @@ const ContentManager = () => {
       </div>
 
       <Tabs defaultValue="hero" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="hero">Section Héro</TabsTrigger>
           <TabsTrigger value="about">À Propos</TabsTrigger>
           <TabsTrigger value="products">Produits</TabsTrigger>
           <TabsTrigger value="contact">Contact</TabsTrigger>
+          <TabsTrigger value="legal">Mentions Légales</TabsTrigger>
         </TabsList>
 
         <TabsContent value="hero" className="space-y-4">
@@ -247,7 +266,7 @@ const ContentManager = () => {
                       className="w-40 h-24 object-cover rounded-lg border"
                     />
                     {isEditing && (
-                      <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center rounded-lg opacity-0 hover:opacity-100 transition-opacity">
+                      <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center rounded-lg opacity-0 hover:opacity-100 transition-opacity cursor-pointer">
                         <ImageIcon className="h-6 w-6 text-white" />
                       </div>
                     )}
@@ -546,6 +565,72 @@ const ContentManager = () => {
                     )}
                   </div>
                 ))}
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="legal" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center space-x-2">
+                <FileText className="h-5 w-5" />
+                <span>Mentions Légales et Politique de Confidentialité</span>
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div>
+                <Label className="text-sm font-medium mb-2">Mentions Légales</Label>
+                {isEditing ? (
+                  <Textarea
+                    value={editingContent.legal.mentions}
+                    onChange={(e) => setEditingContent(prev => ({
+                      ...prev,
+                      legal: { ...prev.legal, mentions: e.target.value }
+                    }))}
+                    rows={4}
+                    className="mt-2"
+                    placeholder="Informations légales de l'entreprise..."
+                  />
+                ) : (
+                  <p className="text-gray-600 mt-2 p-3 bg-gray-50 rounded-lg">{content.legal.mentions}</p>
+                )}
+              </div>
+
+              <div>
+                <Label className="text-sm font-medium mb-2">Politique de Confidentialité</Label>
+                {isEditing ? (
+                  <Textarea
+                    value={editingContent.legal.privacy}
+                    onChange={(e) => setEditingContent(prev => ({
+                      ...prev,
+                      legal: { ...prev.legal, privacy: e.target.value }
+                    }))}
+                    rows={4}
+                    className="mt-2"
+                    placeholder="Politique de protection des données personnelles..."
+                  />
+                ) : (
+                  <p className="text-gray-600 mt-2 p-3 bg-gray-50 rounded-lg">{content.legal.privacy}</p>
+                )}
+              </div>
+
+              <div>
+                <Label className="text-sm font-medium mb-2">Conditions Générales</Label>
+                {isEditing ? (
+                  <Textarea
+                    value={editingContent.legal.terms}
+                    onChange={(e) => setEditingContent(prev => ({
+                      ...prev,
+                      legal: { ...prev.legal, terms: e.target.value }
+                    }))}
+                    rows={4}
+                    className="mt-2"
+                    placeholder="Conditions générales d'utilisation..."
+                  />
+                ) : (
+                  <p className="text-gray-600 mt-2 p-3 bg-gray-50 rounded-lg">{content.legal.terms}</p>
+                )}
               </div>
             </CardContent>
           </Card>

@@ -1,7 +1,7 @@
 
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Menu, X } from 'lucide-react';
+import { Menu, X, Phone, Mail } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 
 const Header = () => {
@@ -36,9 +36,12 @@ const Header = () => {
     setIsMenuOpen(false);
   };
 
-  const handleDevisClick = () => {
-    navigate('/formulaires/affaire-nouvelle');
-    setIsMenuOpen(false);
+  const handleCallClick = () => {
+    window.location.href = 'tel:+212523456789';
+  };
+
+  const handleEmailClick = () => {
+    window.location.href = 'mailto:contact@moumentechnique.ma';
   };
 
   return (
@@ -66,7 +69,7 @@ const Header = () => {
                 & PREVOYANCE
               </div>
               <div className="text-xs text-gray-600 font-medium">
-                Agent Général - Agréé ACAPS
+                Agent Général - Agréé ACAPS - Assurance AXA Maroc
               </div>
             </div>
           </div>
@@ -83,12 +86,25 @@ const Header = () => {
                 <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-red-600 transition-all duration-300 group-hover:w-full"></span>
               </button>
             ))}
-            <Button 
-              onClick={handleDevisClick}
-              className="bg-gradient-to-r from-red-500 to-orange-500 hover:from-red-600 hover:to-orange-600 text-white shadow-lg"
-            >
-              Devis Gratuit
-            </Button>
+            <div className="flex space-x-2">
+              <Button 
+                onClick={handleCallClick}
+                variant="outline"
+                size="sm"
+                className="border-red-200 text-red-600 hover:bg-red-50"
+              >
+                <Phone className="h-4 w-4 mr-2" />
+                Nous Appeler
+              </Button>
+              <Button 
+                onClick={handleEmailClick}
+                className="bg-gradient-to-r from-red-500 to-orange-500 hover:from-red-600 hover:to-orange-600 text-white shadow-lg"
+                size="sm"
+              >
+                <Mail className="h-4 w-4 mr-2" />
+                Nous Écrire
+              </Button>
+            </div>
           </div>
 
           {/* Menu mobile */}
@@ -117,12 +133,25 @@ const Header = () => {
                   {item.name}
                 </button>
               ))}
-              <Button 
-                onClick={handleDevisClick}
-                className="bg-gradient-to-r from-red-500 to-orange-500 hover:from-red-600 hover:to-orange-600 text-white w-fit mt-2"
-              >
-                Devis Gratuit
-              </Button>
+              <div className="flex flex-col space-y-2 pt-2">
+                <Button 
+                  onClick={handleCallClick}
+                  variant="outline"
+                  size="sm"
+                  className="border-red-200 text-red-600 hover:bg-red-50 w-fit"
+                >
+                  <Phone className="h-4 w-4 mr-2" />
+                  Nous Appeler
+                </Button>
+                <Button 
+                  onClick={handleEmailClick}
+                  className="bg-gradient-to-r from-red-500 to-orange-500 hover:from-red-600 hover:to-orange-600 text-white w-fit"
+                  size="sm"
+                >
+                  <Mail className="h-4 w-4 mr-2" />
+                  Nous Écrire
+                </Button>
+              </div>
             </div>
           </div>
         )}
