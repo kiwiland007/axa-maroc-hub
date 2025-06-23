@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { 
   Users, 
   UserPlus, 
@@ -13,7 +14,6 @@ import {
   Trash2, 
   Eye, 
   Shield, 
-  Settings,
   Mail,
   Phone,
   Calendar,
@@ -80,6 +80,16 @@ const UsersManager = () => {
   const [roleFilter, setRoleFilter] = useState('all');
   const [statusFilter, setStatusFilter] = useState('all');
   const [showAddForm, setShowAddForm] = useState(false);
+  const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [showUserModal, setShowUserModal] = useState(false);
+  const [editingUser, setEditingUser] = useState<User | null>(null);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [showPasswordModal, setShowPasswordModal] = useState(false);
+  const [passwordData, setPasswordData] = useState({
+    userId: '',
+    newPassword: '',
+    confirmPassword: ''
+  });
   const [newUser, setNewUser] = useState({
     nom: '',
     prenom: '',
@@ -130,6 +140,49 @@ const UsersManager = () => {
 
   const getStatusColor = (status: string) => {
     return statusOptions.find(s => s.value === status)?.color || 'bg-gray-100 text-gray-800';
+  };
+
+  const handleViewUser = (user: User) => {
+    setSelectedUser(user);
+    setShowUserModal(true);
+  };
+
+  const handleEditUser = (user: User) => {
+    setEditingUser({ ...user });
+    setShowEditModal(true);
+  };
+
+  const handleSaveUser = () => {
+    if (!editingUser) return;
+
+    setUsers(users.map(user => 
+      user.id === editingUser.id ? editingUser : user
+    ));
+    setShowEditModal(false);
+    setEditingUser(null);
+    toast.success('Utilisateur mis à jour avec succès');
+  };
+
+  const handleChangePassword = (userId: string) => {
+    setPasswordData({ userId, newPassword: '', confirmPassword: '' });
+    setShowPasswordModal(true);
+  };
+
+  const handleSavePassword = () => {
+    if (passwordData.newPassword !== passwordData.confirmPassword) {
+      toast.error('Les mots de passe ne correspondent pas');
+      return;
+    }
+
+    if (passwordData.newPassword.length < 6) {
+      toast.error('Le mot de passe doit contenir au moins 6 caractères');
+      return;
+    }
+
+    // Simulation de sauvegarde du mot de passe
+    setShowPasswordModal(false);
+    setPasswordData({ userId: '', newPassword: '', confirmPassword: '' });
+    toast.success('Mot de passe modifié avec succès');
   };
 
   const handleAddUser = () => {
@@ -339,13 +392,13 @@ const UsersManager = () => {
                   </div>
 
                   <div className="flex space-x-2">
-                    <Button variant="outline" size="sm">
+                    <Button variant="outline" size="sm" onClick={() => handleViewUser(user)}>
                       <Eye className="h-4 w-4" />
                     </Button>
-                    <Button variant="outline" size="sm">
+                    <Button variant="outline" size="sm" onClick={() => handleEditUser(user)}>
                       <Edit className="h-4 w-4" />
                     </Button>
-                    <Button variant="outline" size="sm">
+                    <Button variant="outline" size="sm" onClick={() => handleChangePassword(user.id)}>
                       <Key className="h-4 w-4" />
                     </Button>
                     {user.role !== 'admin' && (
@@ -365,6 +418,211 @@ const UsersManager = () => {
           </div>
         </CardContent>
       </Card>
+
+      {/* Modal de visualisation */}
+      <Dialog open={showUserModal} onOpenChange={setShowUserModal}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Détails de l'Utilisateur</DialogTitle>
+          </DialogHeader>
+          {selectedUser && (
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label>Nom complet</Label>
+                  <p className="font-semibold">{selectedUser.prenom} {selectedUser.nom}</p>
+                </div>
+                <div>
+                  <Label>Email</Label>
+                  <p>{selectedUser.email}</p>
+                </div>
+                <div>
+                  <Label>Téléphone</Label>
+                  <p>{selectedUser.telephone}</p>
+                </div>
+                <div>
+                  <Label>Rôle</Label>
+                  <Badge className={getRoleColor(selectedUser.role)}>
+                    {roles.find(r => r.value === selectedUser.role)?.label}
+                  </Badge>
+                </div>
+                <div>
+                  <Label>Statut</Label>
+                  <Badge className={getStatusColor(selectedUser.statut)}>
+                    {statusOptions.find(s => s.value === selectedUser.statut)?.label}
+                  </Badge>
+                </div>
+                <div>
+                  <Label>Date de création</Label>
+                  <p>{new Date(selectedUser.dateCreation).toLocaleDateString('fr-FR')}</p>
+                </div>
+              </div>
+              <div>
+                <Label>Permissions</Label>
+                <div className="mt-2 flex flex-wrap gap-2">
+                  {selectedUser.permissions.includes('all') ? (
+                    <Badge variant="outline">Toutes permissions</Badge>
+                  ) : (
+                    selectedUser.permissions.map(perm => (
+                      <Badge key={perm} variant="outline">
+                        {permissions.find(p => p.id === perm)?.label}
+                      </Badge>
+                    ))
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal d'édition */}
+      <Dialog open={showEditModal} onOpenChange={setShowEditModal}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Modifier l'Utilisateur</DialogTitle>
+          </DialogHeader>
+          {editingUser && (
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label>Prénom</Label>
+                  <Input
+                    value={editingUser.prenom}
+                    onChange={(e) => setEditingUser({...editingUser, prenom: e.target.value})}
+                  />
+                </div>
+                <div>
+                  <Label>Nom</Label>
+                  <Input
+                    value={editingUser.nom}
+                    onChange={(e) => setEditingUser({...editingUser, nom: e.target.value})}
+                  />
+                </div>
+                <div>
+                  <Label>Email</Label>
+                  <Input
+                    value={editingUser.email}
+                    onChange={(e) => setEditingUser({...editingUser, email: e.target.value})}
+                  />
+                </div>
+                <div>
+                  <Label>Téléphone</Label>
+                  <Input
+                    value={editingUser.telephone}
+                    onChange={(e) => setEditingUser({...editingUser, telephone: e.target.value})}
+                  />
+                </div>
+                <div>
+                  <Label>Rôle</Label>
+                  <select
+                    value={editingUser.role}
+                    onChange={(e) => setEditingUser({...editingUser, role: e.target.value as User['role']})}
+                    className="w-full border border-gray-300 rounded-md px-3 py-2"
+                  >
+                    {roles.map(role => (
+                      <option key={role.value} value={role.value}>{role.label}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <Label>Statut</Label>
+                  <select
+                    value={editingUser.statut}
+                    onChange={(e) => setEditingUser({...editingUser, statut: e.target.value as User['statut']})}
+                    className="w-full border border-gray-300 rounded-md px-3 py-2"
+                  >
+                    {statusOptions.map(status => (
+                      <option key={status.value} value={status.value}>{status.label}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+              
+              <div>
+                <Label>Permissions</Label>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
+                  {permissions.map(permission => (
+                    <div key={permission.id} className="flex items-start space-x-2">
+                      <input
+                        type="checkbox"
+                        id={permission.id}
+                        checked={editingUser.permissions.includes(permission.id)}
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            setEditingUser({
+                              ...editingUser,
+                              permissions: [...editingUser.permissions, permission.id]
+                            });
+                          } else {
+                            setEditingUser({
+                              ...editingUser,
+                              permissions: editingUser.permissions.filter(p => p !== permission.id)
+                            });
+                          }
+                        }}
+                        className="mt-1"
+                      />
+                      <div>
+                        <label htmlFor={permission.id} className="font-medium text-sm">
+                          {permission.label}
+                        </label>
+                        <p className="text-xs text-gray-500">{permission.description}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="flex space-x-2">
+                <Button onClick={handleSaveUser} className="bg-blue-600 hover:bg-blue-700">
+                  Sauvegarder
+                </Button>
+                <Button variant="outline" onClick={() => setShowEditModal(false)}>
+                  Annuler
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal de changement de mot de passe */}
+      <Dialog open={showPasswordModal} onOpenChange={setShowPasswordModal}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Changer le mot de passe</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label>Nouveau mot de passe</Label>
+              <Input
+                type="password"
+                value={passwordData.newPassword}
+                onChange={(e) => setPasswordData({...passwordData, newPassword: e.target.value})}
+                placeholder="Minimum 6 caractères"
+              />
+            </div>
+            <div>
+              <Label>Confirmer le mot de passe</Label>
+              <Input
+                type="password"
+                value={passwordData.confirmPassword}
+                onChange={(e) => setPasswordData({...passwordData, confirmPassword: e.target.value})}
+                placeholder="Retapez le mot de passe"
+              />
+            </div>
+            <div className="flex space-x-2">
+              <Button onClick={handleSavePassword} className="bg-blue-600 hover:bg-blue-700">
+                Modifier
+              </Button>
+              <Button variant="outline" onClick={() => setShowPasswordModal(false)}>
+                Annuler
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Formulaire d'ajout d'utilisateur */}
       {showAddForm && (

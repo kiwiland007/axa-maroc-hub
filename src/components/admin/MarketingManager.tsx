@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { 
   Mail, 
   MessageSquare, 
@@ -18,16 +19,38 @@ import {
   Eye,
   Edit,
   Trash2,
-  Plus,
-  Image as ImageIcon,
-  Video,
-  FileText
+  Plus
 } from 'lucide-react';
 import { toast } from 'sonner';
 
+interface Campaign {
+  id: string;
+  nom: string;
+  type: 'email' | 'sms' | 'social';
+  statut: 'active' | 'planifiee' | 'terminee' | 'brouillon';
+  dateCreation: string;
+  destinataires: number;
+  ouvertures: number;
+  clics: number;
+  conversions: number;
+  sujet?: string;
+  contenu: string;
+}
+
+interface SocialPost {
+  id: string;
+  contenu: string;
+  plateforme: 'Facebook' | 'Instagram' | 'LinkedIn' | 'Twitter';
+  statut: 'publie' | 'programme' | 'brouillon';
+  datePublication: string;
+  vues: number;
+  interactions: number;
+  partages: number;
+}
+
 const MarketingManager = () => {
   const [activeTab, setActiveTab] = useState('campaigns');
-  const [campaigns, setCampaigns] = useState([
+  const [campaigns, setCampaigns] = useState<Campaign[]>([
     {
       id: '1',
       nom: 'Campagne Assurance Auto 2024',
@@ -37,7 +60,9 @@ const MarketingManager = () => {
       destinataires: 1250,
       ouvertures: 312,
       clics: 45,
-      conversions: 8
+      conversions: 8,
+      sujet: 'Protégez votre véhicule avec AXA Maroc',
+      contenu: 'Découvrez nos nouvelles offres d\'assurance auto...'
     },
     {
       id: '2',
@@ -48,14 +73,15 @@ const MarketingManager = () => {
       destinataires: 3500,
       ouvertures: 0,
       clics: 0,
-      conversions: 0
+      conversions: 0,
+      contenu: 'Le printemps arrive, protégez votre maison!'
     }
   ]);
 
-  const [socialPosts, setSocialPosts] = useState([
+  const [socialPosts, setSocialPosts] = useState<SocialPost[]>([
     {
       id: '1',
-      contenu: 'Protégez votre véhicule avec nos formules auto complètes ! 🚗',
+      contenu: 'Protégez votre véhicule avec nos formules auto complètes ! 🚗 #AssuranceAuto #AXAMaroc',
       plateforme: 'Facebook',
       statut: 'publie',
       datePublication: '2024-01-15',
@@ -65,7 +91,7 @@ const MarketingManager = () => {
     },
     {
       id: '2',
-      contenu: 'Votre maison mérite la meilleure protection 🏠 #AssuranceHabitation',
+      contenu: 'Votre maison mérite la meilleure protection 🏠 #AssuranceHabitation #Protection',
       plateforme: 'Instagram',
       statut: 'programme',
       datePublication: '2024-01-25',
@@ -77,20 +103,32 @@ const MarketingManager = () => {
 
   const [newCampaign, setNewCampaign] = useState({
     nom: '',
-    type: 'email',
+    type: 'email' as Campaign['type'],
     sujet: '',
     contenu: '',
     segment: 'tous',
     dateEnvoi: ''
   });
 
+  const [newPost, setNewPost] = useState({
+    contenu: '',
+    plateforme: 'Facebook' as SocialPost['plateforme'],
+    datePublication: '',
+    hashtags: ''
+  });
+
+  const [selectedCampaign, setSelectedCampaign] = useState<Campaign | null>(null);
+  const [showCampaignModal, setShowCampaignModal] = useState(false);
+  const [editingCampaign, setEditingCampaign] = useState<Campaign | null>(null);
+  const [showEditModal, setShowEditModal] = useState(false);
+
   const handleCreateCampaign = () => {
-    if (!newCampaign.nom || !newCampaign.sujet || !newCampaign.contenu) {
+    if (!newCampaign.nom || !newCampaign.contenu) {
       toast.error('Veuillez remplir tous les champs obligatoires');
       return;
     }
 
-    const campaign = {
+    const campaign: Campaign = {
       id: Date.now().toString(),
       nom: newCampaign.nom,
       type: newCampaign.type,
@@ -99,7 +137,9 @@ const MarketingManager = () => {
       destinataires: 0,
       ouvertures: 0,
       clics: 0,
-      conversions: 0
+      conversions: 0,
+      sujet: newCampaign.sujet,
+      contenu: newCampaign.contenu
     };
 
     setCampaigns([...campaigns, campaign]);
@@ -114,12 +154,76 @@ const MarketingManager = () => {
     toast.success('Campagne créée avec succès !');
   };
 
+  const handleCreatePost = () => {
+    if (!newPost.contenu) {
+      toast.error('Veuillez saisir le contenu de la publication');
+      return;
+    }
+
+    const post: SocialPost = {
+      id: Date.now().toString(),
+      contenu: newPost.contenu + (newPost.hashtags ? ' ' + newPost.hashtags : ''),
+      plateforme: newPost.plateforme,
+      statut: newPost.datePublication ? 'programme' : 'brouillon',
+      datePublication: newPost.datePublication || new Date().toISOString().split('T')[0],
+      vues: 0,
+      interactions: 0,
+      partages: 0
+    };
+
+    setSocialPosts([...socialPosts, post]);
+    setNewPost({
+      contenu: '',
+      plateforme: 'Facebook',
+      datePublication: '',
+      hashtags: ''
+    });
+    toast.success('Publication créée avec succès !');
+  };
+
+  const handleViewCampaign = (campaign: Campaign) => {
+    setSelectedCampaign(campaign);
+    setShowCampaignModal(true);
+  };
+
+  const handleEditCampaign = (campaign: Campaign) => {
+    setEditingCampaign({ ...campaign });
+    setShowEditModal(true);
+  };
+
+  const handleSaveCampaign = () => {
+    if (!editingCampaign) return;
+
+    setCampaigns(campaigns.map(campaign => 
+      campaign.id === editingCampaign.id ? editingCampaign : campaign
+    ));
+    setShowEditModal(false);
+    setEditingCampaign(null);
+    toast.success('Campagne mise à jour avec succès');
+  };
+
+  const deleteCampaign = (campaignId: string) => {
+    if (window.confirm('Êtes-vous sûr de vouloir supprimer cette campagne ?')) {
+      setCampaigns(campaigns.filter(c => c.id !== campaignId));
+      toast.success('Campagne supprimée');
+    }
+  };
+
+  const deletePost = (postId: string) => {
+    if (window.confirm('Êtes-vous sûr de vouloir supprimer cette publication ?')) {
+      setSocialPosts(socialPosts.filter(p => p.id !== postId));
+      toast.success('Publication supprimée');
+    }
+  };
+
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'active': return 'bg-green-100 text-green-800';
       case 'planifiee': return 'bg-blue-100 text-blue-800';
       case 'terminee': return 'bg-gray-100 text-gray-800';
       case 'brouillon': return 'bg-yellow-100 text-yellow-800';
+      case 'publie': return 'bg-green-100 text-green-800';
+      case 'programme': return 'bg-blue-100 text-blue-800';
       default: return 'bg-gray-100 text-gray-800';
     }
   };
@@ -209,7 +313,7 @@ const MarketingManager = () => {
               <Label>Type de campagne</Label>
               <select
                 value={newCampaign.type}
-                onChange={(e) => setNewCampaign({...newCampaign, type: e.target.value})}
+                onChange={(e) => setNewCampaign({...newCampaign, type: e.target.value as Campaign['type']})}
                 className="w-full border border-gray-300 rounded-md px-3 py-2"
               >
                 <option value="email">Email</option>
@@ -218,7 +322,7 @@ const MarketingManager = () => {
               </select>
             </div>
             <div>
-              <Label>Sujet/Titre *</Label>
+              <Label>Sujet/Titre {newCampaign.type === 'email' && '*'}</Label>
               <Input
                 value={newCampaign.sujet}
                 onChange={(e) => setNewCampaign({...newCampaign, sujet: e.target.value})}
@@ -292,13 +396,13 @@ const MarketingManager = () => {
                     </div>
                   </div>
                   <div className="flex space-x-2">
-                    <Button variant="outline" size="sm">
+                    <Button variant="outline" size="sm" onClick={() => handleViewCampaign(campaign)}>
                       <Eye className="h-4 w-4" />
                     </Button>
-                    <Button variant="outline" size="sm">
+                    <Button variant="outline" size="sm" onClick={() => handleEditCampaign(campaign)}>
                       <Edit className="h-4 w-4" />
                     </Button>
-                    <Button variant="outline" size="sm" className="text-red-600">
+                    <Button variant="outline" size="sm" className="text-red-600" onClick={() => deleteCampaign(campaign.id)}>
                       <Trash2 className="h-4 w-4" />
                     </Button>
                   </div>
@@ -405,21 +509,24 @@ const MarketingManager = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <Label>Plateforme</Label>
-                <select className="w-full border border-gray-300 rounded-md px-3 py-2">
-                  <option>Facebook</option>
-                  <option>Instagram</option>
-                  <option>LinkedIn</option>
-                  <option>Twitter</option>
+                <select 
+                  value={newPost.plateforme}
+                  onChange={(e) => setNewPost({...newPost, plateforme: e.target.value as SocialPost['plateforme']})}
+                  className="w-full border border-gray-300 rounded-md px-3 py-2"
+                >
+                  <option value="Facebook">Facebook</option>
+                  <option value="Instagram">Instagram</option>
+                  <option value="LinkedIn">LinkedIn</option>
+                  <option value="Twitter">Twitter</option>
                 </select>
               </div>
               <div>
-                <Label>Type de contenu</Label>
-                <select className="w-full border border-gray-300 rounded-md px-3 py-2">
-                  <option>Texte</option>
-                  <option>Image</option>
-                  <option>Vidéo</option>
-                  <option>Lien</option>
-                </select>
+                <Label>Date et heure de publication</Label>
+                <Input 
+                  type="datetime-local" 
+                  value={newPost.datePublication}
+                  onChange={(e) => setNewPost({...newPost, datePublication: e.target.value})}
+                />
               </div>
             </div>
             <div>
@@ -427,24 +534,27 @@ const MarketingManager = () => {
               <Textarea 
                 placeholder="Rédigez votre publication..."
                 rows={3}
+                value={newPost.contenu}
+                onChange={(e) => setNewPost({...newPost, contenu: e.target.value})}
               />
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <Label>Date et heure de publication</Label>
-                <Input type="datetime-local" />
-              </div>
-              <div>
-                <Label>Hashtags</Label>
-                <Input placeholder="#assurance #protection #maroc" />
-              </div>
+            <div>
+              <Label>Hashtags</Label>
+              <Input 
+                placeholder="#assurance #protection #maroc"
+                value={newPost.hashtags}
+                onChange={(e) => setNewPost({...newPost, hashtags: e.target.value})}
+              />
             </div>
             <div className="flex space-x-4">
-              <Button className="bg-blue-600 hover:bg-blue-700">
+              <Button onClick={handleCreatePost} className="bg-blue-600 hover:bg-blue-700">
                 <Calendar className="h-4 w-4 mr-2" />
                 Programmer
               </Button>
-              <Button variant="outline">
+              <Button variant="outline" onClick={() => {
+                setNewPost({...newPost, datePublication: ''});
+                handleCreatePost();
+              }}>
                 <Send className="h-4 w-4 mr-2" />
                 Publier maintenant
               </Button>
@@ -477,7 +587,7 @@ const MarketingManager = () => {
                     <Button variant="outline" size="sm">
                       <Edit className="h-4 w-4" />
                     </Button>
-                    <Button variant="outline" size="sm" className="text-red-600">
+                    <Button variant="outline" size="sm" className="text-red-600" onClick={() => deletePost(post.id)}>
                       <Trash2 className="h-4 w-4" />
                     </Button>
                   </div>
@@ -485,17 +595,17 @@ const MarketingManager = () => {
 
                 {post.statut === 'publie' && (
                   <div className="grid grid-cols-3 gap-4 text-sm bg-gray-50 p-3 rounded">
-                    <div className="text-center">
-                      <div className="font-semibold text-blue-600">{post.vues.toLocaleString()}</div>
-                      <div className="text-gray-600">Vues</div>
+                    <div>
+                      <div className="font-semibold text-blue-800">{post.vues.toLocaleString()}</div>
+                      <div className="text-blue-600">Vues</div>
                     </div>
-                    <div className="text-center">
-                      <div className="font-semibold text-green-600">{post.interactions}</div>
-                      <div className="text-gray-600">Interactions</div>
+                    <div>
+                      <div className="font-semibold text-green-800">{post.interactions}</div>
+                      <div className="text-green-600">Interactions</div>
                     </div>
-                    <div className="text-center">
-                      <div className="font-semibold text-orange-600">{post.partages}</div>
-                      <div className="text-gray-600">Partages</div>
+                    <div>
+                      <div className="font-semibold text-purple-800">{post.partages}</div>
+                      <div className="text-purple-600">Partages</div>
                     </div>
                   </div>
                 )}
@@ -509,44 +619,132 @@ const MarketingManager = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-2xl font-bold text-gray-800 mb-2">Marketing Digital</h2>
-          <p className="text-gray-600">Gérez vos campagnes et votre présence digitale</p>
-        </div>
-      </div>
-
       {/* Onglets */}
-      <div className="border-b border-gray-200">
-        <nav className="-mb-px flex space-x-8">
-          <button
-            onClick={() => setActiveTab('campaigns')}
-            className={`py-2 px-1 border-b-2 font-medium text-sm ${
-              activeTab === 'campaigns'
-                ? 'border-red-500 text-red-600'
-                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-            }`}
-          >
-            <Mail className="h-4 w-4 inline mr-2" />
-            Campagnes Email
-          </button>
-          <button
-            onClick={() => setActiveTab('social')}
-            className={`py-2 px-1 border-b-2 font-medium text-sm ${
-              activeTab === 'social'
-                ? 'border-red-500 text-red-600'
-                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-            }`}
-          >
-            <Share2 className="h-4 w-4 inline mr-2" />
-            Réseaux Sociaux
-          </button>
-        </nav>
+      <div className="flex space-x-4 border-b">
+        <button
+          onClick={() => setActiveTab('campaigns')}
+          className={`pb-2 px-4 ${activeTab === 'campaigns' ? 'border-b-2 border-red-600 text-red-600' : 'text-gray-600'}`}
+        >
+          Campagnes Email/SMS
+        </button>
+        <button
+          onClick={() => setActiveTab('social')}
+          className={`pb-2 px-4 ${activeTab === 'social' ? 'border-b-2 border-red-600 text-red-600' : 'text-gray-600'}`}
+        >
+          Réseaux Sociaux
+        </button>
       </div>
 
       {/* Contenu des onglets */}
-      {activeTab === 'campaigns' && renderCampaigns()}
-      {activeTab === 'social' && renderSocialMedia()}
+      {activeTab === 'campaigns' ? renderCampaigns() : renderSocialMedia()}
+
+      {/* Modal de visualisation de campagne */}
+      <Dialog open={showCampaignModal} onOpenChange={setShowCampaignModal}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Détails de la Campagne</DialogTitle>
+          </DialogHeader>
+          {selectedCampaign && (
+            <div className="space-y-4">
+              <div>
+                <h3 className="font-semibold">{selectedCampaign.nom}</h3>
+                <p className="text-sm text-gray-600">Type: {selectedCampaign.type}</p>
+                <Badge className={getStatusColor(selectedCampaign.statut)}>
+                  {selectedCampaign.statut}
+                </Badge>
+              </div>
+              {selectedCampaign.sujet && (
+                <div>
+                  <Label>Sujet</Label>
+                  <p>{selectedCampaign.sujet}</p>
+                </div>
+              )}
+              <div>
+                <Label>Contenu</Label>
+                <div className="bg-gray-50 p-3 rounded">
+                  {selectedCampaign.contenu}
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label>Destinataires</Label>
+                  <p className="font-semibold">{selectedCampaign.destinataires.toLocaleString()}</p>
+                </div>
+                <div>
+                  <Label>Ouvertures</Label>
+                  <p className="font-semibold">{selectedCampaign.ouvertures} ({calculateRate(selectedCampaign.ouvertures, selectedCampaign.destinataires)}%)</p>
+                </div>
+                <div>
+                  <Label>Clics</Label>
+                  <p className="font-semibold">{selectedCampaign.clics} ({calculateRate(selectedCampaign.clics, selectedCampaign.ouvertures)}%)</p>
+                </div>
+                <div>
+                  <Label>Conversions</Label>
+                  <p className="font-semibold">{selectedCampaign.conversions} ({calculateRate(selectedCampaign.conversions, selectedCampaign.clics)}%)</p>
+                </div>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal d'édition de campagne */}
+      <Dialog open={showEditModal} onOpenChange={setShowEditModal}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Modifier la Campagne</DialogTitle>
+          </DialogHeader>
+          {editingCampaign && (
+            <div className="space-y-4">
+              <div>
+                <Label>Nom de la campagne</Label>
+                <Input
+                  value={editingCampaign.nom}
+                  onChange={(e) => setEditingCampaign({...editingCampaign, nom: e.target.value})}
+                />
+              </div>
+              {editingCampaign.type === 'email' && (
+                <div>
+                  <Label>Sujet</Label>
+                  <Input
+                    value={editingCampaign.sujet || ''}
+                    onChange={(e) => setEditingCampaign({...editingCampaign, sujet: e.target.value})}
+                  />
+                </div>
+              )}
+              <div>
+                <Label>Contenu</Label>
+                <Textarea
+                  value={editingCampaign.contenu}
+                  onChange={(e) => setEditingCampaign({...editingCampaign, contenu: e.target.value})}
+                  rows={4}
+                />
+              </div>
+              <div>
+                <Label>Statut</Label>
+                <select
+                  value={editingCampaign.statut}
+                  onChange={(e) => setEditingCampaign({...editingCampaign, statut: e.target.value as Campaign['statut']})}
+                  className="w-full border border-gray-300 rounded-md px-3 py-2"
+                >
+                  <option value="brouillon">Brouillon</option>
+                  <option value="planifiee">Planifiée</option>
+                  <option value="active">Active</option>
+                  <option value="terminee">Terminée</option>
+                </select>
+              </div>
+              <div className="flex space-x-2">
+                <Button onClick={handleSaveCampaign} className="bg-blue-600 hover:bg-blue-700">
+                  Sauvegarder
+                </Button>
+                <Button variant="outline" onClick={() => setShowEditModal(false)}>
+                  Annuler
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

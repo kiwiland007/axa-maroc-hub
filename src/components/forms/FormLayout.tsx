@@ -10,13 +10,22 @@ interface FormLayoutProps {
   description?: string;
   children: React.ReactNode;
   showBackButton?: boolean;
+  currentStep?: number;
+  totalSteps?: number;
 }
 
-const FormLayout = ({ title, description, children, showBackButton = true }: FormLayoutProps) => {
+const FormLayout = ({ 
+  title, 
+  description, 
+  children, 
+  showBackButton = true,
+  currentStep,
+  totalSteps
+}: FormLayoutProps) => {
   const navigate = useNavigate();
 
   return (
-    <div className="min-h-screen bg-gray-50 pt-24 pb-8">
+    <div className="min-h-screen bg-gray-50 pt-32 pb-8">
       <div className="container mx-auto px-4">
         {showBackButton && (
           <div className="mb-6">
@@ -41,6 +50,19 @@ const FormLayout = ({ title, description, children, showBackButton = true }: For
                 <p className="text-gray-600 mt-2">
                   {description}
                 </p>
+              )}
+              {currentStep && totalSteps && (
+                <div className="mt-4">
+                  <div className="text-sm text-gray-600 mb-2">
+                    Étape {currentStep} sur {totalSteps}
+                  </div>
+                  <div className="w-full bg-gray-200 rounded-full h-2">
+                    <div 
+                      className="bg-red-600 h-2 rounded-full transition-all duration-300"
+                      style={{ width: `${(currentStep / totalSteps) * 100}%` }}
+                    ></div>
+                  </div>
+                </div>
               )}
             </CardHeader>
             <CardContent className="p-8">

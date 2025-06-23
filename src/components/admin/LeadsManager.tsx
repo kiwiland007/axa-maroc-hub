@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -6,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { 
   MessageSquare, 
   Phone, 
@@ -80,7 +80,9 @@ const LeadsManager = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
-  const [isEditMode, setIsEditMode] = useState(false);
+  const [showLeadModal, setShowLeadModal] = useState(false);
+  const [editingLead, setEditingLead] = useState<Lead | null>(null);
+  const [showEditModal, setShowEditModal] = useState(false);
 
   const agents = [
     { id: 'agent1', name: 'Agent Commercial 1' },
@@ -120,6 +122,27 @@ const LeadsManager = () => {
 
   const getPriorityColor = (priority: string) => {
     return priorityOptions.find(p => p.value === priority)?.color || 'bg-gray-100 text-gray-800';
+  };
+
+  const handleViewLead = (lead: Lead) => {
+    setSelectedLead(lead);
+    setShowLeadModal(true);
+  };
+
+  const handleEditLead = (lead: Lead) => {
+    setEditingLead({ ...lead });
+    setShowEditModal(true);
+  };
+
+  const handleSaveLead = () => {
+    if (!editingLead) return;
+
+    setLeads(leads.map(lead => 
+      lead.id === editingLead.id ? editingLead : lead
+    ));
+    setShowEditModal(false);
+    setEditingLead(null);
+    toast.success('Lead mis à jour avec succès');
   };
 
   const updateLeadStatus = (leadId: string, newStatus: string) => {
@@ -305,10 +328,10 @@ const LeadsManager = () => {
                   </div>
 
                   <div className="flex flex-wrap gap-2">
-                    <Button variant="outline" size="sm" onClick={() => setSelectedLead(lead)}>
+                    <Button variant="outline" size="sm" onClick={() => handleViewLead(lead)}>
                       <Eye className="h-4 w-4" />
                     </Button>
-                    <Button variant="outline" size="sm">
+                    <Button variant="outline" size="sm" onClick={() => handleEditLead(lead)}>
                       <Edit className="h-4 w-4" />
                     </Button>
                     <Button 
@@ -340,6 +363,138 @@ const LeadsManager = () => {
           )}
         </CardContent>
       </Card>
+
+      {/* Modal de visualisation */}
+      <Dialog open={showLeadModal} onOpenChange={setShowLeadModal}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Détails du Lead</DialogTitle>
+          </DialogHeader>
+          {selectedLead && (
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label>Nom complet</Label>
+                  <p className="font-semibold">{selectedLead.prenom} {selectedLead.nom}</p>
+                </div>
+                <div>
+                  <Label>Email</Label>
+                  <p>{selectedLead.email}</p>
+                </div>
+                <div>
+                  <Label>Téléphone</Label>
+                  <p>{selectedLead.telephone}</p>
+                </div>
+                <div>
+                  <Label>Type d'assurance</Label>
+                  <p>{selectedLead.typeAssurance}</p>
+                </div>
+                <div>
+                  <Label>Statut</Label>
+                  <Badge className={getStatusColor(selectedLead.statut)}>
+                    {statusOptions.find(s => s.value === selectedLead.statut)?.label}
+                  </Badge>
+                </div>
+                <div>
+                  <Label>Priorité</Label>
+                  <Badge className={getPriorityColor(selectedLead.priorite)}>
+                    {priorityOptions.find(p => p.value === selectedLead.priorite)?.label}
+                  </Badge>
+                </div>
+              </div>
+              <div>
+                <Label>Notes</Label>
+                <div className="bg-gray-50 p-3 rounded mt-1">
+                  {selectedLead.notes || 'Aucune note'}
+                </div>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal d'édition */}
+      <Dialog open={showEditModal} onOpenChange={setShowEditModal}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Modifier le Lead</DialogTitle>
+          </DialogHeader>
+          {editingLead && (
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label>Prénom</Label>
+                  <Input
+                    value={editingLead.prenom}
+                    onChange={(e) => setEditingLead({...editingLead, prenom: e.target.value})}
+                  />
+                </div>
+                <div>
+                  <Label>Nom</Label>
+                  <Input
+                    value={editingLead.nom}
+                    onChange={(e) => setEditingLead({...editingLead, nom: e.target.value})}
+                  />
+                </div>
+                <div>
+                  <Label>Email</Label>
+                  <Input
+                    value={editingLead.email}
+                    onChange={(e) => setEditingLead({...editingLead, email: e.target.value})}
+                  />
+                </div>
+                <div>
+                  <Label>Téléphone</Label>
+                  <Input
+                    value={editingLead.telephone}
+                    onChange={(e) => setEditingLead({...editingLead, telephone: e.target.value})}
+                  />
+                </div>
+                <div>
+                  <Label>Statut</Label>
+                  <select
+                    value={editingLead.statut}
+                    onChange={(e) => setEditingLead({...editingLead, statut: e.target.value as Lead['statut']})}
+                    className="w-full border border-gray-300 rounded-md px-3 py-2"
+                  >
+                    {statusOptions.map(status => (
+                      <option key={status.value} value={status.value}>{status.label}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <Label>Priorité</Label>
+                  <select
+                    value={editingLead.priorite}
+                    onChange={(e) => setEditingLead({...editingLead, priorite: e.target.value as Lead['priorite']})}
+                    className="w-full border border-gray-300 rounded-md px-3 py-2"
+                  >
+                    {priorityOptions.map(priority => (
+                      <option key={priority.value} value={priority.value}>{priority.label}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+              <div>
+                <Label>Notes</Label>
+                <Textarea
+                  value={editingLead.notes}
+                  onChange={(e) => setEditingLead({...editingLead, notes: e.target.value})}
+                  rows={3}
+                />
+              </div>
+              <div className="flex space-x-2">
+                <Button onClick={handleSaveLead} className="bg-blue-600 hover:bg-blue-700">
+                  Sauvegarder
+                </Button>
+                <Button variant="outline" onClick={() => setShowEditModal(false)}>
+                  Annuler
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
 
       {/* Actions rapides */}
       <Card>

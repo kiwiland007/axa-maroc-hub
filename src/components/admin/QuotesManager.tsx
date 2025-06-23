@@ -1,11 +1,9 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
-import { Textarea } from '@/components/ui/textarea';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { 
   FileText, 
@@ -97,8 +95,10 @@ const QuotesManager = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [typeFilter, setTypeFilter] = useState('all');
-  const [showNewQuoteForm, setShowNewQuoteForm] = useState(false);
   const [selectedQuote, setSelectedQuote] = useState<Quote | null>(null);
+  const [showQuoteModal, setShowQuoteModal] = useState(false);
+  const [editingQuote, setEditingQuote] = useState<Quote | null>(null);
+  const [showEditModal, setShowEditModal] = useState(false);
 
   const statusOptions = [
     { value: 'brouillon', label: 'Brouillon', color: 'bg-gray-100 text-gray-800' },
@@ -136,6 +136,44 @@ const QuotesManager = () => {
     return matchesSearch && matchesStatus && matchesType;
   });
 
+  const handleViewQuote = (quote: Quote) => {
+    setSelectedQuote(quote);
+    setShowQuoteModal(true);
+  };
+
+  const handleEditQuote = (quote: Quote) => {
+    setEditingQuote({ ...quote });
+    setShowEditModal(true);
+  };
+
+  const handleSaveQuote = () => {
+    if (!editingQuote) return;
+
+    setQuotes(quotes.map(quote => 
+      quote.id === editingQuote.id ? editingQuote : quote
+    ));
+    setShowEditModal(false);
+    setEditingQuote(null);
+    toast.success('Devis mis à jour avec succès');
+  };
+
+  const handleDownloadQuote = (quote: Quote) => {
+    // Simulation du téléchargement
+    const content = `DEVIS ${quote.id}\n\nClient: ${quote.clientPrenom} ${quote.clientNom}\nEmail: ${quote.clientEmail}\nType: ${quote.typeAssurance}\nMontant: ${quote.montantTotal} DHS\n\nDétails:\n${JSON.stringify(quote.details, null, 2)}`;
+    
+    const blob = new Blob([content], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `devis_${quote.id}.txt`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    
+    toast.success('Devis téléchargé');
+  };
+
   const createNewQuote = (productType: string) => {
     const newQuote: Quote = {
       id: `quote-${Date.now()}`,
@@ -153,20 +191,15 @@ const QuotesManager = () => {
     };
 
     setQuotes([newQuote, ...quotes]);
-    setSelectedQuote(newQuote);
-    setShowNewQuoteForm(true);
+    setEditingQuote(newQuote);
+    setShowEditModal(true);
     toast.success(`Nouveau devis ${productType} créé`);
   };
 
-  const updateQuoteStatus = (quoteId: string, newStatus: Quote['statut']) => {
-    setQuotes(quotes.map(quote =>
-      quote.id === quoteId ? { ...quote, statut: newStatus } : quote
-    ));
-    toast.success('Statut du devis mis à jour');
-  };
-
   const sendQuote = (quoteId: string) => {
-    updateQuoteStatus(quoteId, 'envoye');
+    setQuotes(quotes.map(quote =>
+      quote.id === quoteId ? { ...quote, statut: 'envoye' as Quote['statut'] } : quote
+    ));
     toast.success('Devis envoyé au client');
   };
 
@@ -367,13 +400,13 @@ const QuotesManager = () => {
                     </div>
 
                     <div className="flex flex-wrap gap-2">
-                      <Button variant="outline" size="sm">
+                      <Button variant="outline" size="sm" onClick={() => handleViewQuote(quote)}>
                         <Eye className="h-4 w-4" />
                       </Button>
-                      <Button variant="outline" size="sm">
+                      <Button variant="outline" size="sm" onClick={() => handleEditQuote(quote)}>
                         <Edit className="h-4 w-4" />
                       </Button>
-                      <Button variant="outline" size="sm">
+                      <Button variant="outline" size="sm" onClick={() => handleDownloadQuote(quote)}>
                         <Download className="h-4 w-4" />
                       </Button>
                       {quote.statut === 'brouillon' && (
@@ -407,6 +440,131 @@ const QuotesManager = () => {
           )}
         </CardContent>
       </Card>
+
+      {/* Modal de visualisation */}
+      <Dialog open={showQuoteModal} onOpenChange={setShowQuoteModal}>
+        <DialogContent className="max-w-4xl">
+          <DialogHeader>
+            <DialogTitle>Détails du Devis</DialogTitle>
+          </DialogHeader>
+          {selectedQuote && (
+            <div className="space-y-6">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <h3 className="font-semibold mb-2">Informations Client</h3>
+                  <p><strong>Nom:</strong> {selectedQuote.clientPrenom} {selectedQuote.clientNom}</p>
+                  <p><strong>Email:</strong> {selectedQuote.clientEmail}</p>
+                  <p><strong>Téléphone:</strong> {selectedQuote.clientTelephone}</p>
+                </div>
+                <div>
+                  <h3 className="font-semibold mb-2">Informations Devis</h3>
+                  <p><strong>Type:</strong> {selectedQuote.typeAssurance}</p>
+                  <p><strong>Statut:</strong> 
+                    <Badge className={getStatusColor(selectedQuote.statut)} style={{marginLeft: '8px'}}>
+                      {statusOptions.find(s => s.value === selectedQuote.statut)?.label}
+                    </Badge>
+                  </p>
+                  <p><strong>Montant:</strong> {selectedQuote.montantTotal.toLocaleString()} DHS</p>
+                </div>
+              </div>
+              <div>
+                <h3 className="font-semibold mb-2">Détails</h3>
+                <div className="bg-gray-50 p-4 rounded">
+                  <pre>{JSON.stringify(selectedQuote.details, null, 2)}</pre>
+                </div>
+              </div>
+              {selectedQuote.notes && (
+                <div>
+                  <h3 className="font-semibold mb-2">Notes</h3>
+                  <div className="bg-gray-50 p-3 rounded">
+                    {selectedQuote.notes}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal d'édition */}
+      <Dialog open={showEditModal} onOpenChange={setShowEditModal}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Modifier le Devis</DialogTitle>
+          </DialogHeader>
+          {editingQuote && (
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium mb-1">Prénom</label>
+                  <Input
+                    value={editingQuote.clientPrenom}
+                    onChange={(e) => setEditingQuote({...editingQuote, clientPrenom: e.target.value})}
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1">Nom</label>
+                  <Input
+                    value={editingQuote.clientNom}
+                    onChange={(e) => setEditingQuote({...editingQuote, clientNom: e.target.value})}
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1">Email</label>
+                  <Input
+                    value={editingQuote.clientEmail}
+                    onChange={(e) => setEditingQuote({...editingQuote, clientEmail: e.target.value})}
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1">Téléphone</label>
+                  <Input
+                    value={editingQuote.clientTelephone}
+                    onChange={(e) => setEditingQuote({...editingQuote, clientTelephone: e.target.value})}
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1">Montant Total (DHS)</label>
+                  <Input
+                    type="number"
+                    value={editingQuote.montantTotal}
+                    onChange={(e) => setEditingQuote({...editingQuote, montantTotal: parseInt(e.target.value) || 0})}
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1">Statut</label>
+                  <select
+                    value={editingQuote.statut}
+                    onChange={(e) => setEditingQuote({...editingQuote, statut: e.target.value as Quote['statut']})}
+                    className="w-full border border-gray-300 rounded-md px-3 py-2"
+                  >
+                    {statusOptions.map(status => (
+                      <option key={status.value} value={status.value}>{status.label}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">Notes</label>
+                <textarea
+                  value={editingQuote.notes}
+                  onChange={(e) => setEditingQuote({...editingQuote, notes: e.target.value})}
+                  rows={3}
+                  className="w-full border border-gray-300 rounded-md px-3 py-2"
+                />
+              </div>
+              <div className="flex space-x-2">
+                <Button onClick={handleSaveQuote} className="bg-blue-600 hover:bg-blue-700">
+                  Sauvegarder
+                </Button>
+                <Button variant="outline" onClick={() => setShowEditModal(false)}>
+                  Annuler
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
