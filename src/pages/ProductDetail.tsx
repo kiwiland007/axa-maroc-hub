@@ -14,6 +14,25 @@ const ProductDetail = () => {
   
   const product = content.products.find(p => p.id === productId);
 
+  const getFormRouteForProduct = (productId: string) => {
+    switch (productId) {
+      case 'auto':
+        return '/formulaires/affaire-nouvelle';
+      case 'habitation':
+        return '/formulaires/mrh';
+      case 'sante':
+        return '/formulaires/sehassur';
+      case 'prevoyance':
+        return '/formulaires/affaire-nouvelle';
+      case 'epargne':
+        return '/formulaires/affaire-nouvelle';
+      case 'professionnelle':
+        return '/formulaires/affaire-nouvelle';
+      default:
+        return '/formulaires/affaire-nouvelle';
+    }
+  };
+
   if (!product) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -30,6 +49,11 @@ const ProductDetail = () => {
       </div>
     );
   }
+
+  const handleQuoteRequest = () => {
+    const formRoute = getFormRouteForProduct(product.id);
+    navigate(formRoute);
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -90,7 +114,7 @@ const ProductDetail = () => {
                 <Button 
                   size="lg" 
                   className="w-full bg-gradient-to-r from-red-500 to-orange-500 hover:from-red-600 hover:to-orange-600 text-white"
-                  onClick={() => navigate('/formulaires/affaire-nouvelle')}
+                  onClick={handleQuoteRequest}
                 >
                   Demander un Devis Gratuit
                 </Button>

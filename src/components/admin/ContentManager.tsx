@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -11,7 +12,7 @@ import { toast } from 'sonner';
 
 const ContentManager = () => {
   const [isEditing, setIsEditing] = useState(false);
-  const { content, updateContent, updateProduct, addProduct, removeProduct, saveImage } = useContentStore();
+  const { content, updateContent, updateProduct, addProduct, removeProduct } = useContentStore();
   const [editingContent, setEditingContent] = useState(content);
 
   const handleSave = async () => {
@@ -22,22 +23,14 @@ const ContentManager = () => {
       updateContent('contact', editingContent.contact);
       updateContent('legal', editingContent.legal);
       
-      // Update products
-      editingContent.products.forEach(product => {
-        const existingProduct = content.products.find(p => p.id === product.id);
-        if (existingProduct) {
-          updateProduct(product.id, product);
-        } else {
-          addProduct(product);
-        }
-      });
-
-      // Remove products that were deleted
+      // Update products - first remove all existing products
       content.products.forEach(product => {
-        const stillExists = editingContent.products.find(p => p.id === product.id);
-        if (!stillExists) {
-          removeProduct(product.id);
-        }
+        removeProduct(product.id);
+      });
+      
+      // Then add all products from editing content
+      editingContent.products.forEach(product => {
+        addProduct(product);
       });
 
       setIsEditing(false);
@@ -70,32 +63,24 @@ const ContentManager = () => {
           reader.onload = async (e) => {
             const imageUrl = e.target?.result as string;
             
-            try {
-              // Save the image using the store function
-              const savedImageUrl = await saveImage(imageUrl, `${section}-${field}-${Date.now()}`);
-              
-              if (productId) {
-                setEditingContent(prev => ({
-                  ...prev,
-                  products: prev.products.map(p => 
-                    p.id === productId ? { ...p, image: savedImageUrl } : p
-                  )
-                }));
-              } else {
-                setEditingContent(prev => ({
-                  ...prev,
-                  [section]: {
-                    ...prev[section as keyof typeof prev],
-                    [field]: savedImageUrl
-                  }
-                }));
-              }
-              
-              toast.success('Image uploadée et sauvegardée avec succès !');
-            } catch (error) {
-              console.error('Erreur lors de la sauvegarde de l\'image:', error);
-              toast.error('Erreur lors de la sauvegarde de l\'image');
+            if (productId) {
+              setEditingContent(prev => ({
+                ...prev,
+                products: prev.products.map(p => 
+                  p.id === productId ? { ...p, image: imageUrl } : p
+                )
+              }));
+            } else {
+              setEditingContent(prev => ({
+                ...prev,
+                [section]: {
+                  ...prev[section as keyof typeof prev],
+                  [field]: imageUrl
+                }
+              }));
             }
+            
+            toast.success('Image uploadée avec succès !');
           };
           reader.readAsDataURL(file);
         } catch (error) {
@@ -112,7 +97,7 @@ const ContentManager = () => {
       id: `product-${Date.now()}`,
       title: 'Nouveau Produit',
       description: 'Description du nouveau produit d\'assurance',
-      icon: 'Package',
+      icon: 'Shield',
       image: 'https://images.unsplash.com/photo-1560472354-b33ff0c44a43?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80',
       features: ['Nouvelle fonctionnalité 1', 'Nouvelle fonctionnalité 2', 'Nouvelle fonctionnalité 3']
     };
@@ -446,7 +431,10 @@ const ContentManager = () => {
                             className="w-32 h-20 object-cover rounded-lg border"
                           />
                           {isEditing && (
-                            <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center rounded-lg opacity-0 hover:opacity-100 transition-opacity cursor-pointer">
+                            <div 
+                              className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center rounded-lg opacity-0 hover:opacity-100 transition-opacity cursor-pointer"
+                              onClick={() => handleImageUpload('products', 'image', product.id)}
+                            >
                               <ImageIcon className="h-5 w-5 text-white" />
                             </div>
                           )}
