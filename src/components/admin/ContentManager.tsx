@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -13,6 +13,11 @@ const ContentManager = () => {
   const [isEditing, setIsEditing] = useState(false);
   const { content, updateContent } = useContentStore();
   const [editingContent, setEditingContent] = useState(content);
+
+  // Synchroniser le contenu d'édition avec le store
+  useEffect(() => {
+    setEditingContent(content);
+  }, [content]);
 
   const handleSave = async () => {
     try {
@@ -29,31 +34,16 @@ const ContentManager = () => {
         return;
       }
 
-      // Sauvegarder les sections principales
-      updateContent('hero', editingContent.hero);
-      updateContent('about', editingContent.about);
-      updateContent('products', editingContent.products);
-      updateContent('contact', editingContent.contact);
-      updateContent('company', editingContent.company);
-
-      // Sauvegarder les sections conditionnelles - mise à jour directe du store
-      if (editingContent.emergency) {
-        console.log('Sauvegarde de la section emergency:', editingContent.emergency);
-        updateContent('emergency', editingContent.emergency);
-      }
-      
-      if (editingContent.legal) {
-        console.log('Sauvegarde de la section legal:', editingContent.legal);
-        updateContent('legal', editingContent.legal);
-      }
+      // Sauvegarder toutes les sections
+      Object.keys(editingContent).forEach(sectionKey => {
+        const section = sectionKey as keyof typeof editingContent;
+        console.log(`Sauvegarde de la section ${section}:`, editingContent[section]);
+        updateContent(section, editingContent[section]);
+      });
 
       setIsEditing(false);
       toast.success('Contenu sauvegardé avec succès !');
       
-      // Rafraîchir les données après sauvegarde
-      setTimeout(() => {
-        setEditingContent(content);
-      }, 500);
     } catch (error) {
       console.error('Erreur lors de la sauvegarde:', error);
       toast.error('Erreur lors de la sauvegarde. Veuillez vérifier vos données et réessayer.');
@@ -178,21 +168,6 @@ const ContentManager = () => {
           : p
       )
     }));
-  };
-
-  // Initialiser les sections manquantes si nécessaire
-  const ensureEmergencySection = () => {
-    if (!editingContent.emergency) {
-      setEditingContent(prev => ({
-        ...prev,
-        emergency: {
-          title: 'Urgence Sinistre 24h/7j',
-          description: 'En cas de sinistre, contactez-nous immédiatement pour une prise en charge rapide',
-          phone: '+212 661 234 567',
-          instructions: 'Appelez immédiatement ce numéro en cas d\'accident ou de sinistre. Notre équipe d\'urgence est disponible 24h/24.'
-        }
-      }));
-    }
   };
 
   return (
@@ -714,14 +689,12 @@ const ContentManager = () => {
                 <Label className="text-sm font-medium mb-2">Titre</Label>
                 {isEditing ? (
                   <Input
-                    value={editingContent.emergency?.title || 'Urgence Sinistre 24h/7j'}
+                    value={editingContent.emergency?.title || ''}
                     onChange={(e) => setEditingContent(prev => ({
                       ...prev,
                       emergency: { 
-                        title: e.target.value,
-                        description: prev.emergency?.description || 'En cas de sinistre, contactez-nous immédiatement',
-                        phone: prev.emergency?.phone || '+212 661 234 567',
-                        instructions: prev.emergency?.instructions || 'Appelez immédiatement ce numéro'
+                        ...prev.emergency,
+                        title: e.target.value
                       }
                     }))}
                     className="mt-2"
@@ -729,7 +702,7 @@ const ContentManager = () => {
                   />
                 ) : (
                   <p className="font-semibold mt-2 p-3 bg-gray-50 rounded-lg">
-                    {content.emergency?.title || 'Urgence Sinistre 24h/7j'}
+                    {content.emergency?.title}
                   </p>
                 )}
               </div>
@@ -738,14 +711,12 @@ const ContentManager = () => {
                 <Label className="text-sm font-medium mb-2">Description</Label>
                 {isEditing ? (
                   <Textarea
-                    value={editingContent.emergency?.description || 'En cas de sinistre, contactez-nous immédiatement'}
+                    value={editingContent.emergency?.description || ''}
                     onChange={(e) => setEditingContent(prev => ({
                       ...prev,
                       emergency: { 
-                        title: prev.emergency?.title || 'Urgence Sinistre 24h/7j',
-                        description: e.target.value,
-                        phone: prev.emergency?.phone || '+212 661 234 567',
-                        instructions: prev.emergency?.instructions || 'Appelez immédiatement ce numéro'
+                        ...prev.emergency,
+                        description: e.target.value
                       }
                     }))}
                     rows={3}
@@ -754,7 +725,7 @@ const ContentManager = () => {
                   />
                 ) : (
                   <p className="text-gray-600 mt-2 p-3 bg-gray-50 rounded-lg">
-                    {content.emergency?.description || 'En cas de sinistre, contactez-nous immédiatement'}
+                    {content.emergency?.description}
                   </p>
                 )}
               </div>
@@ -763,14 +734,12 @@ const ContentManager = () => {
                 <Label className="text-sm font-medium mb-2">Numéro d'urgence</Label>
                 {isEditing ? (
                   <Input
-                    value={editingContent.emergency?.phone || '+212 661 234 567'}
+                    value={editingContent.emergency?.phone || ''}
                     onChange={(e) => setEditingContent(prev => ({
                       ...prev,
                       emergency: { 
-                        title: prev.emergency?.title || 'Urgence Sinistre 24h/7j',
-                        description: prev.emergency?.description || 'En cas de sinistre, contactez-nous immédiatement',
-                        phone: e.target.value,
-                        instructions: prev.emergency?.instructions || 'Appelez immédiatement ce numéro'
+                        ...prev.emergency,
+                        phone: e.target.value
                       }
                     }))}
                     className="mt-2"
@@ -778,7 +747,7 @@ const ContentManager = () => {
                   />
                 ) : (
                   <p className="text-lg font-bold text-red-600 mt-2 p-3 bg-gray-50 rounded-lg">
-                    {content.emergency?.phone || '+212 661 234 567'}
+                    {content.emergency?.phone}
                   </p>
                 )}
               </div>
@@ -787,13 +756,11 @@ const ContentManager = () => {
                 <Label className="text-sm font-medium mb-2">Instructions</Label>
                 {isEditing ? (
                   <Textarea
-                    value={editingContent.emergency?.instructions || 'Appelez immédiatement ce numéro en cas d\'accident ou de sinistre'}
+                    value={editingContent.emergency?.instructions || ''}
                     onChange={(e) => setEditingContent(prev => ({
                       ...prev,
                       emergency: { 
-                        title: prev.emergency?.title || 'Urgence Sinistre 24h/7j',
-                        description: prev.emergency?.description || 'En cas de sinistre, contactez-nous immédiatement',
-                        phone: prev.emergency?.phone || '+212 661 234 567',
+                        ...prev.emergency,
                         instructions: e.target.value
                       }
                     }))}
@@ -803,7 +770,7 @@ const ContentManager = () => {
                   />
                 ) : (
                   <p className="text-gray-600 mt-2 p-3 bg-gray-50 rounded-lg">
-                    {content.emergency?.instructions || 'Appelez immédiatement ce numéro en cas d\'accident ou de sinistre'}
+                    {content.emergency?.instructions}
                   </p>
                 )}
               </div>

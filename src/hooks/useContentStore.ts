@@ -1,4 +1,3 @@
-
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
@@ -155,13 +154,15 @@ export const useContentStore = create<ContentStore>()(
           terms: "Les présentes conditions générales s'appliquent à tous les contrats d'assurance souscrits auprès de MOUMEN TECHNIQUE ET PREVOYANCE. Tout litige sera soumis aux tribunaux compétents de Casablanca."
         }
       },
-      updateContent: (section, data) =>
+      updateContent: (section, data) => {
+        console.log(`Mise à jour de la section ${section}:`, data);
         set((state) => ({
           content: {
             ...state.content,
             [section]: { ...state.content[section], ...data }
           }
-        })),
+        }));
+      },
       updateProduct: (productId, data) =>
         set((state) => ({
           content: {
@@ -187,8 +188,6 @@ export const useContentStore = create<ContentStore>()(
         })),
       saveImage: async (imageData: string, path: string) => {
         try {
-          // Dans un environnement réel, vous enverriez l'image à votre serveur
-          // Pour cette démo, nous retournons directement l'URL de données
           console.log('Saving image:', path);
           return imageData;
         } catch (error) {
