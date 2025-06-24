@@ -155,13 +155,22 @@ export const useContentStore = create<ContentStore>()(
         }
       },
       updateContent: (section, data) => {
-        console.log(`Mise à jour de la section ${section}:`, data);
-        set((state) => ({
-          content: {
-            ...state.content,
-            [section]: { ...state.content[section], ...data }
-          }
-        }));
+        // Si la section est un tableau (ex: products), on remplace entièrement
+        if (Array.isArray(get().content[section])) {
+          set((state) => ({
+            content: {
+              ...state.content,
+              [section]: data // Remplacement total du tableau
+            }
+          }));
+        } else {
+          set((state) => ({
+            content: {
+              ...state.content,
+              [section]: { ...state.content[section], ...data }
+            }
+          }));
+        }
       },
       updateProduct: (productId, data) =>
         set((state) => ({
