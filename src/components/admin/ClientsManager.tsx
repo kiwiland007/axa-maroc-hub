@@ -1,10 +1,10 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
+import { Textarea } from '@/components/ui/textarea';
 import { 
   Users, 
   UserPlus, 
@@ -20,7 +20,9 @@ import {
   Edit,
   Trash2,
   Eye,
-  Download
+  Download,
+  Save,
+  X
 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -100,27 +102,15 @@ const ClientsManager = () => {
           prime: 4800
         }
       ]
-    },
-    {
-      id: '3',
-      civilite: 'M.',
-      prenom: 'Youssef',
-      nom: 'Tazi',
-      email: 'youssef.tazi@email.com',
-      telephone: '+212 663456789',
-      dateNaissance: '1978-11-05',
-      adresse: '789 Boulevard Zerktouni, Marrakech',
-      ville: 'Marrakech',
-      dateInscription: '2023-05-20',
-      statut: 'prospect',
-      assignedTo: 'agent1',
-      assurances: []
     }
   ]);
 
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
+  const [editingClient, setEditingClient] = useState<Client | null>(null);
+  const [showDetails, setShowDetails] = useState(false);
+  const [showEditForm, setShowEditForm] = useState(false);
   const [showAddForm, setShowAddForm] = useState(false);
   const [newClient, setNewClient] = useState({
     civilite: '',
@@ -201,11 +191,32 @@ const ClientsManager = () => {
     toast.success('Client ajouté avec succès');
   };
 
+  const handleEditClient = () => {
+    if (!editingClient) return;
+
+    setClients(clients.map(c => 
+      c.id === editingClient.id ? editingClient : c
+    ));
+    setShowEditForm(false);
+    setEditingClient(null);
+    toast.success('Client modifié avec succès');
+  };
+
   const handleDeleteClient = (clientId: string) => {
     if (window.confirm('Êtes-vous sûr de vouloir supprimer ce client ?')) {
       setClients(clients.filter(c => c.id !== clientId));
       toast.success('Client supprimé avec succès');
     }
+  };
+
+  const openClientDetails = (client: Client) => {
+    setSelectedClient(client);
+    setShowDetails(true);
+  };
+
+  const openEditForm = (client: Client) => {
+    setEditingClient({ ...client });
+    setShowEditForm(true);
   };
 
   const exportClients = () => {
@@ -381,10 +392,10 @@ const ClientsManager = () => {
                     )}
                   </div>
                   <div className="flex space-x-2">
-                    <Button variant="outline" size="sm" onClick={() => setSelectedClient(client)}>
+                    <Button variant="outline" size="sm" onClick={() => openClientDetails(client)}>
                       <Eye className="h-4 w-4" />
                     </Button>
-                    <Button variant="outline" size="sm">
+                    <Button variant="outline" size="sm" onClick={() => openEditForm(client)}>
                       <Edit className="h-4 w-4" />
                     </Button>
                     <Button variant="outline" size="sm" onClick={() => handleDeleteClient(client.id)} className="text-red-600 hover:text-red-700">
@@ -403,6 +414,75 @@ const ClientsManager = () => {
           )}
         </CardContent>
       </Card>
+
+      {/* Modal aperçu client */}
+      {showDetails && selectedClient && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <Card className="w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+            <CardHeader>
+              <div className="flex justify-between items-center">
+                <CardTitle>Aperçu Client - {selectedClient.prenom} {selectedClient.nom}</CardTitle>
+                <Button variant="outline" size="sm" onClick={() => setShowDetails(false)}>
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-4">
+                  <h3 className="font-semibold text-lg">Informations Personnelles</h3>
+                  <div className="space-y-2">
+                    <div><strong>Nom complet:</strong> {selectedClient.civilite} {selectedClient.prenom} {selectedClient.nom}</div>
+                    <div><strong>Email:</strong> {selectedClient.email}</div>
+                    <div><strong>Téléphone:</strong> {selectedClient.telephone}</div>
+                    <div><strong>Date de naissance:</strong> {new Date(selectedClient.dateNaissance).toLocaleDateString('fr-FR')}</div>
+                    <div><strong>Adresse:</strong> {selectedClient.adresse}</div>
+                    <div><strong>Ville:</strong> {selectedClient.ville}</div>
+                    <div><strong>Date d'inscription:</strong> {new Date(selectedClient.dateInscription).toLocaleDateString('fr-FR')}</div>
+                    <div><strong>Statut:</strong> <Badge className={getStatusColor(selectedClient.statut)}>{selectedClient.statut}</Badge></div>
+                  </div>
+                </div>
+                <div className="space-y-4">
+                  <h3 className="font-semibold text-lg">Assurances Souscrites</h3>
+                  {selectedClient.assurances.length > 0 ? (
+                    <div className="space-y-3">
+                      {selectedClient.assurances.map((assurance, index) => (
+                        <div key={index} className="border rounded-lg p-3">
+                          <div className="flex items-center space-x-2 mb-2">
+                            {getAssuranceIcon(assurance.type)}
+                            <span className="font-medium">{assurance.type}</span>
+                          </div>
+                          <div className="text-sm space-y-1">
+                            <div><strong>Numéro de police:</strong> {assurance.numeroPolice}</div>
+                            <div><strong>Période:</strong> {new Date(assurance.dateDebut).toLocaleDateString('fr-FR')} - {new Date(assurance.dateFin).toLocaleDateString('fr-FR')}</div>
+                            <div><strong>Prime:</strong> {assurance.prime.toLocaleString()} DHS</div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-gray-500">Aucune assurance souscrite</p>
+                  )}
+                </div>
+              </div>
+              <div className="flex space-x-2 pt-4 border-t">
+                <Button onClick={() => openEditForm(selectedClient)} className="bg-blue-600 hover:bg-blue-700">
+                  <Edit className="h-4 w-4 mr-2" />
+                  Modifier
+                </Button>
+                <Button variant="outline" onClick={() => window.open(`tel:${selectedClient.telephone}`)}>
+                  <Phone className="h-4 w-4 mr-2" />
+                  Appeler
+                </Button>
+                <Button variant="outline" onClick={() => window.open(`mailto:${selectedClient.email}`)}>
+                  <Mail className="h-4 w-4 mr-2" />
+                  Email
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
 
       {/* Formulaire d'ajout de client */}
       {showAddForm && (
@@ -511,6 +591,120 @@ const ClientsManager = () => {
                 Ajouter le Client
               </Button>
               <Button variant="outline" onClick={() => setShowAddForm(false)}>
+                Annuler
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Formulaire d'édition de client */}
+      {showEditForm && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Modifier Client</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="civilite">Civilité *</Label>
+                <select
+                  id="civilite"
+                  value={editingClient?.civilite}
+                  onChange={(e) => setEditingClient({...editingClient, civilite: e.target.value})}
+                  className="w-full border border-gray-300 rounded-md px-3 py-2 mt-1"
+                >
+                  <option value="">Sélectionner</option>
+                  <option value="M.">M.</option>
+                  <option value="Mme">Mme</option>
+                  <option value="Mlle">Mlle</option>
+                </select>
+              </div>
+              <div>
+                <Label htmlFor="prenom">Prénom *</Label>
+                <Input
+                  id="prenom"
+                  value={editingClient?.prenom}
+                  onChange={(e) => setEditingClient({...editingClient, prenom: e.target.value})}
+                  className="mt-1"
+                />
+              </div>
+              <div>
+                <Label htmlFor="nom">Nom *</Label>
+                <Input
+                  id="nom"
+                  value={editingClient?.nom}
+                  onChange={(e) => setEditingClient({...editingClient, nom: e.target.value})}
+                  className="mt-1"
+                />
+              </div>
+              <div>
+                <Label htmlFor="email">Email *</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  value={editingClient?.email}
+                  onChange={(e) => setEditingClient({...editingClient, email: e.target.value})}
+                  className="mt-1"
+                />
+              </div>
+              <div>
+                <Label htmlFor="telephone">Téléphone *</Label>
+                <Input
+                  id="telephone"
+                  value={editingClient?.telephone}
+                  onChange={(e) => setEditingClient({...editingClient, telephone: e.target.value})}
+                  className="mt-1"
+                />
+              </div>
+              <div>
+                <Label htmlFor="dateNaissance">Date de naissance</Label>
+                <Input
+                  id="dateNaissance"
+                  type="date"
+                  value={editingClient?.dateNaissance}
+                  onChange={(e) => setEditingClient({...editingClient, dateNaissance: e.target.value})}
+                  className="mt-1"
+                />
+              </div>
+              <div className="md:col-span-2">
+                <Label htmlFor="adresse">Adresse</Label>
+                <Input
+                  id="adresse"
+                  value={editingClient?.adresse}
+                  onChange={(e) => setEditingClient({...editingClient, adresse: e.target.value})}
+                  className="mt-1"
+                />
+              </div>
+              <div>
+                <Label htmlFor="ville">Ville</Label>
+                <Input
+                  id="ville"
+                  value={editingClient?.ville}
+                  onChange={(e) => setEditingClient({...editingClient, ville: e.target.value})}
+                  className="mt-1"
+                />
+              </div>
+              <div>
+                <Label htmlFor="assignedTo">Assigné à</Label>
+                <select
+                  id="assignedTo"
+                  value={editingClient?.assignedTo}
+                  onChange={(e) => setEditingClient({...editingClient, assignedTo: e.target.value})}
+                  className="w-full border border-gray-300 rounded-md px-3 py-2 mt-1"
+                >
+                  <option value="">Non assigné</option>
+                  {agents.map(agent => (
+                    <option key={agent.id} value={agent.id}>{agent.name}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+            <div className="flex space-x-4 mt-6">
+              <Button onClick={handleEditClient} className="bg-blue-600 hover:bg-blue-700">
+                Modifier le Client
+              </Button>
+              <Button variant="outline" onClick={() => setShowEditForm(false)}>
                 Annuler
               </Button>
             </div>

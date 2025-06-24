@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Users, FileText, BarChart3, Settings, Edit, Image, MessageSquare, Calendar, MapPin, UserCog } from 'lucide-react';
+import { Users, FileText, BarChart3, Settings, Edit, Image, MessageSquare, Calendar, MapPin, UserCog, AlertTriangle } from 'lucide-react';
 import AdminDashboard from '@/components/admin/AdminDashboard';
 import ContentManager from '@/components/admin/ContentManager';
 import LeadsManager from '@/components/admin/LeadsManager';
@@ -13,6 +13,7 @@ import MarketingManager from '@/components/admin/MarketingManager';
 import LocationManager from '@/components/admin/LocationManager';
 import UsersManager from '@/components/admin/UsersManager';
 import AdminSettings from '@/components/admin/AdminSettings';
+import EmergencyClaimsManager from '@/components/admin/EmergencyClaimsManager';
 
 const Admin = () => {
   const [activeTab, setActiveTab] = useState('dashboard');
@@ -23,6 +24,7 @@ const Admin = () => {
     { id: 'leads', label: 'Leads & CRM', icon: MessageSquare, component: LeadsManager },
     { id: 'clients', label: 'Clients', icon: Users, component: ClientsManager },
     { id: 'quotes', label: 'Devis & Contrats', icon: FileText, component: QuotesManager },
+    { id: 'emergency', label: 'Urgence Sinistre', icon: AlertTriangle, component: EmergencyClaimsManager },
     { id: 'analytics', label: 'Analytics', icon: BarChart3, component: Analytics },
     { id: 'marketing', label: 'Marketing', icon: Image, component: MarketingManager },
     { id: 'location', label: 'Localisation', icon: MapPin, component: LocationManager },
@@ -55,7 +57,7 @@ const Admin = () => {
 
       <div className="container mx-auto px-4 py-6">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-2 lg:grid-cols-10 gap-1 h-auto p-1">
+          <TabsList className="grid w-full grid-cols-2 lg:grid-cols-11 gap-1 h-auto p-1">
             {tabs.map((tab) => (
               <TabsTrigger 
                 key={tab.id} 

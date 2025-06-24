@@ -4,35 +4,34 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { 
-  Users, 
+  UserCog, 
   UserPlus, 
   Search, 
   Filter, 
   Edit, 
   Trash2, 
   Eye, 
-  Shield, 
+  Key,
+  Shield,
   Mail,
   Phone,
   Calendar,
-  Key,
-  CheckCircle,
-  XCircle
+  Settings
 } from 'lucide-react';
 import { toast } from 'sonner';
+import PasswordGenerator from './PasswordGenerator';
 
 interface User {
   id: string;
   nom: string;
   prenom: string;
   email: string;
-  telephone: string;
+  telephone?: string;
   role: 'admin' | 'agent' | 'manager' | 'viewer';
   statut: 'actif' | 'inactif' | 'suspendu';
   dateCreation: string;
-  dernierAccess: string;
+  derniereConnexion?: string;
   permissions: string[];
 }
 
@@ -41,85 +40,73 @@ const UsersManager = () => {
     {
       id: '1',
       nom: 'Admin',
-      prenom: 'Système',
+      prenom: 'Super',
       email: 'admin@moumentechnique.ma',
-      telephone: '+212 5XX-XXX-XXX',
+      telephone: '+212 661234567',
       role: 'admin',
       statut: 'actif',
-      dateCreation: '2023-01-01',
-      dernierAccess: '2024-01-20',
+      dateCreation: '2023-01-15',
+      derniereConnexion: '2023-12-15T10:30:00',
       permissions: ['all']
     },
     {
       id: '2',
-      nom: 'Benali',
-      prenom: 'Mohamed',
-      email: 'mohamed.benali@moumentechnique.ma',
-      telephone: '+212 661234567',
+      nom: 'Alami',
+      prenom: 'Hassan',
+      email: 'h.alami@moumentechnique.ma',
+      telephone: '+212 662345678',
       role: 'agent',
       statut: 'actif',
-      dateCreation: '2023-06-15',
-      dernierAccess: '2024-01-19',
-      permissions: ['clients', 'leads', 'quotes']
+      dateCreation: '2023-03-10',
+      derniereConnexion: '2023-12-14T16:45:00',
+      permissions: ['leads', 'clients', 'quotes']
     },
     {
       id: '3',
-      nom: 'El Fassi',
+      nom: 'Bennani',
       prenom: 'Aicha',
-      email: 'aicha.elfassi@moumentechnique.ma',
-      telephone: '+212 662345678',
+      email: 'a.bennani@moumentechnique.ma',
       role: 'manager',
       statut: 'actif',
-      dateCreation: '2023-03-10',
-      dernierAccess: '2024-01-18',
-      permissions: ['clients', 'leads', 'quotes', 'analytics', 'users']
+      dateCreation: '2023-02-20',
+      derniereConnexion: '2023-12-13T14:20:00',
+      permissions: ['leads', 'clients', 'quotes', 'analytics']
     }
   ]);
 
   const [searchTerm, setSearchTerm] = useState('');
   const [roleFilter, setRoleFilter] = useState('all');
-  const [statusFilter, setStatusFilter] = useState('all');
-  const [showAddForm, setShowAddForm] = useState(false);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
-  const [showUserModal, setShowUserModal] = useState(false);
+  const [showDetails, setShowDetails] = useState(false);
+  const [showCreateForm, setShowCreateForm] = useState(false);
+  const [showEditForm, setShowEditForm] = useState(false);
+  const [showPasswordGenerator, setShowPasswordGenerator] = useState(false);
   const [editingUser, setEditingUser] = useState<User | null>(null);
-  const [showEditModal, setShowEditModal] = useState(false);
-  const [showPasswordModal, setShowPasswordModal] = useState(false);
-  const [passwordData, setPasswordData] = useState({
-    userId: '',
-    newPassword: '',
-    confirmPassword: ''
-  });
+
   const [newUser, setNewUser] = useState({
     nom: '',
     prenom: '',
     email: '',
     telephone: '',
-    role: 'agent' as User['role'],
+    role: 'agent' as const,
     permissions: [] as string[]
   });
 
   const roles = [
-    { value: 'admin', label: 'Administrateur', color: 'bg-red-100 text-red-800' },
-    { value: 'manager', label: 'Manager', color: 'bg-purple-100 text-purple-800' },
-    { value: 'agent', label: 'Agent', color: 'bg-blue-100 text-blue-800' },
-    { value: 'viewer', label: 'Lecteur', color: 'bg-gray-100 text-gray-800' }
+    { id: 'admin', name: 'Administrateur', color: 'bg-red-100 text-red-800' },
+    { id: 'manager', name: 'Manager', color: 'bg-purple-100 text-purple-800' },
+    { id: 'agent', name: 'Agent Commercial', color: 'bg-blue-100 text-blue-800' },
+    { id: 'viewer', name: 'Observateur', color: 'bg-gray-100 text-gray-800' }
   ];
 
-  const statusOptions = [
-    { value: 'actif', label: 'Actif', color: 'bg-green-100 text-green-800' },
-    { value: 'inactif', label: 'Inactif', color: 'bg-gray-100 text-gray-800' },
-    { value: 'suspendu', label: 'Suspendu', color: 'bg-red-100 text-red-800' }
-  ];
-
-  const permissions = [
-    { id: 'clients', label: 'Gestion clients', description: 'Créer, modifier et supprimer des clients' },
-    { id: 'leads', label: 'Gestion leads', description: 'Gérer les prospects et leads' },
-    { id: 'quotes', label: 'Devis et contrats', description: 'Créer et gérer les devis' },
-    { id: 'content', label: 'Gestion contenu', description: 'Modifier le contenu du site' },
-    { id: 'analytics', label: 'Analytics', description: 'Accès aux rapports et statistiques' },
-    { id: 'users', label: 'Gestion utilisateurs', description: 'Gérer les comptes utilisateurs' },
-    { id: 'settings', label: 'Paramètres', description: 'Configuration système' }
+  const availablePermissions = [
+    { id: 'leads', name: 'Gestion des Leads' },
+    { id: 'clients', name: 'Gestion des Clients' },
+    { id: 'quotes', name: 'Gestion des Devis' },
+    { id: 'content', name: 'Gestion du Contenu' },
+    { id: 'analytics', name: 'Analytics' },
+    { id: 'users', name: 'Gestion des Utilisateurs' },
+    { id: 'settings', name: 'Paramètres Système' }
   ];
 
   const filteredUsers = users.filter(user => {
@@ -129,63 +116,25 @@ const UsersManager = () => {
       user.email.toLowerCase().includes(searchTerm.toLowerCase());
 
     const matchesRole = roleFilter === 'all' || user.role === roleFilter;
-    const matchesStatus = statusFilter === 'all' || user.statut === statusFilter;
 
-    return matchesSearch && matchesRole && matchesStatus;
+    return matchesSearch && matchesRole;
   });
 
   const getRoleColor = (role: string) => {
-    return roles.find(r => r.value === role)?.color || 'bg-gray-100 text-gray-800';
+    const roleData = roles.find(r => r.id === role);
+    return roleData?.color || 'bg-gray-100 text-gray-800';
   };
 
   const getStatusColor = (status: string) => {
-    return statusOptions.find(s => s.value === status)?.color || 'bg-gray-100 text-gray-800';
-  };
-
-  const handleViewUser = (user: User) => {
-    setSelectedUser(user);
-    setShowUserModal(true);
-  };
-
-  const handleEditUser = (user: User) => {
-    setEditingUser({ ...user });
-    setShowEditModal(true);
-  };
-
-  const handleSaveUser = () => {
-    if (!editingUser) return;
-
-    setUsers(users.map(user => 
-      user.id === editingUser.id ? editingUser : user
-    ));
-    setShowEditModal(false);
-    setEditingUser(null);
-    toast.success('Utilisateur mis à jour avec succès');
-  };
-
-  const handleChangePassword = (userId: string) => {
-    setPasswordData({ userId, newPassword: '', confirmPassword: '' });
-    setShowPasswordModal(true);
-  };
-
-  const handleSavePassword = () => {
-    if (passwordData.newPassword !== passwordData.confirmPassword) {
-      toast.error('Les mots de passe ne correspondent pas');
-      return;
+    switch (status) {
+      case 'actif': return 'bg-green-100 text-green-800';
+      case 'inactif': return 'bg-gray-100 text-gray-800';
+      case 'suspendu': return 'bg-red-100 text-red-800';
+      default: return 'bg-gray-100 text-gray-800';
     }
-
-    if (passwordData.newPassword.length < 6) {
-      toast.error('Le mot de passe doit contenir au moins 6 caractères');
-      return;
-    }
-
-    // Simulation de sauvegarde du mot de passe
-    setShowPasswordModal(false);
-    setPasswordData({ userId: '', newPassword: '', confirmPassword: '' });
-    toast.success('Mot de passe modifié avec succès');
   };
 
-  const handleAddUser = () => {
+  const handleCreateUser = () => {
     if (!newUser.nom || !newUser.prenom || !newUser.email) {
       toast.error('Veuillez remplir tous les champs obligatoires');
       return;
@@ -195,9 +144,7 @@ const UsersManager = () => {
       id: Date.now().toString(),
       ...newUser,
       statut: 'actif',
-      dateCreation: new Date().toISOString().split('T')[0],
-      dernierAccess: '',
-      permissions: newUser.permissions
+      dateCreation: new Date().toISOString().split('T')[0]
     };
 
     setUsers([...users, user]);
@@ -206,102 +153,124 @@ const UsersManager = () => {
       prenom: '',
       email: '',
       telephone: '',
-      role: 'agent' as User['role'],
+      role: 'agent',
       permissions: []
     });
-    setShowAddForm(false);
-    toast.success('Utilisateur ajouté avec succès');
+    setShowCreateForm(false);
+    toast.success('Utilisateur créé avec succès');
   };
 
-  const updateUserStatus = (userId: string, newStatus: string) => {
+  const handleEditUser = () => {
+    if (!editingUser) return;
+
     setUsers(users.map(user => 
-      user.id === userId ? { ...user, statut: newStatus as User['statut'] } : user
+      user.id === editingUser.id ? editingUser : user
+    ));
+    setShowEditForm(false);
+    setEditingUser(null);
+    toast.success('Utilisateur modifié avec succès');
+  };
+
+  const handleDeleteUser = (userId: string) => {
+    if (window.confirm('Êtes-vous sûr de vouloir supprimer cet utilisateur ?')) {
+      setUsers(users.filter(user => user.id !== userId));
+      toast.success('Utilisateur supprimé avec succès');
+    }
+  };
+
+  const updateUserStatus = (userId: string, newStatus: User['statut']) => {
+    setUsers(users.map(user => 
+      user.id === userId ? { ...user, statut: newStatus } : user
     ));
     toast.success('Statut utilisateur mis à jour');
   };
 
-  const deleteUser = (userId: string) => {
-    if (window.confirm('Êtes-vous sûr de vouloir supprimer cet utilisateur ?')) {
-      setUsers(users.filter(u => u.id !== userId));
-      toast.success('Utilisateur supprimé');
-    }
+  const resetUserPassword = (userId: string) => {
+    setSelectedUser(users.find(u => u.id === userId) || null);
+    setShowPasswordGenerator(true);
+  };
+
+  const usersByRole = {
+    admin: users.filter(u => u.role === 'admin').length,
+    manager: users.filter(u => u.role === 'manager').length,
+    agent: users.filter(u => u.role === 'agent').length,
+    viewer: users.filter(u => u.role === 'viewer').length
+  };
+
+  const updatePermissions = (userId: string, permissions: string[]) => {
+    setUsers(users.map(user => 
+      user.id === userId ? { ...user, permissions } : user
+    ));
+    toast.success('Permissions mises à jour');
   };
 
   return (
     <div className="space-y-6">
       {/* Statistiques */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <Card>
-          <CardContent className="p-6">
+          <CardContent className="p-4">
             <div className="flex items-center space-x-2">
-              <Users className="h-8 w-8 text-blue-500" />
+              <UserCog className="h-6 w-6 text-blue-500" />
               <div>
-                <div className="text-2xl font-bold">{users.length}</div>
-                <div className="text-sm text-gray-600">Total utilisateurs</div>
+                <div className="text-xl font-bold">{users.length}</div>
+                <div className="text-xs text-gray-600">Total Utilisateurs</div>
               </div>
             </div>
           </CardContent>
         </Card>
-
         <Card>
-          <CardContent className="p-6">
+          <CardContent className="p-4">
             <div className="flex items-center space-x-2">
-              <CheckCircle className="h-8 w-8 text-green-500" />
+              <Shield className="h-6 w-6 text-red-500" />
               <div>
-                <div className="text-2xl font-bold">
-                  {users.filter(u => u.statut === 'actif').length}
-                </div>
-                <div className="text-sm text-gray-600">Utilisateurs actifs</div>
+                <div className="text-xl font-bold">{usersByRole.admin}</div>
+                <div className="text-xs text-gray-600">Administrateurs</div>
               </div>
             </div>
           </CardContent>
         </Card>
-
         <Card>
-          <CardContent className="p-6">
+          <CardContent className="p-4">
             <div className="flex items-center space-x-2">
-              <Shield className="h-8 w-8 text-purple-500" />
+              <UserCog className="h-6 w-6 text-purple-500" />
               <div>
-                <div className="text-2xl font-bold">
-                  {users.filter(u => u.role === 'admin' || u.role === 'manager').length}
-                </div>
-                <div className="text-sm text-gray-600">Administrateurs</div>
+                <div className="text-xl font-bold">{usersByRole.manager}</div>
+                <div className="text-xs text-gray-600">Managers</div>
               </div>
             </div>
           </CardContent>
         </Card>
-
         <Card>
-          <CardContent className="p-6">
+          <CardContent className="p-4">
             <div className="flex items-center space-x-2">
-              <XCircle className="h-8 w-8 text-red-500" />
+              <UserCog className="h-6 w-6 text-blue-500" />
               <div>
-                <div className="text-2xl font-bold">
-                  {users.filter(u => u.statut === 'suspendu').length}
-                </div>
-                <div className="text-sm text-gray-600">Comptes suspendus</div>
+                <div className="text-xl font-bold">{usersByRole.agent}</div>
+                <div className="text-xs text-gray-600">Agents</div>
               </div>
             </div>
           </CardContent>
         </Card>
       </div>
 
-      {/* Gestion des utilisateurs */}
+      {/* Barre d'actions */}
       <Card>
         <CardHeader>
-          <div className="flex justify-between items-center">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center space-y-4 md:space-y-0">
             <CardTitle className="flex items-center space-x-2">
-              <Users className="h-5 w-5" />
+              <UserCog className="h-5 w-5" />
               <span>Gestion des Utilisateurs</span>
             </CardTitle>
-            <Button onClick={() => setShowAddForm(true)} className="bg-blue-600 hover:bg-blue-700">
-              <UserPlus className="h-4 w-4 mr-2" />
-              Nouvel utilisateur
-            </Button>
+            <div className="flex space-x-2">
+              <Button onClick={() => setShowCreateForm(true)} className="bg-blue-600 hover:bg-blue-700">
+                <UserPlus className="h-4 w-4 mr-2" />
+                Nouvel Utilisateur
+              </Button>
+            </div>
           </div>
         </CardHeader>
         <CardContent>
-          {/* Filtres */}
           <div className="flex flex-col md:flex-row space-y-4 md:space-y-0 md:space-x-4 mb-6">
             <div className="flex-1">
               <div className="relative">
@@ -323,17 +292,7 @@ const UsersManager = () => {
               >
                 <option value="all">Tous les rôles</option>
                 {roles.map(role => (
-                  <option key={role.value} value={role.value}>{role.label}</option>
-                ))}
-              </select>
-              <select
-                value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value)}
-                className="border border-gray-300 rounded-md px-3 py-2 text-sm"
-              >
-                <option value="all">Tous les statuts</option>
-                {statusOptions.map(status => (
-                  <option key={status.value} value={status.value}>{status.label}</option>
+                  <option key={role.id} value={role.id}>{role.name}</option>
                 ))}
               </select>
             </div>
@@ -343,69 +302,103 @@ const UsersManager = () => {
           <div className="space-y-4">
             {filteredUsers.map((user) => (
               <div key={user.id} className="border rounded-lg p-4 hover:shadow-md transition-shadow">
-                <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center space-y-4 lg:space-y-0">
+                <div className="flex flex-col md:flex-row justify-between items-start md:items-center space-y-4 md:space-y-0">
                   <div className="flex-1">
                     <div className="flex items-center space-x-3 mb-2">
                       <h3 className="font-semibold text-lg">
                         {user.prenom} {user.nom}
                       </h3>
                       <Badge className={getRoleColor(user.role)}>
-                        {roles.find(r => r.value === user.role)?.label}
+                        {roles.find(r => r.id === user.role)?.name}
                       </Badge>
                       <Badge className={getStatusColor(user.statut)}>
-                        {statusOptions.find(s => s.value === user.statut)?.label}
+                        {user.statut}
                       </Badge>
                     </div>
-                    
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm text-gray-600 mb-3">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-2 text-sm text-gray-600 mb-2">
                       <div className="flex items-center space-x-2">
                         <Mail className="h-4 w-4" />
                         <span>{user.email}</span>
                       </div>
-                      <div className="flex items-center space-x-2">
-                        <Phone className="h-4 w-4" />
-                        <span>{user.telephone}</span>
-                      </div>
+                      {user.telephone && (
+                        <div className="flex items-center space-x-2">
+                          <Phone className="h-4 w-4" />
+                          <span>{user.telephone}</span>
+                        </div>
+                      )}
                       <div className="flex items-center space-x-2">
                         <Calendar className="h-4 w-4" />
                         <span>Créé le {new Date(user.dateCreation).toLocaleDateString('fr-FR')}</span>
                       </div>
-                      {user.dernierAccess && (
-                        <div className="flex items-center space-x-2">
-                          <Eye className="h-4 w-4" />
-                          <span>Dernier accès: {new Date(user.dernierAccess).toLocaleDateString('fr-FR')}</span>
-                        </div>
-                      )}
                     </div>
-
-                    <div className="flex flex-wrap gap-1">
-                      {user.permissions.includes('all') ? (
-                        <Badge variant="outline" className="text-xs">Toutes permissions</Badge>
-                      ) : (
-                        user.permissions.map(perm => (
-                          <Badge key={perm} variant="outline" className="text-xs">
-                            {permissions.find(p => p.id === perm)?.label}
-                          </Badge>
-                        ))
-                      )}
+                    {user.derniereConnexion && (
+                      <div className="text-xs text-gray-500">
+                        Dernière connexion: {new Date(user.derniereConnexion).toLocaleString('fr-FR')}
+                      </div>
+                    )}
+                    <div className="mt-2">
+                      <div className="text-xs text-gray-600 mb-1">Permissions:</div>
+                      <div className="flex flex-wrap gap-1">
+                        {user.permissions.includes('all') ? (
+                          <Badge variant="outline" className="text-xs">Toutes les permissions</Badge>
+                        ) : (
+                          user.permissions.map(permission => {
+                            const permissionData = availablePermissions.find(p => p.id === permission);
+                            return (
+                              <Badge key={permission} variant="outline" className="text-xs">
+                                {permissionData?.name || permission}
+                              </Badge>
+                            );
+                          })
+                        )}
+                      </div>
                     </div>
                   </div>
-
-                  <div className="flex space-x-2">
-                    <Button variant="outline" size="sm" onClick={() => handleViewUser(user)}>
+                  
+                  {/* Actions */}
+                  <div className="flex flex-wrap gap-2">
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      onClick={() => {
+                        setSelectedUser(user);
+                        setShowDetails(true);
+                      }}
+                    >
                       <Eye className="h-4 w-4" />
                     </Button>
-                    <Button variant="outline" size="sm" onClick={() => handleEditUser(user)}>
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      onClick={() => {
+                        setEditingUser({ ...user });
+                        setShowEditForm(true);
+                      }}
+                    >
                       <Edit className="h-4 w-4" />
                     </Button>
-                    <Button variant="outline" size="sm" onClick={() => handleChangePassword(user.id)}>
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      onClick={() => resetUserPassword(user.id)}
+                      className="text-orange-600 hover:text-orange-700"
+                    >
                       <Key className="h-4 w-4" />
                     </Button>
+                    <select
+                      value={user.statut}
+                      onChange={(e) => updateUserStatus(user.id, e.target.value as User['statut'])}
+                      className="text-xs border border-gray-300 rounded px-2 py-1"
+                    >
+                      <option value="actif">Actif</option>
+                      <option value="inactif">Inactif</option>
+                      <option value="suspendu">Suspendu</option>
+                    </select>
                     {user.role !== 'admin' && (
                       <Button 
                         variant="outline" 
-                        size="sm"
-                        onClick={() => deleteUser(user.id)}
+                        size="sm" 
+                        onClick={() => handleDeleteUser(user.id)}
                         className="text-red-600 hover:text-red-700"
                       >
                         <Trash2 className="h-4 w-4" />
@@ -416,137 +409,277 @@ const UsersManager = () => {
               </div>
             ))}
           </div>
+
+          {filteredUsers.length === 0 && (
+            <div className="text-center py-8 text-gray-500">
+              Aucun utilisateur trouvé
+            </div>
+          )}
         </CardContent>
       </Card>
 
-      {/* Modal de visualisation */}
-      <Dialog open={showUserModal} onOpenChange={setShowUserModal}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader>
-            <DialogTitle>Détails de l'Utilisateur</DialogTitle>
-          </DialogHeader>
-          {selectedUser && (
-            <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label>Nom complet</Label>
-                  <p className="font-semibold">{selectedUser.prenom} {selectedUser.nom}</p>
+      {/* Modal générateur de mot de passe */}
+      {showPasswordGenerator && selectedUser && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="w-full max-w-2xl">
+            <Card>
+              <CardHeader>
+                <CardTitle>Changer le mot de passe - {selectedUser.prenom} {selectedUser.nom}</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <PasswordGenerator 
+                  onPasswordGenerated={(password) => {
+                    console.log(`Nouveau mot de passe généré pour ${selectedUser.email}: ${password}`);
+                  }}
+                />
+                <div className="flex justify-end space-x-2 mt-6">
+                  <Button 
+                    variant="outline" 
+                    onClick={() => {
+                      setShowPasswordGenerator(false);
+                      setSelectedUser(null);
+                    }}
+                  >
+                    Fermer
+                  </Button>
                 </div>
-                <div>
-                  <Label>Email</Label>
-                  <p>{selectedUser.email}</p>
-                </div>
-                <div>
-                  <Label>Téléphone</Label>
-                  <p>{selectedUser.telephone}</p>
-                </div>
-                <div>
-                  <Label>Rôle</Label>
-                  <Badge className={getRoleColor(selectedUser.role)}>
-                    {roles.find(r => r.value === selectedUser.role)?.label}
-                  </Badge>
-                </div>
-                <div>
-                  <Label>Statut</Label>
-                  <Badge className={getStatusColor(selectedUser.statut)}>
-                    {statusOptions.find(s => s.value === selectedUser.statut)?.label}
-                  </Badge>
-                </div>
-                <div>
-                  <Label>Date de création</Label>
-                  <p>{new Date(selectedUser.dateCreation).toLocaleDateString('fr-FR')}</p>
-                </div>
-              </div>
-              <div>
-                <Label>Permissions</Label>
-                <div className="mt-2 flex flex-wrap gap-2">
-                  {selectedUser.permissions.includes('all') ? (
-                    <Badge variant="outline">Toutes permissions</Badge>
-                  ) : (
-                    selectedUser.permissions.map(perm => (
-                      <Badge key={perm} variant="outline">
-                        {permissions.find(p => p.id === perm)?.label}
-                      </Badge>
-                    ))
-                  )}
-                </div>
-              </div>
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      )}
 
-      {/* Modal d'édition */}
-      <Dialog open={showEditModal} onOpenChange={setShowEditModal}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader>
-            <DialogTitle>Modifier l'Utilisateur</DialogTitle>
-          </DialogHeader>
-          {editingUser && (
-            <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
+      {/* Modal création utilisateur */}
+      {showCreateForm && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <Card className="w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+            <CardHeader>
+              <CardTitle>Créer un Nouvel Utilisateur</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <Label>Prénom</Label>
+                  <Label htmlFor="prenom">Prénom *</Label>
                   <Input
-                    value={editingUser.prenom}
-                    onChange={(e) => setEditingUser({...editingUser, prenom: e.target.value})}
+                    id="prenom"
+                    value={newUser.prenom}
+                    onChange={(e) => setNewUser({...newUser, prenom: e.target.value})}
+                    className="mt-1"
                   />
                 </div>
                 <div>
-                  <Label>Nom</Label>
+                  <Label htmlFor="nom">Nom *</Label>
                   <Input
-                    value={editingUser.nom}
-                    onChange={(e) => setEditingUser({...editingUser, nom: e.target.value})}
+                    id="nom"
+                    value={newUser.nom}
+                    onChange={(e) => setNewUser({...newUser, nom: e.target.value})}
+                    className="mt-1"
                   />
                 </div>
                 <div>
-                  <Label>Email</Label>
+                  <Label htmlFor="email">Email *</Label>
                   <Input
-                    value={editingUser.email}
-                    onChange={(e) => setEditingUser({...editingUser, email: e.target.value})}
+                    id="email"
+                    type="email"
+                    value={newUser.email}
+                    onChange={(e) => setNewUser({...newUser, email: e.target.value})}
+                    className="mt-1"
                   />
                 </div>
                 <div>
-                  <Label>Téléphone</Label>
+                  <Label htmlFor="telephone">Téléphone</Label>
                   <Input
-                    value={editingUser.telephone}
-                    onChange={(e) => setEditingUser({...editingUser, telephone: e.target.value})}
+                    id="telephone"
+                    value={newUser.telephone}
+                    onChange={(e) => setNewUser({...newUser, telephone: e.target.value})}
+                    className="mt-1"
                   />
                 </div>
-                <div>
-                  <Label>Rôle</Label>
+                <div className="md:col-span-2">
+                  <Label htmlFor="role">Rôle *</Label>
                   <select
-                    value={editingUser.role}
-                    onChange={(e) => setEditingUser({...editingUser, role: e.target.value as User['role']})}
-                    className="w-full border border-gray-300 rounded-md px-3 py-2"
+                    id="role"
+                    value={newUser.role}
+                    onChange={(e) => setNewUser({...newUser, role: e.target.value as User['role']})}
+                    className="w-full border border-gray-300 rounded-md px-3 py-2 mt-1"
                   >
                     {roles.map(role => (
-                      <option key={role.value} value={role.value}>{role.label}</option>
-                    ))}
-                  </select>
-                </div>
-                <div>
-                  <Label>Statut</Label>
-                  <select
-                    value={editingUser.statut}
-                    onChange={(e) => setEditingUser({...editingUser, statut: e.target.value as User['statut']})}
-                    className="w-full border border-gray-300 rounded-md px-3 py-2"
-                  >
-                    {statusOptions.map(status => (
-                      <option key={status.value} value={status.value}>{status.label}</option>
+                      <option key={role.id} value={role.id}>{role.name}</option>
                     ))}
                   </select>
                 </div>
               </div>
-              
+
               <div>
                 <Label>Permissions</Label>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
-                  {permissions.map(permission => (
-                    <div key={permission.id} className="flex items-start space-x-2">
+                <div className="grid grid-cols-2 gap-2 mt-2">
+                  {availablePermissions.map(permission => (
+                    <label key={permission.id} className="flex items-center space-x-2">
                       <input
                         type="checkbox"
-                        id={permission.id}
+                        checked={newUser.permissions.includes(permission.id)}
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            setNewUser({
+                              ...newUser,
+                              permissions: [...newUser.permissions, permission.id]
+                            });
+                          } else {
+                            setNewUser({
+                              ...newUser,
+                              permissions: newUser.permissions.filter(p => p !== permission.id)
+                            });
+                          }
+                        }}
+                        className="rounded"
+                      />
+                      <span className="text-sm">{permission.name}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+
+              <div className="flex space-x-4 pt-4 border-t">
+                <Button onClick={handleCreateUser} className="bg-blue-600 hover:bg-blue-700">
+                  Créer l'Utilisateur
+                </Button>
+                <Button variant="outline" onClick={() => setShowCreateForm(false)}>
+                  Annuler
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+      {/* Modal détails utilisateur */}
+      {showDetails && selectedUser && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <Card className="w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+            <CardHeader>
+              <div className="flex justify-between items-center">
+                <CardTitle>Détails de l'Utilisateur - {selectedUser.prenom} {selectedUser.nom}</CardTitle>
+                <Button variant="outline" size="sm" onClick={() => setShowDetails(false)}>
+                  Fermer
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-4">
+                  <h3 className="font-semibold text-lg">Informations Personnelles</h3>
+                  <div className="space-y-2">
+                    <div><strong>Nom complet:</strong> {selectedUser.prenom} {selectedUser.nom}</div>
+                    <div><strong>Email:</strong> {selectedUser.email}</div>
+                    {selectedUser.telephone && <div><strong>Téléphone:</strong> {selectedUser.telephone}</div>}
+                    <div><strong>Rôle:</strong> <Badge className={getRoleColor(selectedUser.role)}>{roles.find(r => r.id === selectedUser.role)?.name}</Badge></div>
+                    <div><strong>Statut:</strong> <Badge className={getStatusColor(selectedUser.statut)}>{selectedUser.statut}</Badge></div>
+                    <div><strong>Date de création:</strong> {new Date(selectedUser.dateCreation).toLocaleDateString('fr-FR')}</div>
+                    {selectedUser.derniereConnexion && <div><strong>Dernière connexion:</strong> {new Date(selectedUser.derniereConnexion).toLocaleString('fr-FR')}</div>}
+                  </div>
+                </div>
+                <div className="space-y-4">
+                  <h3 className="font-semibold text-lg">Permissions</h3>
+                  <div className="space-y-2">
+                    {selectedUser.permissions.includes('all') ? (
+                      <Badge variant="outline">Toutes les permissions</Badge>
+                    ) : (
+                      selectedUser.permissions.map(permission => {
+                        const permissionData = availablePermissions.find(p => p.id === permission);
+                        return (
+                          <Badge key={permission} variant="outline">{permissionData?.name || permission}</Badge>
+                        );
+                      })
+                    )}
+                  </div>
+                </div>
+              </div>
+              <div className="flex space-x-2 pt-4 border-t">
+                <Button onClick={() => {
+                  setEditingUser({ ...selectedUser });
+                  setShowEditForm(true);
+                }} className="bg-blue-600 hover:bg-blue-700">
+                  <Edit className="h-4 w-4 mr-2" />
+                  Modifier
+                </Button>
+                <Button variant="outline" onClick={() => resetUserPassword(selectedUser.id)}>
+                  <Key className="h-4 w-4 mr-2" />
+                  Réinitialiser le mot de passe
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+      {/* Modal édition utilisateur */}
+      {showEditForm && editingUser && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <Card className="w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+            <CardHeader>
+              <CardTitle>Modifier l'Utilisateur - {editingUser.prenom} {editingUser.nom}</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="editPrenom">Prénom</Label>
+                  <Input
+                    id="editPrenom"
+                    value={editingUser.prenom}
+                    onChange={(e) => setEditingUser({...editingUser, prenom: e.target.value})}
+                    className="mt-1"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="editNom">Nom</Label>
+                  <Input
+                    id="editNom"
+                    value={editingUser.nom}
+                    onChange={(e) => setEditingUser({...editingUser, nom: e.target.value})}
+                    className="mt-1"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="editEmail">Email</Label>
+                  <Input
+                    id="editEmail"
+                    type="email"
+                    value={editingUser.email}
+                    onChange={(e) => setEditingUser({...editingUser, email: e.target.value})}
+                    className="mt-1"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="editTelephone">Téléphone</Label>
+                  <Input
+                    id="editTelephone"
+                    value={editingUser.telephone || ''}
+                    onChange={(e) => setEditingUser({...editingUser, telephone: e.target.value})}
+                    className="mt-1"
+                  />
+                </div>
+                <div className="md:col-span-2">
+                  <Label htmlFor="editRole">Rôle</Label>
+                  <select
+                    id="editRole"
+                    value={editingUser.role}
+                    onChange={(e) => setEditingUser({...editingUser, role: e.target.value as User['role']})}
+                    className="w-full border border-gray-300 rounded-md px-3 py-2 mt-1"
+                  >
+                    {roles.map(role => (
+                      <option key={role.id} value={role.id}>{role.name}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <Label>Permissions</Label>
+                <div className="grid grid-cols-2 gap-2 mt-2">
+                  {availablePermissions.map(permission => (
+                    <label key={permission.id} className="flex items-center space-x-2">
+                      <input
+                        type="checkbox"
                         checked={editingUser.permissions.includes(permission.id)}
                         onChange={(e) => {
                           if (e.target.checked) {
@@ -561,170 +694,25 @@ const UsersManager = () => {
                             });
                           }
                         }}
-                        className="mt-1"
+                        className="rounded"
                       />
-                      <div>
-                        <label htmlFor={permission.id} className="font-medium text-sm">
-                          {permission.label}
-                        </label>
-                        <p className="text-xs text-gray-500">{permission.description}</p>
-                      </div>
-                    </div>
+                      <span className="text-sm">{permission.name}</span>
+                    </label>
                   ))}
                 </div>
               </div>
 
-              <div className="flex space-x-2">
-                <Button onClick={handleSaveUser} className="bg-blue-600 hover:bg-blue-700">
+              <div className="flex space-x-4 pt-4 border-t">
+                <Button onClick={handleEditUser} className="bg-blue-600 hover:bg-blue-700">
                   Sauvegarder
                 </Button>
-                <Button variant="outline" onClick={() => setShowEditModal(false)}>
+                <Button variant="outline" onClick={() => setEditingUser(null)}>
                   Annuler
                 </Button>
               </div>
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
-
-      {/* Modal de changement de mot de passe */}
-      <Dialog open={showPasswordModal} onOpenChange={setShowPasswordModal}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Changer le mot de passe</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div>
-              <Label>Nouveau mot de passe</Label>
-              <Input
-                type="password"
-                value={passwordData.newPassword}
-                onChange={(e) => setPasswordData({...passwordData, newPassword: e.target.value})}
-                placeholder="Minimum 6 caractères"
-              />
-            </div>
-            <div>
-              <Label>Confirmer le mot de passe</Label>
-              <Input
-                type="password"
-                value={passwordData.confirmPassword}
-                onChange={(e) => setPasswordData({...passwordData, confirmPassword: e.target.value})}
-                placeholder="Retapez le mot de passe"
-              />
-            </div>
-            <div className="flex space-x-2">
-              <Button onClick={handleSavePassword} className="bg-blue-600 hover:bg-blue-700">
-                Modifier
-              </Button>
-              <Button variant="outline" onClick={() => setShowPasswordModal(false)}>
-                Annuler
-              </Button>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
-
-      {/* Formulaire d'ajout d'utilisateur */}
-      {showAddForm && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Nouvel utilisateur</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="prenom">Prénom *</Label>
-                <Input
-                  id="prenom"
-                  value={newUser.prenom}
-                  onChange={(e) => setNewUser({...newUser, prenom: e.target.value})}
-                />
-              </div>
-              <div>
-                <Label htmlFor="nom">Nom *</Label>
-                <Input
-                  id="nom"
-                  value={newUser.nom}
-                  onChange={(e) => setNewUser({...newUser, nom: e.target.value})}
-                />
-              </div>
-              <div>
-                <Label htmlFor="email">Email *</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  value={newUser.email}
-                  onChange={(e) => setNewUser({...newUser, email: e.target.value})}
-                />
-              </div>
-              <div>
-                <Label htmlFor="telephone">Téléphone</Label>
-                <Input
-                  id="telephone"
-                  value={newUser.telephone}
-                  onChange={(e) => setNewUser({...newUser, telephone: e.target.value})}
-                />
-              </div>
-              <div>
-                <Label htmlFor="role">Rôle</Label>
-                <select
-                  id="role"
-                  value={newUser.role}
-                  onChange={(e) => setNewUser({...newUser, role: e.target.value as User['role']})}
-                  className="w-full border border-gray-300 rounded-md px-3 py-2"
-                >
-                  {roles.map(role => (
-                    <option key={role.value} value={role.value}>{role.label}</option>
-                  ))}
-                </select>
-              </div>
-            </div>
-
-            <div className="mt-6">
-              <Label>Permissions</Label>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
-                {permissions.map(permission => (
-                  <div key={permission.id} className="flex items-start space-x-2">
-                    <input
-                      type="checkbox"
-                      id={permission.id}
-                      checked={newUser.permissions.includes(permission.id)}
-                      onChange={(e) => {
-                        if (e.target.checked) {
-                          setNewUser({
-                            ...newUser,
-                            permissions: [...newUser.permissions, permission.id]
-                          });
-                        } else {
-                          setNewUser({
-                            ...newUser,
-                            permissions: newUser.permissions.filter(p => p !== permission.id)
-                          });
-                        }
-                      }}
-                      className="mt-1"
-                    />
-                    <div>
-                      <label htmlFor={permission.id} className="font-medium text-sm">
-                        {permission.label}
-                      </label>
-                      <p className="text-xs text-gray-500">{permission.description}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            <div className="flex space-x-4 mt-6">
-              <Button onClick={handleAddUser} className="bg-blue-600 hover:bg-blue-700">
-                Créer l'utilisateur
-              </Button>
-              <Button variant="outline" onClick={() => setShowAddForm(false)}>
-                Annuler
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        </div>
       )}
     </div>
   );

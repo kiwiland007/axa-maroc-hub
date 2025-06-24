@@ -1,30 +1,33 @@
 
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
-import { FileText, Plus, Eye, Edit, Download, Trash2, Send, Calculator, Users, DollarSign } from 'lucide-react';
+import { Textarea } from '@/components/ui/textarea';
+import { 
+  FileText, 
+  Plus, 
+  Search, 
+  Filter, 
+  Calendar,
+  Car,
+  Home,
+  Heart,
+  Shield,
+  Edit,
+  Trash2,
+  Eye,
+  Download,
+  Send,
+  CheckCircle,
+  Clock,
+  AlertCircle,
+  FileImage,
+  Printer
+} from 'lucide-react';
 import { toast } from 'sonner';
-
-interface Quote {
-  id: string;
-  clientName: string;
-  email: string;
-  phone: string;
-  productType: string;
-  status: 'draft' | 'sent' | 'accepted' | 'rejected';
-  amount: number;
-  validUntil: string;
-  createdAt: string;
-  description: string;
-  items: QuoteItem[];
-}
 
 interface QuoteItem {
   id: string;
@@ -34,161 +37,195 @@ interface QuoteItem {
   total: number;
 }
 
+interface Quote {
+  id: string;
+  clientName: string;
+  clientEmail: string;
+  clientPhone: string;
+  insuranceType: string;
+  status: 'brouillon' | 'envoye' | 'accepte' | 'refuse' | 'expire';
+  dateCreation: string;
+  dateExpiration: string;
+  items: QuoteItem[];
+  subtotal: number;
+  tax: number;
+  total: number;
+  notes?: string;
+  assignedTo?: string;
+}
+
 const QuotesManager = () => {
   const [quotes, setQuotes] = useState<Quote[]>([
     {
-      id: '1',
+      id: 'DEV-2023-001',
       clientName: 'Ahmed Benali',
-      email: 'ahmed.benali@email.com',
-      phone: '+212 6XX-XXX-XXX',
-      productType: 'Assurance Auto',
-      status: 'sent',
-      amount: 2500,
-      validUntil: '2024-02-15',
-      createdAt: '2024-01-15',
-      description: 'Assurance tous risques pour véhicule Renault Clio 2022',
+      clientEmail: 'ahmed.benali@email.com',
+      clientPhone: '+212 661234567',
+      insuranceType: 'Auto',
+      status: 'envoye',
+      dateCreation: '2023-12-15',
+      dateExpiration: '2024-01-15',
+      subtotal: 3000,
+      tax: 300,
+      total: 3300,
+      notes: 'Devis pour véhicule Dacia Logan',
+      assignedTo: 'agent1',
       items: [
-        { id: '1', description: 'Assurance tous risques', quantity: 1, unitPrice: 2000, total: 2000 },
-        { id: '2', description: 'Assistance dépannage 24h/7j', quantity: 1, unitPrice: 500, total: 500 }
+        {
+          id: '1',
+          description: 'Assurance Tous Risques',
+          quantity: 1,
+          unitPrice: 3000,
+          total: 3000
+        }
       ]
     },
     {
-      id: '2',
-      clientName: 'Fatima Alami',
-      email: 'fatima.alami@email.com',
-      phone: '+212 6XX-XXX-XXX',
-      productType: 'Assurance Habitation',
-      status: 'draft',
-      amount: 1800,
-      validUntil: '2024-02-20',
-      createdAt: '2024-01-18',
-      description: 'Assurance multirisque habitation pour appartement 120m²',
+      id: 'DEV-2023-002',
+      clientName: 'Fatima El Mansouri',
+      clientEmail: 'fatima.elmansouri@email.com',
+      clientPhone: '+212 662345678',
+      insuranceType: 'Habitation',
+      status: 'brouillon',
+      dateCreation: '2023-12-14',
+      dateExpiration: '2024-01-14',
+      subtotal: 2200,
+      tax: 220,
+      total: 2420,
+      notes: 'Devis assurance habitation appartement 80m²',
+      assignedTo: 'agent2',
       items: [
-        { id: '1', description: 'Multirisque habitation', quantity: 1, unitPrice: 1500, total: 1500 },
-        { id: '2', description: 'Garantie mobilier', quantity: 1, unitPrice: 300, total: 300 }
+        {
+          id: '1',
+          description: 'Assurance Habitation - Appartement',
+          quantity: 1,
+          unitPrice: 2200,
+          total: 2200
+        }
       ]
     }
   ]);
 
+  const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState('all');
   const [selectedQuote, setSelectedQuote] = useState<Quote | null>(null);
-  const [isNewQuoteModalOpen, setIsNewQuoteModalOpen] = useState(false);
-  const [isViewModalOpen, setIsViewModalOpen] = useState(false);
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [showDetails, setShowDetails] = useState(false);
+  const [showCreateForm, setShowCreateForm] = useState(false);
+  const [editingQuote, setEditingQuote] = useState<Quote | null>(null);
 
-  const [newQuote, setNewQuote] = useState<Partial<Quote>>({
+  const [newQuote, setNewQuote] = useState({
     clientName: '',
-    email: '',
-    phone: '',
-    productType: '',
-    amount: 0,
-    validUntil: '',
-    description: '',
-    items: []
+    clientEmail: '',
+    clientPhone: '',
+    insuranceType: '',
+    dateExpiration: '',
+    notes: '',
+    assignedTo: ''
   });
 
-  const [newItem, setNewItem] = useState<Partial<QuoteItem>>({
+  const [newItem, setNewItem] = useState({
     description: '',
     quantity: 1,
     unitPrice: 0
   });
 
+  const [quoteItems, setQuoteItems] = useState<QuoteItem[]>([]);
+
+  const agents = [
+    { id: 'agent1', name: 'Agent Commercial 1' },
+    { id: 'agent2', name: 'Agent Commercial 2' },
+    { id: 'agent3', name: 'Agent Commercial 3' }
+  ];
+
+  const filteredQuotes = quotes.filter(quote => {
+    const matchesSearch = 
+      quote.clientName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      quote.clientEmail.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      quote.id.toLowerCase().includes(searchTerm.toLowerCase());
+
+    const matchesStatus = statusFilter === 'all' || quote.status === statusFilter;
+
+    return matchesSearch && matchesStatus;
+  });
+
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'draft': return 'bg-gray-100 text-gray-800';
-      case 'sent': return 'bg-blue-100 text-blue-800';
-      case 'accepted': return 'bg-green-100 text-green-800';
-      case 'rejected': return 'bg-red-100 text-red-800';
+      case 'brouillon': return 'bg-gray-100 text-gray-800';
+      case 'envoye': return 'bg-blue-100 text-blue-800';
+      case 'accepte': return 'bg-green-100 text-green-800';
+      case 'refuse': return 'bg-red-100 text-red-800';
+      case 'expire': return 'bg-yellow-100 text-yellow-800';
       default: return 'bg-gray-100 text-gray-800';
     }
   };
 
-  const getStatusLabel = (status: string) => {
-    switch (status) {
-      case 'draft': return 'Brouillon';
-      case 'sent': return 'Envoyé';
-      case 'accepted': return 'Accepté';
-      case 'rejected': return 'Refusé';
-      default: return status;
+  const getInsuranceIcon = (type: string) => {
+    switch (type) {
+      case 'Auto': return <Car className="h-4 w-4" />;
+      case 'Habitation': return <Home className="h-4 w-4" />;
+      case 'Santé': return <Heart className="h-4 w-4" />;
+      case 'Prévoyance': return <Shield className="h-4 w-4" />;
+      default: return <Shield className="h-4 w-4" />;
     }
   };
 
-  const calculateTotal = (items: QuoteItem[]) => {
-    return items.reduce((sum, item) => sum + item.total, 0);
-  };
-
-  const addItemToNewQuote = () => {
-    if (!newItem.description || !newItem.quantity || !newItem.unitPrice) {
-      toast.error('Veuillez remplir tous les champs de l\'article');
+  const addItemToQuote = () => {
+    if (!newItem.description || newItem.unitPrice <= 0) {
+      toast.error('Veuillez remplir tous les champs de l\'item');
       return;
     }
 
     const item: QuoteItem = {
       id: Date.now().toString(),
-      description: newItem.description,
-      quantity: newItem.quantity,
-      unitPrice: newItem.unitPrice,
+      ...newItem,
       total: newItem.quantity * newItem.unitPrice
     };
 
-    const updatedItems = [...(newQuote.items || []), item];
-    setNewQuote({
-      ...newQuote,
-      items: updatedItems,
-      amount: calculateTotal(updatedItems)
-    });
-
+    setQuoteItems([...quoteItems, item]);
     setNewItem({ description: '', quantity: 1, unitPrice: 0 });
-    toast.success('Article ajouté au devis');
+    toast.success('Item ajouté au devis');
   };
 
-  const removeItemFromNewQuote = (itemId: string) => {
-    const updatedItems = (newQuote.items || []).filter(item => item.id !== itemId);
-    setNewQuote({
-      ...newQuote,
-      items: updatedItems,
-      amount: calculateTotal(updatedItems)
-    });
-    toast.success('Article supprimé du devis');
+  const removeItemFromQuote = (itemId: string) => {
+    setQuoteItems(quoteItems.filter(item => item.id !== itemId));
+    toast.success('Item supprimé du devis');
   };
 
-  const createQuote = () => {
-    if (!newQuote.clientName || !newQuote.email || !newQuote.productType || !newQuote.validUntil) {
-      toast.error('Veuillez remplir tous les champs obligatoires');
+  const calculateQuoteTotal = () => {
+    const subtotal = quoteItems.reduce((sum, item) => sum + item.total, 0);
+    const tax = subtotal * 0.1; // 10% tax
+    return { subtotal, tax, total: subtotal + tax };
+  };
+
+  const handleCreateQuote = () => {
+    if (!newQuote.clientName || !newQuote.clientEmail || !newQuote.insuranceType || quoteItems.length === 0) {
+      toast.error('Veuillez remplir tous les champs obligatoires et ajouter au moins un item');
       return;
     }
 
-    if (!newQuote.items || newQuote.items.length === 0) {
-      toast.error('Veuillez ajouter au moins un article au devis');
-      return;
-    }
-
+    const totals = calculateQuoteTotal();
     const quote: Quote = {
-      id: Date.now().toString(),
-      clientName: newQuote.clientName,
-      email: newQuote.email,
-      phone: newQuote.phone || '',
-      productType: newQuote.productType,
-      status: 'draft',
-      amount: newQuote.amount || 0,
-      validUntil: newQuote.validUntil,
-      createdAt: new Date().toISOString().split('T')[0],
-      description: newQuote.description || '',
-      items: newQuote.items
+      id: `DEV-${new Date().getFullYear()}-${String(quotes.length + 1).padStart(3, '0')}`,
+      ...newQuote,
+      status: 'brouillon',
+      dateCreation: new Date().toISOString().split('T')[0],
+      items: quoteItems,
+      ...totals
     };
 
     setQuotes([...quotes, quote]);
-    setIsNewQuoteModalOpen(false);
     setNewQuote({
       clientName: '',
-      email: '',
-      phone: '',
-      productType: '',
-      amount: 0,
-      validUntil: '',
-      description: '',
-      items: []
+      clientEmail: '',
+      clientPhone: '',
+      insuranceType: '',
+      dateExpiration: '',
+      notes: '',
+      assignedTo: ''
     });
-    toast.success('Devis créé avec succès !');
+    setQuoteItems([]);
+    setShowCreateForm(false);
+    toast.success('Devis créé avec succès');
   };
 
   const updateQuoteStatus = (quoteId: string, newStatus: Quote['status']) => {
@@ -199,419 +236,558 @@ const QuotesManager = () => {
   };
 
   const deleteQuote = (quoteId: string) => {
-    setQuotes(quotes.filter(quote => quote.id !== quoteId));
-    toast.success('Devis supprimé');
+    if (window.confirm('Êtes-vous sûr de vouloir supprimer ce devis ?')) {
+      setQuotes(quotes.filter(quote => quote.id !== quoteId));
+      toast.success('Devis supprimé avec succès');
+    }
   };
 
-  const sendQuote = (quoteId: string) => {
-    updateQuoteStatus(quoteId, 'sent');
-    toast.success('Devis envoyé au client');
+  const generatePDF = (quote: Quote) => {
+    // Simulation de génération PDF
+    const pdfContent = `
+      DEVIS ${quote.id}
+      
+      Client: ${quote.clientName}
+      Email: ${quote.clientEmail}
+      Téléphone: ${quote.clientPhone}
+      Type d'assurance: ${quote.insuranceType}
+      
+      Date de création: ${new Date(quote.dateCreation).toLocaleDateString('fr-FR')}
+      Date d'expiration: ${new Date(quote.dateExpiration).toLocaleDateString('fr-FR')}
+      
+      Items:
+      ${quote.items.map(item => 
+        `- ${item.description}: ${item.quantity} x ${item.unitPrice} DHS = ${item.total} DHS`
+      ).join('\n')}
+      
+      Sous-total: ${quote.subtotal} DHS
+      TVA (10%): ${quote.tax} DHS
+      Total: ${quote.total} DHS
+      
+      Notes: ${quote.notes || 'Aucune note'}
+    `;
+
+    // Créer un blob et le télécharger
+    const blob = new Blob([pdfContent], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `devis_${quote.id}.txt`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+
+    toast.success('Devis téléchargé en format PDF');
   };
 
-  const downloadQuote = (quote: Quote) => {
-    // Simulation du téléchargement PDF
-    toast.success(`Téléchargement du devis pour ${quote.clientName}`);
+  const sendQuote = (quote: Quote) => {
+    updateQuoteStatus(quote.id, 'envoye');
+    toast.success(`Devis envoyé à ${quote.clientEmail}`);
   };
 
-  const viewQuote = (quote: Quote) => {
-    setSelectedQuote(quote);
-    setIsViewModalOpen(true);
+  const quotesByStatus = {
+    brouillon: quotes.filter(q => q.status === 'brouillon').length,
+    envoye: quotes.filter(q => q.status === 'envoye').length,
+    accepte: quotes.filter(q => q.status === 'accepte').length,
+    refuse: quotes.filter(q => q.status === 'refuse').length,
+    expire: quotes.filter(q => q.status === 'expire').length
   };
 
-  const editQuote = (quote: Quote) => {
-    setSelectedQuote(quote);
-    setNewQuote(quote);
-    setIsEditModalOpen(true);
-  };
-
-  const stats = {
-    totalQuotes: quotes.length,
-    draftQuotes: quotes.filter(q => q.status === 'draft').length,
-    sentQuotes: quotes.filter(q => q.status === 'sent').length,
-    acceptedQuotes: quotes.filter(q => q.status === 'accepted').length,
-    totalValue: quotes.reduce((sum, quote) => sum + quote.amount, 0)
-  };
+  const totalQuoteValue = quotes.reduce((sum, quote) => sum + quote.total, 0);
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-2xl font-bold text-gray-800 mb-2">Gestion des Devis & Contrats</h2>
-          <p className="text-gray-600">Créez, gérez et suivez vos devis d'assurance</p>
-        </div>
-        <Button 
-          onClick={() => setIsNewQuoteModalOpen(true)}
-          className="bg-red-500 hover:bg-red-600"
-        >
-          <Plus className="h-4 w-4 mr-2" />
-          Nouveau Devis
-        </Button>
-      </div>
-
       {/* Statistiques */}
-      <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-6 gap-4">
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center space-x-2">
-              <FileText className="h-5 w-5 text-blue-500" />
+              <FileText className="h-6 w-6 text-blue-500" />
               <div>
-                <p className="text-sm text-gray-600">Total Devis</p>
-                <p className="text-2xl font-bold">{stats.totalQuotes}</p>
+                <div className="text-xl font-bold">{quotes.length}</div>
+                <div className="text-xs text-gray-600">Total Devis</div>
               </div>
             </div>
           </CardContent>
         </Card>
-
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center space-x-2">
-              <Edit className="h-5 w-5 text-gray-500" />
+              <Clock className="h-6 w-6 text-gray-500" />
               <div>
-                <p className="text-sm text-gray-600">Brouillons</p>
-                <p className="text-2xl font-bold">{stats.draftQuotes}</p>
+                <div className="text-xl font-bold">{quotesByStatus.brouillon}</div>
+                <div className="text-xs text-gray-600">Brouillons</div>
               </div>
             </div>
           </CardContent>
         </Card>
-
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center space-x-2">
-              <Send className="h-5 w-5 text-blue-500" />
+              <Send className="h-6 w-6 text-blue-500" />
               <div>
-                <p className="text-sm text-gray-600">Envoyés</p>
-                <p className="text-2xl font-bold">{stats.sentQuotes}</p>
+                <div className="text-xl font-bold">{quotesByStatus.envoye}</div>
+                <div className="text-xs text-gray-600">Envoyés</div>
               </div>
             </div>
           </CardContent>
         </Card>
-
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center space-x-2">
-              <Users className="h-5 w-5 text-green-500" />
+              <CheckCircle className="h-6 w-6 text-green-500" />
               <div>
-                <p className="text-sm text-gray-600">Acceptés</p>
-                <p className="text-2xl font-bold">{stats.acceptedQuotes}</p>
+                <div className="text-xl font-bold">{quotesByStatus.accepte}</div>
+                <div className="text-xs text-gray-600">Acceptés</div>
               </div>
             </div>
           </CardContent>
         </Card>
-
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center space-x-2">
-              <DollarSign className="h-5 w-5 text-yellow-500" />
+              <AlertCircle className="h-6 w-6 text-red-500" />
               <div>
-                <p className="text-sm text-gray-600">Valeur Totale</p>
-                <p className="text-2xl font-bold">{stats.totalValue.toLocaleString()} DH</p>
+                <div className="text-xl font-bold">{quotesByStatus.refuse}</div>
+                <div className="text-xs text-gray-600">Refusés</div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center space-x-2">
+              <FileText className="h-6 w-6 text-purple-500" />
+              <div>
+                <div className="text-lg font-bold">{totalQuoteValue.toLocaleString()} DHS</div>
+                <div className="text-xs text-gray-600">Valeur Totale</div>
               </div>
             </div>
           </CardContent>
         </Card>
       </div>
 
-      {/* Liste des devis */}
+      {/* Barre d'actions */}
       <Card>
         <CardHeader>
-          <CardTitle>Liste des Devis</CardTitle>
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center space-y-4 md:space-y-0">
+            <CardTitle className="flex items-center space-x-2">
+              <FileText className="h-5 w-5" />
+              <span>Gestion des Devis & Contrats</span>
+            </CardTitle>
+            <div className="flex space-x-2">
+              <Button onClick={() => setShowCreateForm(true)} className="bg-green-600 hover:bg-green-700">
+                <Plus className="h-4 w-4 mr-2" />
+                Nouveau Devis
+              </Button>
+            </div>
+          </div>
         </CardHeader>
         <CardContent>
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b">
-                  <th className="text-left p-2">Client</th>
-                  <th className="text-left p-2">Produit</th>
-                  <th className="text-left p-2">Montant</th>
-                  <th className="text-left p-2">Statut</th>
-                  <th className="text-left p-2">Validité</th>
-                  <th className="text-left p-2">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {quotes.map((quote) => (
-                  <tr key={quote.id} className="border-b hover:bg-gray-50">
-                    <td className="p-2">
-                      <div>
-                        <p className="font-medium">{quote.clientName}</p>
-                        <p className="text-sm text-gray-600">{quote.email}</p>
-                      </div>
-                    </td>
-                    <td className="p-2">{quote.productType}</td>
-                    <td className="p-2 font-semibold">{quote.amount.toLocaleString()} DH</td>
-                    <td className="p-2">
-                      <Badge className={getStatusColor(quote.status)}>
-                        {getStatusLabel(quote.status)}
-                      </Badge>
-                    </td>
-                    <td className="p-2">{quote.validUntil}</td>
-                    <td className="p-2">
-                      <div className="flex space-x-1">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => viewQuote(quote)}
-                        >
-                          <Eye className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => editQuote(quote)}
-                        >
-                          <Edit className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => downloadQuote(quote)}
-                        >
-                          <Download className="h-4 w-4" />
-                        </Button>
-                        {quote.status === 'draft' && (
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => sendQuote(quote.id)}
-                            className="text-blue-600"
-                          >
-                            <Send className="h-4 w-4" />
-                          </Button>
-                        )}
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => deleteQuote(quote.id)}
-                          className="text-red-600"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+          <div className="flex flex-col md:flex-row space-y-4 md:space-y-0 md:space-x-4 mb-6">
+            <div className="flex-1">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                <Input
+                  placeholder="Rechercher par nom client, email ou numéro..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-10"
+                />
+              </div>
+            </div>
+            <div className="flex items-center space-x-2">
+              <Filter className="h-4 w-4 text-gray-500" />
+              <select
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value)}
+                className="border border-gray-300 rounded-md px-3 py-2 text-sm"
+              >
+                <option value="all">Tous les statuts</option>
+                <option value="brouillon">Brouillons</option>
+                <option value="envoye">Envoyés</option>
+                <option value="accepte">Acceptés</option>
+                <option value="refuse">Refusés</option>
+                <option value="expire">Expirés</option>
+              </select>
+            </div>
           </div>
+
+          {/* Liste des devis */}
+          <div className="space-y-4">
+            {filteredQuotes.map((quote) => (
+              <div key={quote.id} className="border rounded-lg p-4 hover:shadow-md transition-shadow">
+                <div className="flex flex-col md:flex-row justify-between items-start md:items-center space-y-4 md:space-y-0">
+                  <div className="flex-1">
+                    <div className="flex items-center space-x-3 mb-2">
+                      <h3 className="font-semibold text-lg">{quote.id}</h3>
+                      <Badge className={getStatusColor(quote.status)}>
+                        {quote.status}
+                      </Badge>
+                      <div className="flex items-center space-x-1">
+                        {getInsuranceIcon(quote.insuranceType)}
+                        <span className="text-sm">{quote.insuranceType}</span>
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-2 text-sm text-gray-600 mb-2">
+                      <div><strong>Client:</strong> {quote.clientName}</div>
+                      <div><strong>Email:</strong> {quote.clientEmail}</div>
+                      <div><strong>Téléphone:</strong> {quote.clientPhone}</div>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-2 text-sm text-gray-600">
+                      <div><strong>Création:</strong> {new Date(quote.dateCreation).toLocaleDateString('fr-FR')}</div>
+                      <div><strong>Expiration:</strong> {new Date(quote.dateExpiration).toLocaleDateString('fr-FR')}</div>
+                      <div><strong>Montant:</strong> {quote.total.toLocaleString()} DHS</div>
+                    </div>
+                  </div>
+                  
+                  {/* Actions */}
+                  <div className="flex flex-wrap gap-2">
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      onClick={() => {
+                        setSelectedQuote(quote);
+                        setShowDetails(true);
+                      }}
+                    >
+                      <Eye className="h-4 w-4" />
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      onClick={() => generatePDF(quote)}
+                      className="text-purple-600 hover:text-purple-700"
+                    >
+                      <Download className="h-4 w-4" />
+                    </Button>
+                    {quote.status === 'brouillon' && (
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        onClick={() => sendQuote(quote)}
+                        className="text-blue-600 hover:text-blue-700"
+                      >
+                        <Send className="h-4 w-4" />
+                      </Button>
+                    )}
+                    <select
+                      value={quote.status}
+                      onChange={(e) => updateQuoteStatus(quote.id, e.target.value as Quote['status'])}
+                      className="text-xs border border-gray-300 rounded px-2 py-1"
+                    >
+                      <option value="brouillon">Brouillon</option>
+                      <option value="envoye">Envoyé</option>
+                      <option value="accepte">Accepté</option>
+                      <option value="refuse">Refusé</option>
+                      <option value="expire">Expiré</option>
+                    </select>
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      onClick={() => deleteQuote(quote.id)}
+                      className="text-red-600 hover:text-red-700"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {filteredQuotes.length === 0 && (
+            <div className="text-center py-8 text-gray-500">
+              Aucun devis trouvé
+            </div>
+          )}
         </CardContent>
       </Card>
 
-      {/* Modal Nouveau Devis */}
-      <Dialog open={isNewQuoteModalOpen} onOpenChange={setIsNewQuoteModalOpen}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Créer un Nouveau Devis</DialogTitle>
-          </DialogHeader>
-          
-          <div className="space-y-6">
-            <div className="grid grid-cols-2 gap-4">
+      {/* Modal création de devis */}
+      {showCreateForm && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 overflow-y-auto">
+          <Card className="w-full max-w-4xl max-h-[90vh] overflow-y-auto m-4">
+            <CardHeader>
+              <CardTitle>Créer un Nouveau Devis</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {/* Informations client */}
               <div>
-                <Label>Nom du client *</Label>
-                <Input
-                  value={newQuote.clientName || ''}
-                  onChange={(e) => setNewQuote({ ...newQuote, clientName: e.target.value })}
-                  placeholder="Nom complet du client"
+                <h3 className="font-semibold mb-4">Informations Client</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="clientName">Nom du client *</Label>
+                    <Input
+                      id="clientName"
+                      value={newQuote.clientName}
+                      onChange={(e) => setNewQuote({...newQuote, clientName: e.target.value})}
+                      className="mt-1"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="clientEmail">Email *</Label>
+                    <Input
+                      id="clientEmail"
+                      type="email"
+                      value={newQuote.clientEmail}
+                      onChange={(e) => setNewQuote({...newQuote, clientEmail: e.target.value})}
+                      className="mt-1"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="clientPhone">Téléphone</Label>
+                    <Input
+                      id="clientPhone"
+                      value={newQuote.clientPhone}
+                      onChange={(e) => setNewQuote({...newQuote, clientPhone: e.target.value})}
+                      className="mt-1"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="insuranceType">Type d'assurance *</Label>
+                    <select
+                      id="insuranceType"
+                      value={newQuote.insuranceType}
+                      onChange={(e) => setNewQuote({...newQuote, insuranceType: e.target.value})}
+                      className="w-full border border-gray-300 rounded-md px-3 py-2 mt-1"
+                    >
+                      <option value="">Sélectionner</option>
+                      <option value="Auto">Auto</option>
+                      <option value="Habitation">Habitation</option>
+                      <option value="Santé">Santé</option>
+                      <option value="Prévoyance">Prévoyance</option>
+                    </select>
+                  </div>
+                  <div>
+                    <Label htmlFor="dateExpiration">Date d'expiration</Label>
+                    <Input
+                      id="dateExpiration"
+                      type="date"
+                      value={newQuote.dateExpiration}
+                      onChange={(e) => setNewQuote({...newQuote, dateExpiration: e.target.value})}
+                      className="mt-1"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="assignedTo">Assigné à</Label>
+                    <select
+                      id="assignedTo"
+                      value={newQuote.assignedTo}
+                      onChange={(e) => setNewQuote({...newQuote, assignedTo: e.target.value})}
+                      className="w-full border border-gray-300 rounded-md px-3 py-2 mt-1"
+                    >
+                      <option value="">Non assigné</option>
+                      {agents.map(agent => (
+                        <option key={agent.id} value={agent.id}>{agent.name}</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              {/* Items du devis */}
+              <div>
+                <h3 className="font-semibold mb-4">Items du Devis</h3>
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+                  <div>
+                    <Label htmlFor="itemDescription">Description</Label>
+                    <Input
+                      id="itemDescription"
+                      value={newItem.description}
+                      onChange={(e) => setNewItem({...newItem, description: e.target.value})}
+                      placeholder="Ex: Assurance Tous Risques"
+                      className="mt-1"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="itemQuantity">Quantité</Label>
+                    <Input
+                      id="itemQuantity"
+                      type="number"
+                      value={newItem.quantity}
+                      onChange={(e) => setNewItem({...newItem, quantity: parseInt(e.target.value)})}
+                      className="mt-1"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="itemPrice">Prix unitaire (DHS)</Label>
+                    <Input
+                      id="itemPrice"
+                      type="number"
+                      value={newItem.unitPrice}
+                      onChange={(e) => setNewItem({...newItem, unitPrice: parseFloat(e.target.value)})}
+                      className="mt-1"
+                    />
+                  </div>
+                  <div className="flex items-end">
+                    <Button onClick={addItemToQuote} className="w-full">
+                      <Plus className="h-4 w-4 mr-2" />
+                      Ajouter
+                    </Button>
+                  </div>
+                </div>
+
+                {/* Liste des items */}
+                {quoteItems.length > 0 && (
+                  <div className="border rounded-lg p-4">
+                    <div className="space-y-2">
+                      {quoteItems.map((item) => (
+                        <div key={item.id} className="flex items-center justify-between bg-gray-50 p-2 rounded">
+                          <div className="flex-1">
+                            <span className="font-medium">{item.description}</span>
+                            <span className="text-sm text-gray-600 ml-2">
+                              {item.quantity} x {item.unitPrice} DHS = {item.total} DHS
+                            </span>
+                          </div>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => removeItemFromQuote(item.id)}
+                            className="text-red-600 hover:text-red-700"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                    <div className="mt-4 pt-4 border-t">
+                      <div className="space-y-1 text-sm">
+                        <div className="flex justify-between">
+                          <span>Sous-total:</span>
+                          <span>{calculateQuoteTotal().subtotal.toLocaleString()} DHS</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>TVA (10%):</span>
+                          <span>{calculateQuoteTotal().tax.toLocaleString()} DHS</span>
+                        </div>
+                        <div className="flex justify-between font-bold">
+                          <span>Total:</span>
+                          <span>{calculateQuoteTotal().total.toLocaleString()} DHS</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Notes */}
+              <div>
+                <Label htmlFor="notes">Notes</Label>
+                <Textarea
+                  id="notes"
+                  value={newQuote.notes}
+                  onChange={(e) => setNewQuote({...newQuote, notes: e.target.value})}
+                  rows={3}
+                  className="mt-1"
+                  placeholder="Notes additionnelles pour ce devis..."
                 />
               </div>
-              <div>
-                <Label>Email *</Label>
-                <Input
-                  type="email"
-                  value={newQuote.email || ''}
-                  onChange={(e) => setNewQuote({ ...newQuote, email: e.target.value })}
-                  placeholder="email@example.com"
-                />
+
+              <div className="flex space-x-4 pt-4 border-t">
+                <Button onClick={handleCreateQuote} className="bg-green-600 hover:bg-green-700">
+                  Créer le Devis
+                </Button>
+                <Button variant="outline" onClick={() => setShowCreateForm(false)}>
+                  Annuler
+                </Button>
               </div>
-            </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
 
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label>Téléphone</Label>
-                <Input
-                  value={newQuote.phone || ''}
-                  onChange={(e) => setNewQuote({ ...newQuote, phone: e.target.value })}
-                  placeholder="+212 6XX-XXX-XXX"
-                />
-              </div>
-              <div>
-                <Label>Type de produit *</Label>
-                <Select onValueChange={(value) => setNewQuote({ ...newQuote, productType: value })}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Sélectionner un produit" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Assurance Auto">Assurance Auto</SelectItem>
-                    <SelectItem value="Assurance Habitation">Assurance Habitation</SelectItem>
-                    <SelectItem value="Assurance Santé">Assurance Santé</SelectItem>
-                    <SelectItem value="Prévoyance">Prévoyance</SelectItem>
-                    <SelectItem value="Épargne & Retraite">Épargne & Retraite</SelectItem>
-                    <SelectItem value="Assurance Professionnelle">Assurance Professionnelle</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-
-            <div>
-              <Label>Valide jusqu'au *</Label>
-              <Input
-                type="date"
-                value={newQuote.validUntil || ''}
-                onChange={(e) => setNewQuote({ ...newQuote, validUntil: e.target.value })}
-              />
-            </div>
-
-            <div>
-              <Label>Description</Label>
-              <Textarea
-                value={newQuote.description || ''}
-                onChange={(e) => setNewQuote({ ...newQuote, description: e.target.value })}
-                placeholder="Description du devis..."
-                rows={3}
-              />
-            </div>
-
-            {/* Ajouter des articles */}
-            <div className="border-t pt-4">
-              <h4 className="font-medium mb-4">Articles du devis</h4>
-              
-              <div className="grid grid-cols-4 gap-4 mb-4">
-                <div>
-                  <Label>Description</Label>
-                  <Input
-                    value={newItem.description || ''}
-                    onChange={(e) => setNewItem({ ...newItem, description: e.target.value })}
-                    placeholder="Description de l'article"
-                  />
-                </div>
-                <div>
-                  <Label>Quantité</Label>
-                  <Input
-                    type="number"
-                    value={newItem.quantity || 1}
-                    onChange={(e) => setNewItem({ ...newItem, quantity: parseInt(e.target.value) })}
-                    min="1"
-                  />
-                </div>
-                <div>
-                  <Label>Prix unitaire (DH)</Label>
-                  <Input
-                    type="number"
-                    value={newItem.unitPrice || 0}
-                    onChange={(e) => setNewItem({ ...newItem, unitPrice: parseFloat(e.target.value) })}
-                    min="0"
-                    step="0.01"
-                  />
-                </div>
-                <div className="flex items-end">
-                  <Button onClick={addItemToNewQuote} className="w-full">
-                    <Plus className="h-4 w-4 mr-2" />
-                    Ajouter
+      {/* Modal détails devis */}
+      {showDetails && selectedQuote && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <Card className="w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+            <CardHeader>
+              <div className="flex justify-between items-center">
+                <CardTitle>Devis {selectedQuote.id}</CardTitle>
+                <div className="flex space-x-2">
+                  <Button onClick={() => generatePDF(selectedQuote)} variant="outline">
+                    <FileImage className="h-4 w-4 mr-2" />
+                    PDF
+                  </Button>
+                  <Button onClick={() => setShowDetails(false)} variant="outline">
+                    Fermer
                   </Button>
                 </div>
               </div>
-
-              {/* Liste des articles */}
-              {newQuote.items && newQuote.items.length > 0 && (
-                <div className="space-y-2">
-                  <h5 className="font-medium">Articles ajoutés:</h5>
-                  {newQuote.items.map((item) => (
-                    <div key={item.id} className="flex items-center justify-between bg-gray-50 p-3 rounded-lg">
-                      <div className="flex-1">
-                        <p className="font-medium">{item.description}</p>
-                        <p className="text-sm text-gray-600">
-                          {item.quantity} x {item.unitPrice.toLocaleString()} DH = {item.total.toLocaleString()} DH
-                        </p>
-                      </div>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => removeItemFromNewQuote(item.id)}
-                        className="text-red-600"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  ))}
-                  <div className="text-right">
-                    <p className="text-lg font-bold">
-                      Total: {newQuote.amount?.toLocaleString()} DH
-                    </p>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <h3 className="font-semibold mb-3">Informations Client</h3>
+                  <div className="space-y-2 text-sm">
+                    <div><strong>Nom:</strong> {selectedQuote.clientName}</div>
+                    <div><strong>Email:</strong> {selectedQuote.clientEmail}</div>
+                    <div><strong>Téléphone:</strong> {selectedQuote.clientPhone}</div>
+                    <div><strong>Type d'assurance:</strong> {selectedQuote.insuranceType}</div>
                   </div>
                 </div>
-              )}
-            </div>
-
-            <div className="flex justify-end space-x-2">
-              <Button variant="outline" onClick={() => setIsNewQuoteModalOpen(false)}>
-                Annuler
-              </Button>
-              <Button onClick={createQuote} className="bg-red-500 hover:bg-red-600">
-                Créer le Devis
-              </Button>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
-
-      {/* Modal Visualisation */}
-      <Dialog open={isViewModalOpen} onOpenChange={setIsViewModalOpen}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader>
-            <DialogTitle>Détails du Devis</DialogTitle>
-          </DialogHeader>
-          
-          {selectedQuote && (
-            <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <Label>Client</Label>
-                  <p className="font-medium">{selectedQuote.clientName}</p>
-                </div>
-                <div>
-                  <Label>Email</Label>
-                  <p>{selectedQuote.email}</p>
-                </div>
-                <div>
-                  <Label>Produit</Label>
-                  <p>{selectedQuote.productType}</p>
-                </div>
-                <div>
-                  <Label>Statut</Label>
-                  <Badge className={getStatusColor(selectedQuote.status)}>
-                    {getStatusLabel(selectedQuote.status)}
-                  </Badge>
+                  <h3 className="font-semibold mb-3">Détails du Devis</h3>
+                  <div className="space-y-2 text-sm">
+                    <div><strong>Statut:</strong> <Badge className={getStatusColor(selectedQuote.status)}>{selectedQuote.status}</Badge></div>
+                    <div><strong>Date de création:</strong> {new Date(selectedQuote.dateCreation).toLocaleDateString('fr-FR')}</div>
+                    <div><strong>Date d'expiration:</strong> {new Date(selectedQuote.dateExpiration).toLocaleDateString('fr-FR')}</div>
+                    <div><strong>Assigné à:</strong> {agents.find(a => a.id === selectedQuote.assignedTo)?.name || 'Non assigné'}</div>
+                  </div>
                 </div>
               </div>
-
-              {selectedQuote.description && (
-                <div>
-                  <Label>Description</Label>
-                  <p>{selectedQuote.description}</p>
-                </div>
-              )}
 
               <div>
-                <Label>Articles</Label>
-                <div className="space-y-2">
-                  {selectedQuote.items.map((item) => (
-                    <div key={item.id} className="flex justify-between bg-gray-50 p-2 rounded">
-                      <div>
-                        <p className="font-medium">{item.description}</p>
-                        <p className="text-sm text-gray-600">{item.quantity} x {item.unitPrice.toLocaleString()} DH</p>
-                      </div>
-                      <p className="font-medium">{item.total.toLocaleString()} DH</p>
-                    </div>
-                  ))}
-                  <div className="text-right">
-                    <p className="text-lg font-bold">Total: {selectedQuote.amount.toLocaleString()} DH</p>
-                  </div>
+                <h3 className="font-semibold mb-3">Items du Devis</h3>
+                <div className="border rounded-lg overflow-hidden">
+                  <table className="w-full">
+                    <thead className="bg-gray-50">
+                      <tr>
+                        <th className="text-left p-3">Description</th>
+                        <th className="text-right p-3">Qté</th>
+                        <th className="text-right p-3">Prix unitaire</th>
+                        <th className="text-right p-3">Total</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {selectedQuote.items.map((item) => (
+                        <tr key={item.id} className="border-t">
+                          <td className="p-3">{item.description}</td>
+                          <td className="p-3 text-right">{item.quantity}</td>
+                          <td className="p-3 text-right">{item.unitPrice.toLocaleString()} DHS</td>
+                          <td className="p-3 text-right font-medium">{item.total.toLocaleString()} DHS</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                    <tfoot className="bg-gray-50 border-t">
+                      <tr>
+                        <td colSpan={3} className="p-3 text-right font-medium">Sous-total:</td>
+                        <td className="p-3 text-right font-medium">{selectedQuote.subtotal.toLocaleString()} DHS</td>
+                      </tr>
+                      <tr>
+                        <td colSpan={3} className="p-3 text-right">TVA (10%):</td>
+                        <td className="p-3 text-right">{selectedQuote.tax.toLocaleString()} DHS</td>
+                      </tr>
+                      <tr>
+                        <td colSpan={3} className="p-3 text-right font-bold">Total:</td>
+                        <td className="p-3 text-right font-bold text-lg">{selectedQuote.total.toLocaleString()} DHS</td>
+                      </tr>
+                    </tfoot>
+                  </table>
                 </div>
               </div>
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
+
+              {selectedQuote.notes && (
+                <div>
+                  <h3 className="font-semibold mb-3">Notes</h3>
+                  <p className="bg-gray-50 p-3 rounded-lg">{selectedQuote.notes}</p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+      )}
     </div>
   );
 };

@@ -12,31 +12,22 @@ import { toast } from 'sonner';
 
 const ContentManager = () => {
   const [isEditing, setIsEditing] = useState(false);
-  const { content, updateContent, updateProduct, addProduct, removeProduct } = useContentStore();
+  const { content, updateContent } = useContentStore();
   const [editingContent, setEditingContent] = useState(content);
 
   const handleSave = async () => {
     try {
-      // Update all sections
-      updateContent('hero', editingContent.hero);
-      updateContent('about', editingContent.about);
-      updateContent('contact', editingContent.contact);
-      updateContent('legal', editingContent.legal);
+      console.log('Saving content changes...', editingContent);
       
-      // Update products - first remove all existing products
-      content.products.forEach(product => {
-        removeProduct(product.id);
-      });
-      
-      // Then add all products from editing content
-      editingContent.products.forEach(product => {
-        addProduct(product);
+      // Update all content sections
+      Object.keys(editingContent).forEach(key => {
+        updateContent(key as any, editingContent[key as keyof typeof editingContent]);
       });
 
       setIsEditing(false);
       toast.success('Contenu mis à jour avec succès !');
       
-      // Refresh the page to show changes
+      // Force reload to show changes
       setTimeout(() => {
         window.location.reload();
       }, 1000);
@@ -49,6 +40,7 @@ const ContentManager = () => {
   const handleCancel = () => {
     setEditingContent(content);
     setIsEditing(false);
+    toast.info('Modifications annulées');
   };
 
   const handleImageUpload = async (section: string, field: string, productId?: string) => {
@@ -60,10 +52,10 @@ const ContentManager = () => {
       if (file) {
         try {
           const reader = new FileReader();
-          reader.onload = async (e) => {
+          reader.onload = (e) => {
             const imageUrl = e.target?.result as string;
             
-            if (productId) {
+            if (productId && section === 'products') {
               setEditingContent(prev => ({
                 ...prev,
                 products: prev.products.map(p => 
@@ -99,13 +91,14 @@ const ContentManager = () => {
       description: 'Description du nouveau produit d\'assurance',
       icon: 'Shield',
       image: 'https://images.unsplash.com/photo-1560472354-b33ff0c44a43?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80',
-      features: ['Nouvelle fonctionnalité 1', 'Nouvelle fonctionnalité 2', 'Nouvelle fonctionnalité 3']
+      features: ['Nouvelle fonctionnalité 1', 'Nouvelle fonctionnalité 2']
     };
+    
     setEditingContent(prev => ({
       ...prev,
       products: [...prev.products, newProduct]
     }));
-    toast.success('Nouveau produit ajouté !');
+    toast.success('Nouveau produit ajouté ! N\'oubliez pas de sauvegarder.');
   };
 
   const removeProductFromEdit = (productId: string) => {
@@ -113,7 +106,7 @@ const ContentManager = () => {
       ...prev,
       products: prev.products.filter(p => p.id !== productId)
     }));
-    toast.success('Produit supprimé !');
+    toast.success('Produit supprimé ! N\'oubliez pas de sauvegarder.');
   };
 
   const updateProductInEdit = (productId: string, field: string, value: any) => {
@@ -158,19 +151,12 @@ const ContentManager = () => {
     }));
   };
 
-  const updateAboutSection = (field: string, value: string) => {
-    setEditingContent(prev => ({
-      ...prev,
-      about: { ...prev.about, [field]: value }
-    }));
-  };
-
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-bold text-gray-800 mb-2">Gestion du Contenu</h2>
-          <p className="text-gray-600">Modifiez le contenu et les images du site public en temps réel</p>
+          <p className="text-gray-600">Modifiez le contenu et les images du site public</p>
         </div>
         <div className="flex space-x-2">
           <Button 
@@ -295,7 +281,10 @@ const ContentManager = () => {
                 {isEditing ? (
                   <Input
                     value={editingContent.about.title}
-                    onChange={(e) => updateAboutSection('title', e.target.value)}
+                    onChange={(e) => setEditingContent(prev => ({
+                      ...prev,
+                      about: { ...prev.about, title: e.target.value }
+                    }))}
                     className="mt-2"
                     placeholder="Titre de la section À Propos"
                   />
@@ -309,7 +298,10 @@ const ContentManager = () => {
                 {isEditing ? (
                   <Input
                     value={editingContent.about.subtitle}
-                    onChange={(e) => updateAboutSection('subtitle', e.target.value)}
+                    onChange={(e) => setEditingContent(prev => ({
+                      ...prev,
+                      about: { ...prev.about, subtitle: e.target.value }
+                    }))}
                     className="mt-2"
                     placeholder="Sous-titre de la section À Propos"
                   />
@@ -323,7 +315,10 @@ const ContentManager = () => {
                 {isEditing ? (
                   <Textarea
                     value={editingContent.about.description}
-                    onChange={(e) => updateAboutSection('description', e.target.value)}
+                    onChange={(e) => setEditingContent(prev => ({
+                      ...prev,
+                      about: { ...prev.about, description: e.target.value }
+                    }))}
                     rows={4}
                     className="mt-2"
                     placeholder="Description complète de votre entreprise"
@@ -362,24 +357,6 @@ const ContentManager = () => {
                     </Button>
                   )}
                 </div>
-              </div>
-
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                {['experience', 'clients', 'satisfaction', 'response'].map((field) => (
-                  <div key={field}>
-                    <Label className="text-sm font-medium mb-2 capitalize">{field}</Label>
-                    {isEditing ? (
-                      <Input
-                        value={editingContent.about[field as keyof typeof editingContent.about]}
-                        onChange={(e) => updateAboutSection(field, e.target.value)}
-                        className="mt-2"
-                        placeholder={`Valeur pour ${field}`}
-                      />
-                    ) : (
-                      <p className="text-2xl font-bold mt-2 p-3 bg-gray-50 rounded-lg">{content.about[field as keyof typeof content.about]}</p>
-                    )}
-                  </div>
-                ))}
               </div>
             </CardContent>
           </Card>
@@ -420,13 +397,12 @@ const ContentManager = () => {
                       )}
                     </div>
                     
-                    {/* Product Image */}
                     <div>
                       <Label className="text-sm font-medium mb-2">Image du produit</Label>
                       <div className="flex items-center space-x-4 mt-2">
                         <div className="relative">
                           <img 
-                            src={product.image || 'https://images.unsplash.com/photo-1560472354-b33ff0c44a43?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80'} 
+                            src={product.image} 
                             alt={product.title} 
                             className="w-32 h-20 object-cover rounded-lg border"
                           />
@@ -666,7 +642,7 @@ const ContentManager = () => {
               <p className="font-medium">Mode Édition Actif</p>
             </div>
             <p className="text-sm text-red-700 mt-2">
-              Vous êtes en train de modifier le contenu. Cliquez sur "Sauvegarder" pour appliquer les changements sur le site public.
+              Modifications en cours. Cliquez sur "Sauvegarder" pour appliquer les changements.
             </p>
           </CardContent>
         </Card>

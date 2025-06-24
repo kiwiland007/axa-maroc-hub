@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -5,22 +6,22 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { 
   MessageSquare, 
+  UserPlus, 
+  Search, 
+  Filter, 
   Phone, 
   Mail, 
   Calendar,
-  Search,
-  Filter,
-  Plus,
+  Eye,
   Edit,
   Trash2,
-  Eye,
-  UserCheck,
-  TrendingUp,
+  CheckCircle,
   Clock,
-  CheckCircle
+  AlertCircle,
+  UserCheck,
+  Download
 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -31,14 +32,12 @@ interface Lead {
   email: string;
   telephone: string;
   typeAssurance: string;
-  statut: 'nouveau' | 'contacte' | 'en_cours' | 'convertit' | 'perdu';
-  source: string;
+  message: string;
+  statut: 'nouveau' | 'contacte' | 'qualifie' | 'converti' | 'perdu';
   dateCreation: string;
-  dernierContact: string;
-  assigneA: string;
-  notes: string;
-  priorite: 'basse' | 'moyenne' | 'haute';
-  valeurEstimee: number;
+  assignedTo?: string;
+  source: string;
+  priority: 'faible' | 'moyenne' | 'haute';
 }
 
 const LeadsManager = () => {
@@ -50,14 +49,12 @@ const LeadsManager = () => {
       email: 'ahmed.benali@email.com',
       telephone: '+212 661234567',
       typeAssurance: 'Auto',
+      message: 'Je souhaite une assurance pour ma nouvelle voiture',
       statut: 'nouveau',
+      dateCreation: '2023-12-15',
       source: 'Site web',
-      dateCreation: '2024-01-15',
-      dernierContact: '2024-01-15',
-      assigneA: 'agent1',
-      notes: 'Intéressé par assurance auto complète',
-      priorite: 'haute',
-      valeurEstimee: 3500
+      priority: 'haute',
+      assignedTo: 'agent1'
     },
     {
       id: '2',
@@ -66,42 +63,24 @@ const LeadsManager = () => {
       email: 'fatima.elmansouri@email.com',
       telephone: '+212 662345678',
       typeAssurance: 'Habitation',
+      message: 'Demande de devis pour assurance habitation',
       statut: 'contacte',
-      source: 'Référencement',
-      dateCreation: '2024-01-14',
-      dernierContact: '2024-01-16',
-      assigneA: 'agent2',
-      notes: 'Villa 200m² à assurer',
-      priorite: 'moyenne',
-      valeurEstimee: 2200
+      dateCreation: '2023-12-14',
+      source: 'Recommandation',
+      priority: 'moyenne',
+      assignedTo: 'agent2'
     }
   ]);
 
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
-  const [showLeadModal, setShowLeadModal] = useState(false);
-  const [editingLead, setEditingLead] = useState<Lead | null>(null);
-  const [showEditModal, setShowEditModal] = useState(false);
+  const [showDetails, setShowDetails] = useState(false);
 
   const agents = [
     { id: 'agent1', name: 'Agent Commercial 1' },
     { id: 'agent2', name: 'Agent Commercial 2' },
     { id: 'agent3', name: 'Agent Commercial 3' }
-  ];
-
-  const statusOptions = [
-    { value: 'nouveau', label: 'Nouveau', color: 'bg-blue-100 text-blue-800' },
-    { value: 'contacte', label: 'Contacté', color: 'bg-yellow-100 text-yellow-800' },
-    { value: 'en_cours', label: 'En cours', color: 'bg-orange-100 text-orange-800' },
-    { value: 'convertit', label: 'Converti', color: 'bg-green-100 text-green-800' },
-    { value: 'perdu', label: 'Perdu', color: 'bg-red-100 text-red-800' }
-  ];
-
-  const priorityOptions = [
-    { value: 'basse', label: 'Basse', color: 'bg-gray-100 text-gray-800' },
-    { value: 'moyenne', label: 'Moyenne', color: 'bg-blue-100 text-blue-800' },
-    { value: 'haute', label: 'Haute', color: 'bg-red-100 text-red-800' }
   ];
 
   const filteredLeads = leads.filter(lead => {
@@ -117,132 +96,163 @@ const LeadsManager = () => {
   });
 
   const getStatusColor = (status: string) => {
-    return statusOptions.find(s => s.value === status)?.color || 'bg-gray-100 text-gray-800';
+    switch (status) {
+      case 'nouveau': return 'bg-blue-100 text-blue-800';
+      case 'contacte': return 'bg-yellow-100 text-yellow-800';
+      case 'qualifie': return 'bg-purple-100 text-purple-800';
+      case 'converti': return 'bg-green-100 text-green-800';
+      case 'perdu': return 'bg-red-100 text-red-800';
+      default: return 'bg-gray-100 text-gray-800';
+    }
   };
 
   const getPriorityColor = (priority: string) => {
-    return priorityOptions.find(p => p.value === priority)?.color || 'bg-gray-100 text-gray-800';
+    switch (priority) {
+      case 'haute': return 'bg-red-100 text-red-800';
+      case 'moyenne': return 'bg-yellow-100 text-yellow-800';
+      case 'faible': return 'bg-green-100 text-green-800';
+      default: return 'bg-gray-100 text-gray-800';
+    }
   };
 
-  const handleViewLead = (lead: Lead) => {
-    setSelectedLead(lead);
-    setShowLeadModal(true);
-  };
-
-  const handleEditLead = (lead: Lead) => {
-    setEditingLead({ ...lead });
-    setShowEditModal(true);
-  };
-
-  const handleSaveLead = () => {
-    if (!editingLead) return;
-
+  const updateLeadStatus = (leadId: string, newStatus: Lead['statut']) => {
     setLeads(leads.map(lead => 
-      lead.id === editingLead.id ? editingLead : lead
+      lead.id === leadId ? { ...lead, statut: newStatus } : lead
     ));
-    setShowEditModal(false);
-    setEditingLead(null);
-    toast.success('Lead mis à jour avec succès');
+    toast.success('Statut mis à jour avec succès');
   };
 
-  const updateLeadStatus = (leadId: string, newStatus: string) => {
+  const assignLead = (leadId: string, agentId: string) => {
     setLeads(leads.map(lead => 
-      lead.id === leadId 
-        ? { ...lead, statut: newStatus as Lead['statut'], dernierContact: new Date().toISOString().split('T')[0] }
-        : lead
+      lead.id === leadId ? { ...lead, assignedTo: agentId } : lead
     ));
-    toast.success('Statut mis à jour');
-  };
-
-  const addNote = (leadId: string, note: string) => {
-    setLeads(leads.map(lead => 
-      lead.id === leadId 
-        ? { ...lead, notes: lead.notes + '\n' + new Date().toLocaleDateString() + ': ' + note }
-        : lead
-    ));
-    toast.success('Note ajoutée');
+    toast.success('Lead assigné avec succès');
   };
 
   const deleteLead = (leadId: string) => {
     if (window.confirm('Êtes-vous sûr de vouloir supprimer ce lead ?')) {
-      setLeads(leads.filter(l => l.id !== leadId));
-      toast.success('Lead supprimé');
+      setLeads(leads.filter(lead => lead.id !== leadId));
+      toast.success('Lead supprimé avec succès');
     }
   };
 
+  const callLead = (phone: string) => {
+    window.open(`tel:${phone}`);
+    toast.info('Appel initié');
+  };
+
+  const emailLead = (email: string) => {
+    window.open(`mailto:${email}`);
+    toast.info('Client email ouvert');
+  };
+
   const convertToClient = (leadId: string) => {
-    updateLeadStatus(leadId, 'convertit');
+    updateLeadStatus(leadId, 'converti');
     toast.success('Lead converti en client !');
   };
 
-  const totalLeads = leads.length;
-  const nouveauxLeads = leads.filter(l => l.statut === 'nouveau').length;
-  const leadsEnCours = leads.filter(l => l.statut === 'en_cours').length;
-  const tauxConversion = Math.round((leads.filter(l => l.statut === 'convertit').length / totalLeads) * 100);
+  const exportLeads = () => {
+    const csvContent = "data:text/csv;charset=utf-8," + 
+      "Nom,Prénom,Email,Téléphone,Type Assurance,Statut,Date Création,Priorité\n" +
+      filteredLeads.map(lead => 
+        `${lead.nom},${lead.prenom},${lead.email},${lead.telephone},${lead.typeAssurance},${lead.statut},${lead.dateCreation},${lead.priority}`
+      ).join("\n");
+
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", "leads_export.csv");
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  const leadsByStatus = {
+    nouveau: leads.filter(l => l.statut === 'nouveau').length,
+    contacte: leads.filter(l => l.statut === 'contacte').length,
+    qualifie: leads.filter(l => l.statut === 'qualifie').length,
+    converti: leads.filter(l => l.statut === 'converti').length,
+    perdu: leads.filter(l => l.statut === 'perdu').length
+  };
 
   return (
     <div className="space-y-6">
       {/* Statistiques */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
         <Card>
-          <CardContent className="p-6">
+          <CardContent className="p-4">
             <div className="flex items-center space-x-2">
-              <MessageSquare className="h-8 w-8 text-blue-500" />
+              <AlertCircle className="h-6 w-6 text-blue-500" />
               <div>
-                <div className="text-2xl font-bold">{totalLeads}</div>
-                <div className="text-sm text-gray-600">Total Leads</div>
+                <div className="text-xl font-bold">{leadsByStatus.nouveau}</div>
+                <div className="text-xs text-gray-600">Nouveaux</div>
               </div>
             </div>
           </CardContent>
         </Card>
-
         <Card>
-          <CardContent className="p-6">
+          <CardContent className="p-4">
             <div className="flex items-center space-x-2">
-              <Clock className="h-8 w-8 text-orange-500" />
+              <Clock className="h-6 w-6 text-yellow-500" />
               <div>
-                <div className="text-2xl font-bold">{nouveauxLeads}</div>
-                <div className="text-sm text-gray-600">Nouveaux</div>
+                <div className="text-xl font-bold">{leadsByStatus.contacte}</div>
+                <div className="text-xs text-gray-600">Contactés</div>
               </div>
             </div>
           </CardContent>
         </Card>
-
         <Card>
-          <CardContent className="p-6">
+          <CardContent className="p-4">
             <div className="flex items-center space-x-2">
-              <TrendingUp className="h-8 w-8 text-green-500" />
+              <Eye className="h-6 w-6 text-purple-500" />
               <div>
-                <div className="text-2xl font-bold">{leadsEnCours}</div>
-                <div className="text-sm text-gray-600">En cours</div>
+                <div className="text-xl font-bold">{leadsByStatus.qualifie}</div>
+                <div className="text-xs text-gray-600">Qualifiés</div>
               </div>
             </div>
           </CardContent>
         </Card>
-
         <Card>
-          <CardContent className="p-6">
+          <CardContent className="p-4">
             <div className="flex items-center space-x-2">
-              <CheckCircle className="h-8 w-8 text-purple-500" />
+              <CheckCircle className="h-6 w-6 text-green-500" />
               <div>
-                <div className="text-2xl font-bold">{tauxConversion}%</div>
-                <div className="text-sm text-gray-600">Taux conversion</div>
+                <div className="text-xl font-bold">{leadsByStatus.converti}</div>
+                <div className="text-xs text-gray-600">Convertis</div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center space-x-2">
+              <Trash2 className="h-6 w-6 text-red-500" />
+              <div>
+                <div className="text-xl font-bold">{leadsByStatus.perdu}</div>
+                <div className="text-xs text-gray-600">Perdus</div>
               </div>
             </div>
           </CardContent>
         </Card>
       </div>
 
-      {/* Gestion des leads */}
+      {/* Barre d'actions */}
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center space-x-2">
-            <MessageSquare className="h-5 w-5" />
-            <span>Gestion des Leads</span>
-          </CardTitle>
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center space-y-4 md:space-y-0">
+            <CardTitle className="flex items-center space-x-2">
+              <MessageSquare className="h-5 w-5" />
+              <span>Gestion des Leads</span>
+            </CardTitle>
+            <div className="flex space-x-2">
+              <Button variant="outline" onClick={exportLeads}>
+                <Download className="h-4 w-4 mr-2" />
+                Exporter
+              </Button>
+            </div>
+          </div>
         </CardHeader>
         <CardContent>
-          {/* Filtres et recherche */}
           <div className="flex flex-col md:flex-row space-y-4 md:space-y-0 md:space-x-4 mb-6">
             <div className="flex-1">
               <div className="relative">
@@ -263,9 +273,11 @@ const LeadsManager = () => {
                 className="border border-gray-300 rounded-md px-3 py-2 text-sm"
               >
                 <option value="all">Tous les statuts</option>
-                {statusOptions.map(status => (
-                  <option key={status.value} value={status.value}>{status.label}</option>
-                ))}
+                <option value="nouveau">Nouveaux</option>
+                <option value="contacte">Contactés</option>
+                <option value="qualifie">Qualifiés</option>
+                <option value="converti">Convertis</option>
+                <option value="perdu">Perdus</option>
               </select>
             </div>
           </div>
@@ -274,21 +286,25 @@ const LeadsManager = () => {
           <div className="space-y-4">
             {filteredLeads.map((lead) => (
               <div key={lead.id} className="border rounded-lg p-4 hover:shadow-md transition-shadow">
-                <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center space-y-4 lg:space-y-0">
+                <div className="flex flex-col md:flex-row justify-between items-start md:items-center space-y-4 md:space-y-0">
                   <div className="flex-1">
                     <div className="flex items-center space-x-3 mb-2">
                       <h3 className="font-semibold text-lg">
                         {lead.prenom} {lead.nom}
                       </h3>
                       <Badge className={getStatusColor(lead.statut)}>
-                        {statusOptions.find(s => s.value === lead.statut)?.label}
+                        {lead.statut}
                       </Badge>
-                      <Badge className={getPriorityColor(lead.priorite)}>
-                        {priorityOptions.find(p => p.value === lead.priorite)?.label}
+                      <Badge className={getPriorityColor(lead.priority)}>
+                        {lead.priority}
                       </Badge>
+                      {lead.assignedTo && (
+                        <Badge variant="outline">
+                          {agents.find(a => a.id === lead.assignedTo)?.name || 'Non assigné'}
+                        </Badge>
+                      )}
                     </div>
-                    
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2 text-sm text-gray-600 mb-3">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-2 text-sm text-gray-600 mb-2">
                       <div className="flex items-center space-x-2">
                         <Mail className="h-4 w-4" />
                         <span>{lead.email}</span>
@@ -299,52 +315,68 @@ const LeadsManager = () => {
                       </div>
                       <div className="flex items-center space-x-2">
                         <Calendar className="h-4 w-4" />
-                        <span>Créé le {new Date(lead.dateCreation).toLocaleDateString('fr-FR')}</span>
+                        <span>{new Date(lead.dateCreation).toLocaleDateString('fr-FR')}</span>
                       </div>
                     </div>
-
-                    <div className="flex flex-wrap gap-2 text-xs">
-                      <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded">
-                        {lead.typeAssurance}
-                      </span>
-                      <span className="bg-gray-100 text-gray-800 px-2 py-1 rounded">
-                        {lead.source}
-                      </span>
-                      <span className="bg-green-100 text-green-800 px-2 py-1 rounded">
-                        {lead.valeurEstimee} DHS
-                      </span>
-                      {lead.assigneA && (
-                        <span className="bg-purple-100 text-purple-800 px-2 py-1 rounded">
-                          {agents.find(a => a.id === lead.assigneA)?.name}
-                        </span>
-                      )}
+                    <div className="text-sm">
+                      <span className="font-medium">Type:</span> {lead.typeAssurance} | 
+                      <span className="font-medium ml-2">Source:</span> {lead.source}
                     </div>
-
-                    {lead.notes && (
-                      <div className="mt-2 text-sm text-gray-600 bg-gray-50 p-2 rounded">
-                        <strong>Notes:</strong> {lead.notes.split('\n').slice(-1)[0]}
-                      </div>
-                    )}
+                    <p className="text-sm text-gray-600 mt-2 italic">{lead.message}</p>
                   </div>
-
+                  
+                  {/* Actions rapides */}
                   <div className="flex flex-wrap gap-2">
-                    <Button variant="outline" size="sm" onClick={() => handleViewLead(lead)}>
-                      <Eye className="h-4 w-4" />
-                    </Button>
-                    <Button variant="outline" size="sm" onClick={() => handleEditLead(lead)}>
-                      <Edit className="h-4 w-4" />
-                    </Button>
                     <Button 
                       variant="outline" 
-                      size="sm"
-                      onClick={() => convertToClient(lead.id)}
+                      size="sm" 
+                      onClick={() => callLead(lead.telephone)}
                       className="text-green-600 hover:text-green-700"
                     >
-                      <UserCheck className="h-4 w-4" />
+                      <Phone className="h-4 w-4" />
                     </Button>
                     <Button 
                       variant="outline" 
-                      size="sm"
+                      size="sm" 
+                      onClick={() => emailLead(lead.email)}
+                      className="text-blue-600 hover:text-blue-700"
+                    >
+                      <Mail className="h-4 w-4" />
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      onClick={() => {
+                        setSelectedLead(lead);
+                        setShowDetails(true);
+                      }}
+                    >
+                      <Eye className="h-4 w-4" />
+                    </Button>
+                    <select
+                      value={lead.statut}
+                      onChange={(e) => updateLeadStatus(lead.id, e.target.value as Lead['statut'])}
+                      className="text-xs border border-gray-300 rounded px-2 py-1"
+                    >
+                      <option value="nouveau">Nouveau</option>
+                      <option value="contacte">Contacté</option>
+                      <option value="qualifie">Qualifié</option>
+                      <option value="converti">Converti</option>
+                      <option value="perdu">Perdu</option>
+                    </select>
+                    {lead.statut !== 'converti' && (
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        onClick={() => convertToClient(lead.id)}
+                        className="text-purple-600 hover:text-purple-700"
+                      >
+                        <UserCheck className="h-4 w-4" />
+                      </Button>
+                    )}
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
                       onClick={() => deleteLead(lead.id)}
                       className="text-red-600 hover:text-red-700"
                     >
@@ -364,18 +396,18 @@ const LeadsManager = () => {
         </CardContent>
       </Card>
 
-      {/* Modal de visualisation */}
-      <Dialog open={showLeadModal} onOpenChange={setShowLeadModal}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader>
-            <DialogTitle>Détails du Lead</DialogTitle>
-          </DialogHeader>
-          {selectedLead && (
-            <div className="space-y-4">
+      {/* Modal détails lead */}
+      {showDetails && selectedLead && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <Card className="w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+            <CardHeader>
+              <CardTitle>Détails du Lead - {selectedLead.prenom} {selectedLead.nom}</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <Label>Nom complet</Label>
-                  <p className="font-semibold">{selectedLead.prenom} {selectedLead.nom}</p>
+                  <p className="font-medium">{selectedLead.prenom} {selectedLead.nom}</p>
                 </div>
                 <div>
                   <Label>Email</Label>
@@ -392,136 +424,62 @@ const LeadsManager = () => {
                 <div>
                   <Label>Statut</Label>
                   <Badge className={getStatusColor(selectedLead.statut)}>
-                    {statusOptions.find(s => s.value === selectedLead.statut)?.label}
+                    {selectedLead.statut}
                   </Badge>
                 </div>
                 <div>
                   <Label>Priorité</Label>
-                  <Badge className={getPriorityColor(selectedLead.priorite)}>
-                    {priorityOptions.find(p => p.value === selectedLead.priorite)?.label}
+                  <Badge className={getPriorityColor(selectedLead.priority)}>
+                    {selectedLead.priority}
                   </Badge>
                 </div>
-              </div>
-              <div>
-                <Label>Notes</Label>
-                <div className="bg-gray-50 p-3 rounded mt-1">
-                  {selectedLead.notes || 'Aucune note'}
-                </div>
-              </div>
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
-
-      {/* Modal d'édition */}
-      <Dialog open={showEditModal} onOpenChange={setShowEditModal}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader>
-            <DialogTitle>Modifier le Lead</DialogTitle>
-          </DialogHeader>
-          {editingLead && (
-            <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <Label>Prénom</Label>
-                  <Input
-                    value={editingLead.prenom}
-                    onChange={(e) => setEditingLead({...editingLead, prenom: e.target.value})}
-                  />
+                  <Label>Source</Label>
+                  <p>{selectedLead.source}</p>
                 </div>
                 <div>
-                  <Label>Nom</Label>
-                  <Input
-                    value={editingLead.nom}
-                    onChange={(e) => setEditingLead({...editingLead, nom: e.target.value})}
-                  />
-                </div>
-                <div>
-                  <Label>Email</Label>
-                  <Input
-                    value={editingLead.email}
-                    onChange={(e) => setEditingLead({...editingLead, email: e.target.value})}
-                  />
-                </div>
-                <div>
-                  <Label>Téléphone</Label>
-                  <Input
-                    value={editingLead.telephone}
-                    onChange={(e) => setEditingLead({...editingLead, telephone: e.target.value})}
-                  />
-                </div>
-                <div>
-                  <Label>Statut</Label>
-                  <select
-                    value={editingLead.statut}
-                    onChange={(e) => setEditingLead({...editingLead, statut: e.target.value as Lead['statut']})}
-                    className="w-full border border-gray-300 rounded-md px-3 py-2"
-                  >
-                    {statusOptions.map(status => (
-                      <option key={status.value} value={status.value}>{status.label}</option>
-                    ))}
-                  </select>
-                </div>
-                <div>
-                  <Label>Priorité</Label>
-                  <select
-                    value={editingLead.priorite}
-                    onChange={(e) => setEditingLead({...editingLead, priorite: e.target.value as Lead['priorite']})}
-                    className="w-full border border-gray-300 rounded-md px-3 py-2"
-                  >
-                    {priorityOptions.map(priority => (
-                      <option key={priority.value} value={priority.value}>{priority.label}</option>
-                    ))}
-                  </select>
+                  <Label>Date de création</Label>
+                  <p>{new Date(selectedLead.dateCreation).toLocaleDateString('fr-FR')}</p>
                 </div>
               </div>
               <div>
-                <Label>Notes</Label>
-                <Textarea
-                  value={editingLead.notes}
-                  onChange={(e) => setEditingLead({...editingLead, notes: e.target.value})}
-                  rows={3}
-                />
+                <Label>Message</Label>
+                <p className="bg-gray-50 p-3 rounded-lg">{selectedLead.message}</p>
               </div>
-              <div className="flex space-x-2">
-                <Button onClick={handleSaveLead} className="bg-blue-600 hover:bg-blue-700">
-                  Sauvegarder
+              <div>
+                <Label>Assigner à un agent</Label>
+                <select
+                  value={selectedLead.assignedTo || ''}
+                  onChange={(e) => assignLead(selectedLead.id, e.target.value)}
+                  className="w-full border border-gray-300 rounded-md px-3 py-2"
+                >
+                  <option value="">Non assigné</option>
+                  {agents.map(agent => (
+                    <option key={agent.id} value={agent.id}>{agent.name}</option>
+                  ))}
+                </select>
+              </div>
+              <div className="flex space-x-2 pt-4">
+                <Button onClick={() => callLead(selectedLead.telephone)} className="bg-green-600 hover:bg-green-700">
+                  <Phone className="h-4 w-4 mr-2" />
+                  Appeler
                 </Button>
-                <Button variant="outline" onClick={() => setShowEditModal(false)}>
-                  Annuler
+                <Button onClick={() => emailLead(selectedLead.email)} variant="outline">
+                  <Mail className="h-4 w-4 mr-2" />
+                  Email
+                </Button>
+                <Button onClick={() => convertToClient(selectedLead.id)} className="bg-purple-600 hover:bg-purple-700">
+                  <UserCheck className="h-4 w-4 mr-2" />
+                  Convertir
+                </Button>
+                <Button variant="outline" onClick={() => setShowDetails(false)}>
+                  Fermer
                 </Button>
               </div>
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
-
-      {/* Actions rapides */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Actions Rapides</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <Button className="bg-blue-600 hover:bg-blue-700">
-              <Plus className="h-4 w-4 mr-2" />
-              Nouveau Lead
-            </Button>
-            <Button variant="outline">
-              <Mail className="h-4 w-4 mr-2" />
-              Email de masse
-            </Button>
-            <Button variant="outline">
-              <Phone className="h-4 w-4 mr-2" />
-              Campagne d'appels
-            </Button>
-            <Button variant="outline">
-              <TrendingUp className="h-4 w-4 mr-2" />
-              Rapport leads
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+            </CardContent>
+          </Card>
+        </div>
+      )}
     </div>
   );
 };
