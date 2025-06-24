@@ -88,7 +88,7 @@ const UsersManager = () => {
     prenom: '',
     email: '',
     telephone: '',
-    role: 'agent' as const,
+    role: 'agent' as User['role'],
     permissions: [] as string[]
   });
 
