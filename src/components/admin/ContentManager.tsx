@@ -16,28 +16,55 @@ const ContentManager = () => {
 
   const handleSave = async () => {
     try {
-      console.log('Saving all content changes...', editingContent);
+      console.log('Début de la sauvegarde du contenu...', editingContent);
       
-      // Sauvegarder chaque section individuellement
-      const sections = ['hero', 'about', 'products', 'contact', 'company', 'legal', 'emergency'] as const;
+      // Validation des données requises
+      if (!editingContent.hero?.title || !editingContent.hero?.subtitle) {
+        toast.error('Les champs titre et sous-titre de la section héro sont obligatoires');
+        return;
+      }
+
+      if (!editingContent.about?.title || !editingContent.about?.description) {
+        toast.error('Les champs titre et description de la section À propos sont obligatoires');
+        return;
+      }
+
+      // Sauvegarder chaque section avec validation
+      const sectionsToUpdate = [
+        { key: 'hero', data: editingContent.hero },
+        { key: 'about', data: editingContent.about },
+        { key: 'products', data: editingContent.products },
+        { key: 'contact', data: editingContent.contact },
+        { key: 'company', data: editingContent.company }
+      ];
+
+      // Ajouter les sections conditionnelles si elles existent
+      if (editingContent.emergency) {
+        sectionsToUpdate.push({ key: 'emergency', data: editingContent.emergency });
+      }
       
-      for (const section of sections) {
-        if (editingContent[section]) {
-          console.log(`Updating ${section}:`, editingContent[section]);
-          updateContent(section, editingContent[section]);
+      if (editingContent.legal) {
+        sectionsToUpdate.push({ key: 'legal', data: editingContent.legal });
+      }
+
+      // Sauvegarder chaque section
+      for (const section of sectionsToUpdate) {
+        if (section.data) {
+          console.log(`Mise à jour de la section ${section.key}:`, section.data);
+          updateContent(section.key as keyof typeof content, section.data);
         }
       }
 
       setIsEditing(false);
-      toast.success('Tout le contenu a été mis à jour avec succès !');
+      toast.success('Contenu sauvegardé avec succès !');
       
-      // Forcer le rechargement pour afficher les changements
+      // Rafraîchir les données après sauvegarde
       setTimeout(() => {
-        window.location.reload();
-      }, 1500);
+        setEditingContent(content);
+      }, 500);
     } catch (error) {
       console.error('Erreur lors de la sauvegarde:', error);
-      toast.error('Erreur lors de la sauvegarde. Veuillez réessayer.');
+      toast.error('Erreur lors de la sauvegarde. Veuillez vérifier vos données et réessayer.');
     }
   };
 
@@ -55,6 +82,12 @@ const ContentManager = () => {
       const file = (e.target as HTMLInputElement).files?.[0];
       if (file) {
         try {
+          // Vérifier la taille du fichier (max 2MB)
+          if (file.size > 2 * 1024 * 1024) {
+            toast.error('L\'image est trop grande. Taille maximum : 2MB');
+            return;
+          }
+
           const reader = new FileReader();
           reader.onload = (e) => {
             const imageUrl = e.target?.result as string;
@@ -155,6 +188,21 @@ const ContentManager = () => {
     }));
   };
 
+  // Initialiser les sections manquantes si nécessaire
+  const ensureEmergencySection = () => {
+    if (!editingContent.emergency) {
+      setEditingContent(prev => ({
+        ...prev,
+        emergency: {
+          title: 'Urgence Sinistre 24h/7j',
+          description: 'En cas de sinistre, contactez-nous immédiatement pour une prise en charge rapide',
+          phone: '+212 661 234 567',
+          instructions: 'Appelez immédiatement ce numéro en cas d\'accident ou de sinistre. Notre équipe d\'urgence est disponible 24h/24.'
+        }
+      }));
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -207,27 +255,30 @@ const ContentManager = () => {
             </CardHeader>
             <CardContent className="space-y-6">
               <div>
-                <Label className="text-sm font-medium mb-2">Titre Principal</Label>
+                <Label className="text-sm font-medium mb-2">Titre Principal *</Label>
                 {isEditing ? (
                   <Input
-                    value={editingContent.hero.title}
+                    value={editingContent.hero?.title || ''}
                     onChange={(e) => setEditingContent(prev => ({
                       ...prev,
                       hero: { ...prev.hero, title: e.target.value }
                     }))}
                     className="mt-2"
                     placeholder="Titre principal de la section héro"
+                    required
                   />
                 ) : (
-                  <p className="text-lg font-semibold text-gray-800 mt-2 p-3 bg-gray-50 rounded-lg">{content.hero.title}</p>
+                  <p className="text-lg font-semibold text-gray-800 mt-2 p-3 bg-gray-50 rounded-lg">
+                    {content.hero?.title || 'Titre non défini'}
+                  </p>
                 )}
               </div>
 
               <div>
-                <Label className="text-sm font-medium mb-2">Sous-titre</Label>
+                <Label className="text-sm font-medium mb-2">Sous-titre *</Label>
                 {isEditing ? (
                   <Textarea
-                    value={editingContent.hero.subtitle}
+                    value={editingContent.hero?.subtitle || ''}
                     onChange={(e) => setEditingContent(prev => ({
                       ...prev,
                       hero: { ...prev.hero, subtitle: e.target.value }
@@ -235,9 +286,12 @@ const ContentManager = () => {
                     rows={3}
                     className="mt-2"
                     placeholder="Description sous le titre principal"
+                    required
                   />
                 ) : (
-                  <p className="text-gray-600 mt-2 p-3 bg-gray-50 rounded-lg">{content.hero.subtitle}</p>
+                  <p className="text-gray-600 mt-2 p-3 bg-gray-50 rounded-lg">
+                    {content.hero?.subtitle || 'Sous-titre non défini'}
+                  </p>
                 )}
               </div>
 
@@ -246,7 +300,7 @@ const ContentManager = () => {
                 <div className="flex items-center space-x-4 mt-2">
                   <div className="relative">
                     <img 
-                      src={editingContent.hero.backgroundImage} 
+                      src={editingContent.hero?.backgroundImage || 'https://images.unsplash.com/photo-1560472354-b33ff0c44a43?ixlib=rb-4.0.3&auto=format&fit=crop&w=1926&q=80'} 
                       alt="Background" 
                       className="w-40 h-24 object-cover rounded-lg border"
                     />
@@ -282,19 +336,22 @@ const ContentManager = () => {
             </CardHeader>
             <CardContent className="space-y-6">
               <div>
-                <Label className="text-sm font-medium mb-2">Titre</Label>
+                <Label className="text-sm font-medium mb-2">Titre *</Label>
                 {isEditing ? (
                   <Input
-                    value={editingContent.about.title}
+                    value={editingContent.about?.title || ''}
                     onChange={(e) => setEditingContent(prev => ({
                       ...prev,
                       about: { ...prev.about, title: e.target.value }
                     }))}
                     className="mt-2"
                     placeholder="Titre de la section À Propos"
+                    required
                   />
                 ) : (
-                  <p className="font-semibold mt-2 p-3 bg-gray-50 rounded-lg">{content.about.title}</p>
+                  <p className="font-semibold mt-2 p-3 bg-gray-50 rounded-lg">
+                    {content.about?.title || 'Titre non défini'}
+                  </p>
                 )}
               </div>
 
@@ -302,7 +359,7 @@ const ContentManager = () => {
                 <Label className="text-sm font-medium mb-2">Sous-titre</Label>
                 {isEditing ? (
                   <Input
-                    value={editingContent.about.subtitle}
+                    value={editingContent.about?.subtitle || ''}
                     onChange={(e) => setEditingContent(prev => ({
                       ...prev,
                       about: { ...prev.about, subtitle: e.target.value }
@@ -311,15 +368,17 @@ const ContentManager = () => {
                     placeholder="Sous-titre de la section À Propos"
                   />
                 ) : (
-                  <p className="text-red-500 mt-2 p-3 bg-gray-50 rounded-lg">{content.about.subtitle}</p>
+                  <p className="text-red-500 mt-2 p-3 bg-gray-50 rounded-lg">
+                    {content.about?.subtitle || 'Sous-titre non défini'}
+                  </p>
                 )}
               </div>
 
               <div>
-                <Label className="text-sm font-medium mb-2">Description principale</Label>
+                <Label className="text-sm font-medium mb-2">Description principale *</Label>
                 {isEditing ? (
                   <Textarea
-                    value={editingContent.about.description}
+                    value={editingContent.about?.description || ''}
                     onChange={(e) => setEditingContent(prev => ({
                       ...prev,
                       about: { ...prev.about, description: e.target.value }
@@ -327,9 +386,12 @@ const ContentManager = () => {
                     rows={4}
                     className="mt-2"
                     placeholder="Description complète de votre entreprise"
+                    required
                   />
                 ) : (
-                  <p className="text-gray-600 mt-2 p-3 bg-gray-50 rounded-lg">{content.about.description}</p>
+                  <p className="text-gray-600 mt-2 p-3 bg-gray-50 rounded-lg">
+                    {content.about?.description || 'Description non définie'}
+                  </p>
                 )}
               </div>
 
@@ -338,7 +400,7 @@ const ContentManager = () => {
                 <div className="flex items-center space-x-4 mt-2">
                   <div className="relative">
                     <img 
-                      src={editingContent.about.image || 'https://images.unsplash.com/photo-1560472354-b33ff0c44a43?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80'} 
+                      src={editingContent.about?.image || 'https://images.unsplash.com/photo-1560472354-b33ff0c44a43?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80'} 
                       alt="About" 
                       className="w-40 h-24 object-cover rounded-lg border"
                     />
@@ -360,6 +422,73 @@ const ContentManager = () => {
                       <Upload className="h-4 w-4" />
                       <span>Changer l'image</span>
                     </Button>
+                  )}
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label className="text-sm font-medium mb-2">Années d'expérience</Label>
+                  {isEditing ? (
+                    <Input
+                      value={editingContent.about?.experience || ''}
+                      onChange={(e) => setEditingContent(prev => ({
+                        ...prev,
+                        about: { ...prev.about, experience: e.target.value }
+                      }))}
+                      className="mt-2"
+                      placeholder="Ex: 20+ ans"
+                    />
+                  ) : (
+                    <p className="text-gray-600 mt-2 p-3 bg-gray-50 rounded-lg">{content.about?.experience}</p>
+                  )}
+                </div>
+                <div>
+                  <Label className="text-sm font-medium mb-2">Nombre de clients</Label>
+                  {isEditing ? (
+                    <Input
+                      value={editingContent.about?.clients || ''}
+                      onChange={(e) => setEditingContent(prev => ({
+                        ...prev,
+                        about: { ...prev.about, clients: e.target.value }
+                      }))}
+                      className="mt-2"
+                      placeholder="Ex: 5000+"
+                    />
+                  ) : (
+                    <p className="text-gray-600 mt-2 p-3 bg-gray-50 rounded-lg">{content.about?.clients}</p>
+                  )}
+                </div>
+                <div>
+                  <Label className="text-sm font-medium mb-2">Satisfaction</Label>
+                  {isEditing ? (
+                    <Input
+                      value={editingContent.about?.satisfaction || ''}
+                      onChange={(e) => setEditingContent(prev => ({
+                        ...prev,
+                        about: { ...prev.about, satisfaction: e.target.value }
+                      }))}
+                      className="mt-2"
+                      placeholder="Ex: 98%"
+                    />
+                  ) : (
+                    <p className="text-gray-600 mt-2 p-3 bg-gray-50 rounded-lg">{content.about?.satisfaction}</p>
+                  )}
+                </div>
+                <div>
+                  <Label className="text-sm font-medium mb-2">Délai de réponse</Label>
+                  {isEditing ? (
+                    <Input
+                      value={editingContent.about?.response || ''}
+                      onChange={(e) => setEditingContent(prev => ({
+                        ...prev,
+                        about: { ...prev.about, response: e.target.value }
+                      }))}
+                      className="mt-2"
+                      placeholder="Ex: 24h"
+                    />
+                  ) : (
+                    <p className="text-gray-600 mt-2 p-3 bg-gray-50 rounded-lg">{content.about?.response}</p>
                   )}
                 </div>
               </div>
@@ -385,7 +514,7 @@ const ContentManager = () => {
             </CardHeader>
             <CardContent>
               <div className="space-y-8">
-                {editingContent.products.map((product, index) => (
+                {editingContent.products?.map((product, index) => (
                   <div key={product.id} className="border-2 border-gray-200 rounded-xl p-6 space-y-6 hover:border-red-300 transition-colors">
                     <div className="flex items-center justify-between">
                       <h4 className="font-bold text-xl text-gray-800">Produit {index + 1}: {product.title}</h4>
@@ -436,13 +565,14 @@ const ContentManager = () => {
                     
                     <div className="grid md:grid-cols-2 gap-6">
                       <div>
-                        <Label className="text-sm font-medium mb-2">Titre du Produit</Label>
+                        <Label className="text-sm font-medium mb-2">Titre du Produit *</Label>
                         {isEditing ? (
                           <Input
                             value={product.title}
                             onChange={(e) => updateProductInEdit(product.id, 'title', e.target.value)}
                             className="mt-2"
                             placeholder="Ex: Assurance Auto"
+                            required
                           />
                         ) : (
                           <p className="mt-2 p-3 bg-gray-50 rounded-lg font-semibold">{product.title}</p>
@@ -450,7 +580,7 @@ const ContentManager = () => {
                       </div>
 
                       <div>
-                        <Label className="text-sm font-medium mb-2">Description</Label>
+                        <Label className="text-sm font-medium mb-2">Description *</Label>
                         {isEditing ? (
                           <Textarea
                             value={product.description}
@@ -458,6 +588,7 @@ const ContentManager = () => {
                             className="mt-2"
                             placeholder="Description courte du produit"
                             rows={2}
+                            required
                           />
                         ) : (
                           <p className="mt-2 p-3 bg-gray-50 rounded-lg">{product.description}</p>
@@ -495,7 +626,7 @@ const ContentManager = () => {
                         )}
                       </div>
                       <div className="space-y-3">
-                        {product.features.map((feature, featureIndex) => (
+                        {product.features?.map((feature, featureIndex) => (
                           <div key={featureIndex} className="flex items-center space-x-2">
                             {isEditing ? (
                               <>
@@ -538,11 +669,17 @@ const ContentManager = () => {
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="grid md:grid-cols-2 gap-4">
-                {Object.entries(editingContent.contact).map(([key, value]) => (
+                {Object.entries(editingContent.contact || {}).map(([key, value]) => (
                   <div key={key}>
-                    <Label className="text-sm font-medium mb-2 capitalize">{key}</Label>
+                    <Label className="text-sm font-medium mb-2 capitalize">
+                      {key === 'name' && 'Nom de l\'entreprise'}
+                      {key === 'phone' && 'Téléphone'}
+                      {key === 'email' && 'Email'}
+                      {key === 'address' && 'Adresse'}
+                      {key === 'hours' && 'Horaires'}
+                    </Label>
                     {isEditing ? (
-                      key === 'address' ? (
+                      key === 'address' || key === 'hours' ? (
                         <Textarea
                           value={value as string}
                           onChange={(e) => setEditingContent(prev => ({
@@ -588,7 +725,13 @@ const ContentManager = () => {
                     value={editingContent.emergency?.title || 'Urgence Sinistre 24h/7j'}
                     onChange={(e) => setEditingContent(prev => ({
                       ...prev,
-                      emergency: { ...prev.emergency, title: e.target.value }
+                      emergency: { 
+                        ...prev.emergency,
+                        title: e.target.value,
+                        description: prev.emergency?.description || 'En cas de sinistre, contactez-nous immédiatement',
+                        phone: prev.emergency?.phone || '+212 661 234 567',
+                        instructions: prev.emergency?.instructions || 'Appelez immédiatement ce numéro'
+                      }
                     }))}
                     className="mt-2"
                     placeholder="Titre de la section urgence"
@@ -607,7 +750,13 @@ const ContentManager = () => {
                     value={editingContent.emergency?.description || 'En cas de sinistre, contactez-nous immédiatement'}
                     onChange={(e) => setEditingContent(prev => ({
                       ...prev,
-                      emergency: { ...prev.emergency, description: e.target.value }
+                      emergency: { 
+                        ...prev.emergency,
+                        title: prev.emergency?.title || 'Urgence Sinistre 24h/7j',
+                        description: e.target.value,
+                        phone: prev.emergency?.phone || '+212 661 234 567',
+                        instructions: prev.emergency?.instructions || 'Appelez immédiatement ce numéro'
+                      }
                     }))}
                     rows={3}
                     className="mt-2"
@@ -627,7 +776,13 @@ const ContentManager = () => {
                     value={editingContent.emergency?.phone || '+212 661 234 567'}
                     onChange={(e) => setEditingContent(prev => ({
                       ...prev,
-                      emergency: { ...prev.emergency, phone: e.target.value }
+                      emergency: { 
+                        ...prev.emergency,
+                        title: prev.emergency?.title || 'Urgence Sinistre 24h/7j',
+                        description: prev.emergency?.description || 'En cas de sinistre, contactez-nous immédiatement',
+                        phone: e.target.value,
+                        instructions: prev.emergency?.instructions || 'Appelez immédiatement ce numéro'
+                      }
                     }))}
                     className="mt-2"
                     placeholder="Numéro de téléphone d'urgence"
@@ -646,7 +801,13 @@ const ContentManager = () => {
                     value={editingContent.emergency?.instructions || 'Appelez immédiatement ce numéro en cas d\'accident ou de sinistre'}
                     onChange={(e) => setEditingContent(prev => ({
                       ...prev,
-                      emergency: { ...prev.emergency, instructions: e.target.value }
+                      emergency: { 
+                        ...prev.emergency,
+                        title: prev.emergency?.title || 'Urgence Sinistre 24h/7j',
+                        description: prev.emergency?.description || 'En cas de sinistre, contactez-nous immédiatement',
+                        phone: prev.emergency?.phone || '+212 661 234 567',
+                        instructions: e.target.value
+                      }
                     }))}
                     rows={2}
                     className="mt-2"
@@ -675,17 +836,24 @@ const ContentManager = () => {
                 <Label className="text-sm font-medium mb-2">Mentions Légales</Label>
                 {isEditing ? (
                   <Textarea
-                    value={editingContent.legal.mentions}
+                    value={editingContent.legal?.mentions || ''}
                     onChange={(e) => setEditingContent(prev => ({
                       ...prev,
-                      legal: { ...prev.legal, mentions: e.target.value }
+                      legal: { 
+                        ...prev.legal,
+                        mentions: e.target.value,
+                        privacy: prev.legal?.privacy || '',
+                        terms: prev.legal?.terms || ''
+                      }
                     }))}
                     rows={4}
                     className="mt-2"
                     placeholder="Informations légales de l'entreprise..."
                   />
                 ) : (
-                  <p className="text-gray-600 mt-2 p-3 bg-gray-50 rounded-lg">{content.legal.mentions}</p>
+                  <p className="text-gray-600 mt-2 p-3 bg-gray-50 rounded-lg">
+                    {content.legal?.mentions || 'Mentions légales non définies'}
+                  </p>
                 )}
               </div>
 
@@ -693,17 +861,24 @@ const ContentManager = () => {
                 <Label className="text-sm font-medium mb-2">Politique de Confidentialité</Label>
                 {isEditing ? (
                   <Textarea
-                    value={editingContent.legal.privacy}
+                    value={editingContent.legal?.privacy || ''}
                     onChange={(e) => setEditingContent(prev => ({
                       ...prev,
-                      legal: { ...prev.legal, privacy: e.target.value }
+                      legal: { 
+                        ...prev.legal,
+                        mentions: prev.legal?.mentions || '',
+                        privacy: e.target.value,
+                        terms: prev.legal?.terms || ''
+                      }
                     }))}
                     rows={4}
                     className="mt-2"
                     placeholder="Politique de protection des données personnelles..."
                   />
                 ) : (
-                  <p className="text-gray-600 mt-2 p-3 bg-gray-50 rounded-lg">{content.legal.privacy}</p>
+                  <p className="text-gray-600 mt-2 p-3 bg-gray-50 rounded-lg">
+                    {content.legal?.privacy || 'Politique de confidentialité non définie'}
+                  </p>
                 )}
               </div>
 
@@ -711,17 +886,24 @@ const ContentManager = () => {
                 <Label className="text-sm font-medium mb-2">Conditions Générales</Label>
                 {isEditing ? (
                   <Textarea
-                    value={editingContent.legal.terms}
+                    value={editingContent.legal?.terms || ''}
                     onChange={(e) => setEditingContent(prev => ({
                       ...prev,
-                      legal: { ...prev.legal, terms: e.target.value }
+                      legal: { 
+                        ...prev.legal,
+                        mentions: prev.legal?.mentions || '',
+                        privacy: prev.legal?.privacy || '',
+                        terms: e.target.value
+                      }
                     }))}
                     rows={4}
                     className="mt-2"
                     placeholder="Conditions générales d'utilisation..."
                   />
                 ) : (
-                  <p className="text-gray-600 mt-2 p-3 bg-gray-50 rounded-lg">{content.legal.terms}</p>
+                  <p className="text-gray-600 mt-2 p-3 bg-gray-50 rounded-lg">
+                    {content.legal?.terms || 'Conditions générales non définies'}
+                  </p>
                 )}
               </div>
             </CardContent>
