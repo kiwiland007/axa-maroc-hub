@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -6,7 +5,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import { Edit, Save, Upload, Eye, Plus, Trash2, Package, Image as ImageIcon, FileText } from 'lucide-react';
+import { Edit, Save, Upload, Eye, Plus, Trash2, Package, Image as ImageIcon, FileText, AlertTriangle } from 'lucide-react';
 import { useContentStore } from '@/hooks/useContentStore';
 import { toast } from 'sonner';
 
@@ -17,23 +16,28 @@ const ContentManager = () => {
 
   const handleSave = async () => {
     try {
-      console.log('Saving content changes...', editingContent);
+      console.log('Saving all content changes...', editingContent);
       
-      // Update all content sections
-      Object.keys(editingContent).forEach(key => {
-        updateContent(key as any, editingContent[key as keyof typeof editingContent]);
-      });
+      // Sauvegarder chaque section individuellement
+      const sections = ['hero', 'about', 'products', 'contact', 'company', 'legal', 'emergency'] as const;
+      
+      for (const section of sections) {
+        if (editingContent[section]) {
+          console.log(`Updating ${section}:`, editingContent[section]);
+          updateContent(section, editingContent[section]);
+        }
+      }
 
       setIsEditing(false);
-      toast.success('Contenu mis à jour avec succès !');
+      toast.success('Tout le contenu a été mis à jour avec succès !');
       
-      // Force reload to show changes
+      // Forcer le rechargement pour afficher les changements
       setTimeout(() => {
         window.location.reload();
-      }, 1000);
+      }, 1500);
     } catch (error) {
       console.error('Erreur lors de la sauvegarde:', error);
-      toast.error('Erreur lors de la sauvegarde du contenu');
+      toast.error('Erreur lors de la sauvegarde. Veuillez réessayer.');
     }
   };
 
@@ -187,11 +191,12 @@ const ContentManager = () => {
       </div>
 
       <Tabs defaultValue="hero" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-5">
+        <TabsList className="grid w-full grid-cols-6">
           <TabsTrigger value="hero">Section Héro</TabsTrigger>
           <TabsTrigger value="about">À Propos</TabsTrigger>
           <TabsTrigger value="products">Produits</TabsTrigger>
           <TabsTrigger value="contact">Contact</TabsTrigger>
+          <TabsTrigger value="emergency">Urgence Sinistre</TabsTrigger>
           <TabsTrigger value="legal">Mentions Légales</TabsTrigger>
         </TabsList>
 
@@ -562,6 +567,96 @@ const ContentManager = () => {
                     )}
                   </div>
                 ))}
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="emergency" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center space-x-2">
+                <AlertTriangle className="h-5 w-5 text-red-500" />
+                <span>Section Urgence Sinistre</span>
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div>
+                <Label className="text-sm font-medium mb-2">Titre</Label>
+                {isEditing ? (
+                  <Input
+                    value={editingContent.emergency?.title || 'Urgence Sinistre 24h/7j'}
+                    onChange={(e) => setEditingContent(prev => ({
+                      ...prev,
+                      emergency: { ...prev.emergency, title: e.target.value }
+                    }))}
+                    className="mt-2"
+                    placeholder="Titre de la section urgence"
+                  />
+                ) : (
+                  <p className="font-semibold mt-2 p-3 bg-gray-50 rounded-lg">
+                    {content.emergency?.title || 'Urgence Sinistre 24h/7j'}
+                  </p>
+                )}
+              </div>
+
+              <div>
+                <Label className="text-sm font-medium mb-2">Description</Label>
+                {isEditing ? (
+                  <Textarea
+                    value={editingContent.emergency?.description || 'En cas de sinistre, contactez-nous immédiatement'}
+                    onChange={(e) => setEditingContent(prev => ({
+                      ...prev,
+                      emergency: { ...prev.emergency, description: e.target.value }
+                    }))}
+                    rows={3}
+                    className="mt-2"
+                    placeholder="Description du service d'urgence"
+                  />
+                ) : (
+                  <p className="text-gray-600 mt-2 p-3 bg-gray-50 rounded-lg">
+                    {content.emergency?.description || 'En cas de sinistre, contactez-nous immédiatement'}
+                  </p>
+                )}
+              </div>
+
+              <div>
+                <Label className="text-sm font-medium mb-2">Numéro d'urgence</Label>
+                {isEditing ? (
+                  <Input
+                    value={editingContent.emergency?.phone || '+212 661 234 567'}
+                    onChange={(e) => setEditingContent(prev => ({
+                      ...prev,
+                      emergency: { ...prev.emergency, phone: e.target.value }
+                    }))}
+                    className="mt-2"
+                    placeholder="Numéro de téléphone d'urgence"
+                  />
+                ) : (
+                  <p className="text-lg font-bold text-red-600 mt-2 p-3 bg-gray-50 rounded-lg">
+                    {content.emergency?.phone || '+212 661 234 567'}
+                  </p>
+                )}
+              </div>
+
+              <div>
+                <Label className="text-sm font-medium mb-2">Instructions</Label>
+                {isEditing ? (
+                  <Textarea
+                    value={editingContent.emergency?.instructions || 'Appelez immédiatement ce numéro en cas d\'accident ou de sinistre'}
+                    onChange={(e) => setEditingContent(prev => ({
+                      ...prev,
+                      emergency: { ...prev.emergency, instructions: e.target.value }
+                    }))}
+                    rows={2}
+                    className="mt-2"
+                    placeholder="Instructions pour l'urgence"
+                  />
+                ) : (
+                  <p className="text-gray-600 mt-2 p-3 bg-gray-50 rounded-lg">
+                    {content.emergency?.instructions || 'Appelez immédiatement ce numéro en cas d\'accident ou de sinistre'}
+                  </p>
+                )}
               </div>
             </CardContent>
           </Card>

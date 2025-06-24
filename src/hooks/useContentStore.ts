@@ -38,6 +38,12 @@ interface Content {
     email: string;
     address: string;
   };
+  emergency?: {
+    title: string;
+    description: string;
+    phone: string;
+    instructions: string;
+  };
   legal: {
     mentions: string;
     privacy: string;
@@ -135,6 +141,12 @@ export const useContentStore = create<ContentStore>()(
           phone: "+212 523 456 789",
           email: "contact@moumentechnique.ma",
           address: "Casablanca, Maroc"
+        },
+        emergency: {
+          title: "Urgence Sinistre 24h/7j",
+          description: "En cas de sinistre, contactez-nous immédiatement pour une prise en charge rapide",
+          phone: "+212 661 234 567",
+          instructions: "Appelez immédiatement ce numéro en cas d'accident ou de sinistre. Notre équipe d'urgence est disponible 24h/24."
         },
         legal: {
           mentions: "MOUMEN TECHNIQUE ET PREVOYANCE - Agent Général d'Assurance agréé par l'ACAPS sous le numéro AG-XXXX. Siège social : 123 Boulevard Mohammed V, Casablanca, Maroc. RC : XXXX. Patente : XXXX. IF : XXXX. CNSS : XXXX.",

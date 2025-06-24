@@ -36,8 +36,6 @@ interface FormState {
     // Étape 3 - Historique conducteur
     permisConduire: string;
     dateObtentionPermis: string;
-    nombreSinistres: string;
-    bonusMalus: string;
     assurancePrecedente: string;
     // Étape 4 - Documents et confirmation
     documentsUploaded: File[];
@@ -84,8 +82,6 @@ const initialState: FormState = {
     usageVehicule: '',
     permisConduire: '',
     dateObtentionPermis: '',
-    nombreSinistres: '0',
-    bonusMalus: '50',
     assurancePrecedente: '',
     documentsUploaded: [],
     accepteConditions: false,
@@ -164,6 +160,26 @@ const AffaireNouvelleComplete: React.FC = () => {
     { value: 'oujda', label: 'Oujda' },
     { value: 'kenitra', label: 'Kénitra' },
     { value: 'tetouan', label: 'Tétouan' },
+    { value: 'sale', label: 'Salé' },
+    { value: 'temara', label: 'Témara' },
+    { value: 'mohammedia', label: 'Mohammedia' },
+    { value: 'el-jadida', label: 'El Jadida' },
+    { value: 'beni-mellal', label: 'Béni Mellal' },
+    { value: 'nador', label: 'Nador' },
+    { value: 'khouribga', label: 'Khouribga' },
+    { value: 'settat', label: 'Settat' },
+    { value: 'larache', label: 'Larache' },
+    { value: 'ksar-el-kebir', label: 'Ksar El Kébir' },
+    { value: 'berrechid', label: 'Berrechid' },
+    { value: 'khemisset', label: 'Khémisset' },
+    { value: 'guelmim', label: 'Guelmim' },
+    { value: 'errachidia', label: 'Errachidia' },
+    { value: 'taza', label: 'Taza' },
+    { value: 'essaouira', label: 'Essaouira' },
+    { value: 'laayoune', label: 'Laâyoune' },
+    { value: 'tiznit', label: 'Tiznit' },
+    { value: 'dakhla', label: 'Dakhla' },
+    { value: 'ouarzazate', label: 'Ouarzazate' },
   ];
 
   const marques = [
@@ -226,7 +242,7 @@ const AffaireNouvelleComplete: React.FC = () => {
     if (step === 2) {
       if (!state.formData.typeAssurance) errors.typeAssurance = 'Le type d\'assurance est requis';
       if (!state.formData.marqueVehicule) errors.marqueVehicule = 'La marque du véhicule est requise';
-      if (!state.formData.anneeVehicule) errors.anneeVehicule = 'L\'année du véhicule est requise';
+      if (!state.formData.anneeVehicule) errors.anneeVicule = 'L\'année du véhicule est requise';
     }
     
     if (step === 3) {
@@ -544,32 +560,6 @@ const AffaireNouvelleComplete: React.FC = () => {
                 onChange={handleFieldChange}
                 error={state.errors.dateObtentionPermis}
                 required
-              />
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <FormField
-                label="Nombre de sinistres (3 dernières années)"
-                name="nombreSinistres"
-                type="select"
-                value={state.formData.nombreSinistres}
-                onChange={handleFieldChange}
-                options={[
-                  { value: '0', label: 'Aucun' },
-                  { value: '1', label: '1 sinistre' },
-                  { value: '2', label: '2 sinistres' },
-                  { value: '3+', label: '3 ou plus' },
-                ]}
-              />
-              <FormField
-                label="Coefficient bonus/malus (%)"
-                name="bonusMalus"
-                type="number"
-                value={state.formData.bonusMalus}
-                onChange={handleFieldChange}
-                placeholder="50"
-                min={10}
-                max={350}
               />
             </div>
 
