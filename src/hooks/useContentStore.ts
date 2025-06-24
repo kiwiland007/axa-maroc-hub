@@ -1,3 +1,4 @@
+
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
@@ -38,7 +39,7 @@ interface Content {
     email: string;
     address: string;
   };
-  emergency?: {
+  emergency: {
     title: string;
     description: string;
     phone: string;

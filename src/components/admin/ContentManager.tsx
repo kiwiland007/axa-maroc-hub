@@ -36,13 +36,15 @@ const ContentManager = () => {
       updateContent('contact', editingContent.contact);
       updateContent('company', editingContent.company);
 
-      // Sauvegarder les sections conditionnelles avec le bon typage
+      // Sauvegarder les sections conditionnelles - mise à jour directe du store
       if (editingContent.emergency) {
-        updateContent('emergency' as any, editingContent.emergency);
+        console.log('Sauvegarde de la section emergency:', editingContent.emergency);
+        updateContent('emergency', editingContent.emergency);
       }
       
       if (editingContent.legal) {
-        updateContent('legal' as any, editingContent.legal);
+        console.log('Sauvegarde de la section legal:', editingContent.legal);
+        updateContent('legal', editingContent.legal);
       }
 
       setIsEditing(false);
@@ -716,7 +718,6 @@ const ContentManager = () => {
                     onChange={(e) => setEditingContent(prev => ({
                       ...prev,
                       emergency: { 
-                        ...prev.emergency,
                         title: e.target.value,
                         description: prev.emergency?.description || 'En cas de sinistre, contactez-nous immédiatement',
                         phone: prev.emergency?.phone || '+212 661 234 567',
@@ -741,7 +742,6 @@ const ContentManager = () => {
                     onChange={(e) => setEditingContent(prev => ({
                       ...prev,
                       emergency: { 
-                        ...prev.emergency,
                         title: prev.emergency?.title || 'Urgence Sinistre 24h/7j',
                         description: e.target.value,
                         phone: prev.emergency?.phone || '+212 661 234 567',
@@ -767,7 +767,6 @@ const ContentManager = () => {
                     onChange={(e) => setEditingContent(prev => ({
                       ...prev,
                       emergency: { 
-                        ...prev.emergency,
                         title: prev.emergency?.title || 'Urgence Sinistre 24h/7j',
                         description: prev.emergency?.description || 'En cas de sinistre, contactez-nous immédiatement',
                         phone: e.target.value,
@@ -792,7 +791,6 @@ const ContentManager = () => {
                     onChange={(e) => setEditingContent(prev => ({
                       ...prev,
                       emergency: { 
-                        ...prev.emergency,
                         title: prev.emergency?.title || 'Urgence Sinistre 24h/7j',
                         description: prev.emergency?.description || 'En cas de sinistre, contactez-nous immédiatement',
                         phone: prev.emergency?.phone || '+212 661 234 567',
@@ -830,7 +828,6 @@ const ContentManager = () => {
                     onChange={(e) => setEditingContent(prev => ({
                       ...prev,
                       legal: { 
-                        ...prev.legal,
                         mentions: e.target.value,
                         privacy: prev.legal?.privacy || '',
                         terms: prev.legal?.terms || ''
@@ -855,7 +852,6 @@ const ContentManager = () => {
                     onChange={(e) => setEditingContent(prev => ({
                       ...prev,
                       legal: { 
-                        ...prev.legal,
                         mentions: prev.legal?.mentions || '',
                         privacy: e.target.value,
                         terms: prev.legal?.terms || ''
@@ -880,7 +876,6 @@ const ContentManager = () => {
                     onChange={(e) => setEditingContent(prev => ({
                       ...prev,
                       legal: { 
-                        ...prev.legal,
                         mentions: prev.legal?.mentions || '',
                         privacy: prev.legal?.privacy || '',
                         terms: e.target.value
