@@ -29,30 +29,20 @@ const ContentManager = () => {
         return;
       }
 
-      // Sauvegarder chaque section avec validation
-      const sectionsToUpdate = [
-        { key: 'hero', data: editingContent.hero },
-        { key: 'about', data: editingContent.about },
-        { key: 'products', data: editingContent.products },
-        { key: 'contact', data: editingContent.contact },
-        { key: 'company', data: editingContent.company }
-      ];
+      // Sauvegarder les sections principales
+      updateContent('hero', editingContent.hero);
+      updateContent('about', editingContent.about);
+      updateContent('products', editingContent.products);
+      updateContent('contact', editingContent.contact);
+      updateContent('company', editingContent.company);
 
-      // Ajouter les sections conditionnelles si elles existent
+      // Sauvegarder les sections conditionnelles avec le bon typage
       if (editingContent.emergency) {
-        sectionsToUpdate.push({ key: 'emergency', data: editingContent.emergency });
+        updateContent('emergency' as any, editingContent.emergency);
       }
       
       if (editingContent.legal) {
-        sectionsToUpdate.push({ key: 'legal', data: editingContent.legal });
-      }
-
-      // Sauvegarder chaque section
-      for (const section of sectionsToUpdate) {
-        if (section.data) {
-          console.log(`Mise à jour de la section ${section.key}:`, section.data);
-          updateContent(section.key as keyof typeof content, section.data);
-        }
+        updateContent('legal' as any, editingContent.legal);
       }
 
       setIsEditing(false);
